@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return reply({ error: "Method not allowed." }, 405);
   if (!url || !serviceKey) return reply({ error: "Server is not configured." }, 503);
   let body: any;
-  try { body = await req.reply(); } catch { return reply({ error: "Invalid JSON." }, 400); }
+  try { body = await req.json(); } catch { return reply({ error: "Invalid JSON." }, 400); }
   const action = String(body.action || "");
   try {
     if (action === "bootstrap") {
