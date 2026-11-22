@@ -3,6 +3,8 @@ on:
   pull_request:
   push:
     branches: [main, feat/shared-supabase-backend]
+permissions:
+  contents: write
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -28,3 +30,10 @@ jobs:
           Path("/tmp/fiws-inline.js").write_text(scripts[0], encoding="utf-8")
           PY
           node --check /tmp/fiws-inline.js
+      - name: Commit generated GitHub Pages files
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Build generated FIWS Pages site"
+          branch: ${{ github.head_ref || github.ref_name }}
+          file_pattern: index.html robots.txt sitemap.xml
