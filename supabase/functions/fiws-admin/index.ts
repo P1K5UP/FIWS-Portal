@@ -259,16 +259,13 @@ Deno.serve(async (req) => {
       const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
       const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
       if (matchedStep === null) return json({ error: "Authenticator code is incorrect." }, 401);
-      const { data: stepUpdated } = await db.from("fiws_admin_accounts").update({ totp_last_step: matchedStep }).eq("id", account.id).or(`totp_last_step.is.null,totp_last_step.lt.${matchedStep}`).select("id").maybeSingle();
-      if (!stepUpdated) return json({ error: "That authenticator code has already been used. Wait for the next code." }, 401);
       const codes = makeRecoveryCodes();
-      const rows = await Promise.all(codes.map(async code => ({ admin_id: account.id, code_hash: await sha(code) })));
-      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", account.id);
-      const { error } = await db.from("fiws_admin_recovery_codes").insert(rows);
-      if (error) return json({ error: "Could not create recovery codes." }, 500);
-      await db.from("fiws_admin_accounts").update({ totp_enabled: true, failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id);
-      await db.from("fiws_admin_sessions").update({ mfa_verified: true, expires_at: new Date(Date.now() + 8 * 3600000).toISOString() }).eq("id", auth.row.id);
-      await audit(account, "auth.mfa_enabled", "admin", account.id);
+      const rows = await Promise.all(codes.map(async code => ({ code_hash: await sha(code) })));
+      const { data: confirmed, error: confirmError } = await db.rpc("fiws_confirm_admin_mfa", {
+        p_admin_id: account.id, p_session_id: auth.row.id, p_matched_step: matchedStep, p_codes: rows,
+      });
+      if (confirmError) throw confirmError;
+      if (!confirmed) return json({ error: "That authenticator code has already been used or the enrollment session expired." }, 409);
       return json({ success: true, recovery_codes: codes, admin: { username: account.username, display_name: account.display_name, rank: account.admin_rank } });
     }
     if (action === "session") {
@@ -409,13 +406,13 @@ Deno.serve(async (req) => {
       const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
       const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
       if (matchedStep === null) return json({ error: "Authenticator code is incorrect." }, 401);
-      const { data: stepUpdated } = await db.from("fiws_admin_accounts").update({ totp_last_step: matchedStep }).eq("id", auth.admin.id).or(`totp_last_step.is.null,totp_last_step.lt.${matchedStep}`).select("id").maybeSingle();
-      if (!stepUpdated) return json({ error: "That authenticator code has already been used. Wait for the next code." }, 401);
       const codes = makeRecoveryCodes();
-      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", auth.admin.id);
-      const { error } = await db.from("fiws_admin_recovery_codes").insert(await Promise.all(codes.map(async code => ({ admin_id: auth.admin.id, code_hash: await sha(code) }))));
-      if (error) return json({ error: "Could not rotate recovery codes." }, 500);
-      await audit(auth.admin, "auth.recovery_codes_rotated", "admin", auth.admin.id);
+      const rows = await Promise.all(codes.map(async code => ({ code_hash: await sha(code) })));
+      const { data: rotated, error: rotateError } = await db.rpc("fiws_rotate_admin_recovery_codes", {
+        p_admin_id: auth.admin.id, p_matched_step: matchedStep, p_codes: rows,
+      });
+      if (rotateError) throw rotateError;
+      if (!rotated) return json({ error: "That authenticator code has already been used." }, 409);
       return json({ success: true, recovery_codes: codes });
     }
     if (action === "applications-list") {
