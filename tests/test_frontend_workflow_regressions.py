@@ -155,8 +155,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("function leaderboardRoundLabel(s,r)", page)
         self.assertIn("matchMedia('(max-width:700px)').matches", page)
-        self.assertIn("leaderboardRoundLabel(s,round)", page)
-        self.assertIn("leaderboardRoundLabel(s,max)", page)
+        self.assertIn("paintLeaderboardRound(el,s,round)", page)
+        self.assertIn("paintLeaderboardRound(el,s,max)", page)
         self.assertIn("grand prix", page)
 
     def test_standings_includes_all_entry_drivers_even_without_points_rows(self):
