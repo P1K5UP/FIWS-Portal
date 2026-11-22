@@ -543,14 +543,21 @@ async function adminLoad(){
    if(!/\.xlsx$/i.test(file.name)||file.size>3e6){preview.textContent='Choose a valid .xlsx file up to 3 MB.';return}
    try{
     const bytes=new Uint8Array(await file.arrayBuffer());if(bytes[0]!==0x50||bytes[1]!==0x4B)throw new Error('Not a valid XLSX file.');
-    const parsed=parseWB(XLSX.read(bytes,{type:'array',cellDates:true}));if(!parsed.length)throw new Error('No FIWS season blocks found.');
-    preview.innerHTML='<p><b>'+esc(file.name)+': '+parsed.length+' season blocks found.</b></p><button class="btn sm" id="publish-workbook">Publish to everyone</button>';
+    const parsed=parseWB(XLSX.read(bytes,{type:'array',cellDates:true}));
+    if(!parsed.length)throw new Error('No FIWS season blocks found.');
+    const summary=parsed.map(x=>esc(x.sheet+' S'+x.num+': '+x.drv.length+' drivers, '+x.cal.length+' rounds, '+(x.done+1)+' scored')).join(' · ');
+    preview.innerHTML='<p><b>'+esc(file.name)+': '+parsed.length+' season blocks found.</b> '+summary+'</p><button class="btn sm" id="publish-workbook">Publish to everyone</button>';
     $('#publish-workbook').onclick=async()=>{
      const btn=$('#publish-workbook');btn.disabled=true;
      try{
-      await adminUploadFile(file,'workbooks/current.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      await saveSharedSetting('workbook',{path:'workbooks/current.xlsx',updated_at:new Date().toISOString()});
-      await loadSharedData();cur.key=defKey(cur.series);toast('Shared standings workbook published');render(true);adminTab='data';admin();
+      const workbookPath='workbooks/current-'+crypto.randomUUID()+'.xlsx';
+      await adminUploadFile(file,workbookPath,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      await saveSharedSetting('workbook',{path:workbookPath,updated_at:new Date().toISOString()});
+      await loadSharedData();
+      if(!D.length)throw new Error('The uploaded workbook was stored, but no season data could be loaded.');
+      if(!D.some(s=>s.sheet===cur.series))cur.series=D.some(s=>s.sheet==='FIWS')?'FIWS':D[0].sheet;
+      cur.key=defKey(cur.series);
+      toast('Shared standings workbook published');render(true);adminTab='data';admin();
      }catch(x){toast(x.message||'Workbook upload failed')}finally{btn.disabled=false}
     };
    }catch(x){preview.textContent='Could not read workbook: '+x.message}
