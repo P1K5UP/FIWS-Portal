@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; manifest-src 'self'; connect-src 'self'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://yipzokjzqltxcufixrsv.supabase.co; manifest-src 'self'; connect-src 'self' https://yipzokjzqltxcufixrsv.supabase.co wss://yipzokjzqltxcufixrsv.supabase.co; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <title>FIWS – Formula Imperial Worldwide Series</title>
 <meta name="description" content="Official portal of the Formula Imperial Worldwide Series (FIWS): live championship standings, race results, calendar, entries, rules and driver and steward applications. Assetto Corsa sim-racing league.">
@@ -44,7 +44,7 @@ h1{font-size:clamp(2.6rem,7vw,5.2rem)}h2{font-size:clamp(1.9rem,4vw,2.8rem)}h3{f
 a{color:var(--acc)}
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--panel);border-bottom:3px solid var(--sky)}
 .bar{max-width:1180px;margin:auto;padding:.55rem 1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:.7rem;text-decoration:none;color:var(--ink)}.brand svg,.brand img{height:36px;width:auto;max-width:200px;object-fit:contain}
+.brand{display:flex;align-items:center;gap:.7rem;text-decoration:none;color:var(--ink)}.brand svg,.brand img,.brand canvas{height:36px;width:auto;max-width:200px;object-fit:contain}
 .brand b{font:700 1.25rem/1 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em}
 .nav{display:flex;gap:.1rem;overflow-x:auto;flex:1;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
 .nav a{color:var(--ink)!important;text-decoration:none;padding:.45rem .8rem;font:600 1.05rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em;position:relative;white-space:nowrap}
@@ -124,9 +124,13 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
 <footer class="ft"><div class="in"><span>© Formula Imperial Worldwide Series. Unofficial league data is shown as provided by league staff.</span><span><a href="#privacy">Privacy</a> &nbsp; <a href="#terms">Terms</a> &nbsp; <a href="#cookies">Cookies</a> &nbsp; <a href="#admin">Admin</a> &nbsp; <a href="#" id="cset">Cookie settings</a></span></div></footer>
 <div id="cbw"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.min.js"></script>
 <script>
-(()=>{'use strict';
-const LEAGUE_EMAIL=''; // set to the league inbox so applicants can send their application by email
+(async()=>{'use strict';
+const SUPABASE_URL='https://yipzokjzqltxcufixrsv.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_Ugy5e88mhjKwqOIZ_RR9DA_sMAwNcMF';
+const sb=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let authSession=null,authUser=null,REMOTE_COLORS={},REMOTE_LOGOS={},REMOTE_APPS=[];
 const B64='__B64__';
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -182,7 +186,7 @@ const seas=()=>D.find(s=>s.key===cur.key)||D.find(s=>s.sheet===cur.series)||D[0]
 const stl={FINISHED:'Complete',ONGOING:'Live',FUTURE:'Upcoming'};
 const PAL=['#00AEEF','#E5484D','#F5A524','#2FB67C','#7B61FF','#E056A0','#8A9BA8','#0A5BA8'];
 const TEAM_COLORS={}; // permanent overrides, e.g. {'Suaber':'#E5484D'}
-let TCOL=LS.get('tcol',{})||{};const tcol=n=>TCOL[n]||TEAM_COLORS[n]||PAL[[...String(n)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%PAL.length];
+let TCOL=LS.get('tcol',{})||{};const tcol=n=>REMOTE_COLORS[n]||TCOL[n]||TEAM_COLORS[n]||PAL[[...String(n)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%PAL.length];
 const CC={Egypt:'EGY','United Kingdom':'GBR',Singapore:'SGP',Australia:'AUS',Germany:'GER',Romania:'ROU','Hong Kong':'HKG',Indonesia:'IDN',Switzerland:'SUI',International:'INT'};
 const info=(s,n)=>{const e=s.drivers.find(d=>d.Driver===n);if(!e)return{team:'',num:'',nat:''};const t=String(e.Team||'').split(',').pop().replace(/\(.*?\)/g,'').trim();return{team:/^(N\/A|TBD)$/i.test(t)?'':t,num:e.Number||'',nat:CC[e.Nationality]||''}};
 const valid=v=>v!=null&&String(v).trim()!==''&&!/^N\/A/i.test(String(v));
@@ -376,6 +380,293 @@ if(tab==='data'){P.innerHTML=`<div class="panel"><h3>Sync standings from workboo
  if(tab==='sec'){P.innerHTML=`<div class="panel" style="max-width:480px"><h3>Change passcode</h3><form id="pf" novalidate>${pwField('o','Current passcode','current-password')}${pwField('p','New passcode (12+ characters)','new-password')}${pwField('q','Repeat new passcode','new-password')}<span class="er" id="pe" role="alert"></span><button class="btn sm" type="submit">Change passcode</button></form><hr style="border:0;border-top:1px solid var(--line);margin:1.4rem 0"><h3>Erase site data</h3><p class="muted">Deletes applications, uploaded workbook, logo and the admin account stored on this device.</p><form id="wf" novalidate>${pwField('o','Confirm with passcode','current-password')}<span class="er" id="we" role="alert"></span><button class="btn sm bad" type="submit">Erase everything</button></form></div>`;
   $('#pf').onsubmit=async e=>{e.preventDefault();const f=e.target,er=$('#pe'),w=wait();if(w){er.textContent='Too many failed attempts. Try again later.';return}if(!await verify(f.o.value)){failed();er.textContent='Current passcode is incorrect.';return}LS.del('lk');const i=pwIssue(f.p.value);if(i){er.textContent=i;return}if(f.p.value!==f.q.value){er.textContent='The new passcodes do not match.';return}await setCred(f.p.value);f.reset();er.textContent='';toast('Passcode changed')};
   $('#wf').onsubmit=async e=>{e.preventDefault();const f=e.target,er=$('#we'),w=wait();if(w){er.textContent='Too many failed attempts. Try again later.';return}if(!await verify(f.o.value)){failed();er.textContent='Passcode is incorrect.';return}if(confirm('Erase all data stored by this site on this device? This cannot be undone.')){Object.keys(localStorage).filter(k=>k.startsWith('fiws.')).forEach(k=>localStorage.removeItem(k));sessionStorage.removeItem('fiws.adm');load();cur.key=defKey(cur.series);render()}}}}
+
+/* shared Supabase integration */
+async function initSupabase(){
+ if(!sb)throw new Error('Supabase client library did not load.');
+ const {data,error}=await sb.auth.getSession();if(error)throw error;
+ authSession=data.session;authUser=data.session?.user||null;
+ sb.auth.onAuthStateChange((event,session)=>{
+  authSession=session;authUser=session?.user||null;
+  if(event==='SIGNED_IN')setTimeout(async()=>{
+   await finishPendingApplication();
+   if(location.hash==='#status')renderStatus();
+   if(location.hash==='#admin')admin();
+  },0);
+  if(event==='SIGNED_OUT')setTimeout(()=>{
+   if(location.hash==='#status')renderStatus();
+   if(location.hash==='#admin')admin();
+  },0);
+ });
+}
+async function loadSharedData(){
+ if(!sb)return;
+ const {data,error}=await sb.from('site_settings').select('setting_key,setting_value');
+ if(error)throw error;
+ const cfg=Object.fromEntries((data||[]).map(x=>[x.setting_key,x.setting_value]));
+ REMOTE_COLORS=cfg.team_colors&&typeof cfg.team_colors==='object'?cfg.team_colors:{};
+ const logoPaths=cfg.logos&&typeof cfg.logos==='object'?cfg.logos:{};
+ REMOTE_LOGOS={};
+ for(const k of ['FIWS','FITC'])if(logoPaths[k]){
+  const {data:p}=sb.storage.from('fiws-public').getPublicUrl(logoPaths[k]);
+  if(p?.publicUrl)REMOTE_LOGOS[k]=p.publicUrl;
+ }
+ if(cfg.workbook?.path){
+  const {data:file,error:downloadError}=await sb.storage.from('fiws-public').download(cfg.workbook.path);
+  if(downloadError)throw downloadError;
+  D=parseWB(XLSX.read(new Uint8Array(await file.arrayBuffer()),{type:'array',cellDates:true}));
+  srcNote='shared workbook';
+ }
+ if(typeof setLogo==='function'&&document.querySelector('#logo'))setLogo();
+}
+async function saveSharedSetting(key,value){
+ const {data,error:userError}=await sb.auth.getUser();if(userError)throw userError;
+ if(!data.user)throw new Error('Sign in is required.');
+ const {error}=await sb.from('site_settings').upsert({setting_key:key,setting_value:value,updated_at:new Date().toISOString(),updated_by:data.user.id},{onConflict:'setting_key'});
+ if(error)throw error;
+}
+async function emailSignIn(email,target,createUser){
+ const {error}=await sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.origin+location.pathname+target,shouldCreateUser:!!createUser}});
+ if(error)throw error;
+}
+const pendingDraftKey='fiws.pendingApplication';
+async function persistApplication(draft){
+ const {data,error:userError}=await sb.auth.getUser();if(userError)throw userError;
+ const user=data.user;if(!user||!user.email_confirmed_at)throw new Error('Verify your email before submitting.');
+ const payload={...draft.data,type:draft.type,mail:!!draft.mail,email:user.email};
+ const code=ref();
+ const {error}=await sb.from('applications').insert({applicant_id:user.id,reference_code:code,application_data:payload});
+ if(error)throw error;
+ sessionStorage.removeItem(pendingDraftKey);
+ LS.set('myref',code);
+ return {code:code,payload:payload};
+}
+function applicationReceipt(result){
+ const box=$('#box');if(!box)return;
+ box.innerHTML='<h2>Application received</h2><p>Your reference code:</p><p class="disp" style="font-size:2.4rem;color:var(--acc)">'+esc(result.code)+'</p><p class="muted">Your application is securely stored. Sign in with the same verified email on any device to check its status.</p><div class="row"><a class="btn" href="#status">Check status</a><button class="btn ghost" id="cp" type="button">Copy reference code</button></div>';
+ $('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(result.code);toast('Reference code copied')}catch{toast('Copy unavailable. Your code is '+result.code)}};
+}
+async function finishPendingApplication(){
+ const raw=sessionStorage.getItem(pendingDraftKey);if(!raw||!authUser)return;
+ let draft;try{draft=JSON.parse(raw)}catch{sessionStorage.removeItem(pendingDraftKey);return}
+ if(String(authUser.email||'').toLowerCase()!==String(draft.data?.email||'').toLowerCase())return;
+ try{
+  const result=await persistApplication(draft);
+  if(location.hash==='#apply')applicationReceipt(result);else toast('Your application has been submitted.');
+ }catch(e){console.error(e);toast(e.message||'Application could not be submitted.');}
+}
+function sendLinkPanel(title,description,hash,createUser){
+ const box=$('#main');if(!box)return;
+ box.innerHTML='<h1>'+esc(title)+'</h1><div class="panel" style="margin-top:1rem;max-width:560px"><p class="muted">'+esc(description)+'</p><form id="auth-link"><label>Email address<input name="email" type="email" maxlength="120" autocomplete="email" required></label><span class="er" id="auth-error" role="alert"></span><button class="btn" type="submit">Email me a sign-in link</button></form></div>';
+ $('#auth-link').onsubmit=async e=>{e.preventDefault();const f=e.target,btn=$('button',f),out=$('#auth-error');btn.disabled=true;out.textContent='';try{await emailSignIn(clean(f.email.value,120).toLowerCase(),hash,createUser);f.innerHTML='<p><b>Check your inbox.</b></p><p class="muted">Open the sign-in link on this device. You will be returned to FIWS automatically.</p>'; }catch(x){out.textContent=x.message||'Could not send the email.'}finally{btn.disabled=false}};
+}
+V.apply=()=>({html:'<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply as a driver or steward. A secure email sign-in verifies your address and lets you check your application from any device.</p><div class="panel" style="margin-top:1rem;max-width:860px" id="box"><form id="af" novalidate><div class="seg" role="group" aria-label="Applying as"><button type="button" data-ty="D">Driver</button><button type="button" data-ty="S">Steward</button></div><div class="f2" id="fl"></div><input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><label class="ck"><input type="checkbox" name="rules"><span>I have read the <a href="#rules">rules and driving standards</a> and will follow steward decisions.</span></label><span class="er" data-e="rules"></span><label class="ck"><input type="checkbox" name="priv"><span>I agree to the processing of this application as described in the <a href="#privacy">privacy notice</a>.</span></label><span class="er" data-e="priv"></span><label class="ck"><input type="checkbox" name="mail"><span>League staff may email me about my application status (optional).</span></label><button class="btn" type="submit">Continue securely</button></form></div>',after:()=>{
+ const f=$('#af'),vals={};let type=aTy;
+ const draw=()=>{$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===type));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(type)).map(x=>fieldHTML(x,type,vals[x.k]||'')).join('')};
+ const grab=()=>FIELDS.forEach(x=>{const el=f.elements[x.k];if(el)vals[x.k]=el.value});
+ $('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();type=b.dataset.ty;draw()});draw();
+ f.onsubmit=async e=>{
+  e.preventDefault();const d=Object.fromEntries(new FormData(f));if(d.website)return;
+  const E={},v={};FIELDS.filter(x=>x.r.includes(type)).forEach(x=>{const z=clean(d[x.k],x.m||60);v[x.k]=z;const m=chk(x,z);if(m)E[x.k]=m});
+  if(!d.rules)E.rules='You must accept the rules to apply.';if(!d.priv)E.priv='Consent is required to process your application.';
+  $('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){(f.elements[ks[0]]||f).focus();return}
+  if(Date.now()-LS.get('last',0)<30000){toast('Please wait a moment before submitting again.');return}
+  v.email=v.email.toLowerCase();
+  const draft={type:type==='S'?'Steward':'Driver',data:v,mail:!!d.mail};
+  if(authUser&&String(authUser.email||'').toLowerCase()===v.email){
+   const btn=$('button[type=submit]',f);btn.disabled=true;
+   try{const result=await persistApplication(draft);LS.set('last',Date.now());applicationReceipt(result)}
+   catch(x){toast(x.message||'Application could not be submitted.')}finally{btn.disabled=false}
+   return;
+  }
+  sessionStorage.setItem(pendingDraftKey,JSON.stringify(draft));
+  const btn=$('button[type=submit]',f);btn.disabled=true;
+  try{
+   if(authUser)await sb.auth.signOut();
+   await emailSignIn(v.email,'#apply',true);
+   $('#box').innerHTML='<h2>Verify your email</h2><p>We have sent a secure sign-in link to <b>'+esc(v.email)+'</b>.</p><p class="muted">Open that link on this device. Your application draft is temporarily held until you verify your email, then it will be submitted automatically.</p>';
+  }catch(x){toast(x.message||'Could not send a verification email.');btn.disabled=false}
+ };
+}});
+async function renderStatus(){
+ const out=$('#sr');if(!out)return;
+ if(!authUser){
+  out.innerHTML='<div class="panel" style="max-width:620px"><p class="muted">Sign in with the email address used for your application. We will send a one-time link to verify it.</p><form id="sf"><label>Email address<input name="email" type="email" maxlength="120" autocomplete="email" required></label><span class="er" id="se" role="alert"></span><button class="btn" type="submit">Email me a sign-in link</button></form></div>';
+  $('#sf').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#se'),btn=$('button',f);btn.disabled=true;try{await emailSignIn(clean(f.email.value,120).toLowerCase(),'#status',false);f.innerHTML='<p><b>Check your inbox.</b></p><p class="muted">Open the sign-in link to view your applications.</p>'}catch(x){err.textContent=x.message||'Could not send the email.'}finally{btn.disabled=false}};
+  return;
+ }
+ const {data,error}=await sb.from('applications').select('id,reference_code,application_data,status,staff_note,created_at,decided_at').order('created_at',{ascending:false});
+ if(error){out.innerHTML='<div class="panel">'+esc(error.message)+'</div>';return}
+ const rows=data||[];
+ out.innerHTML='<div class="row" style="justify-content:space-between;align-items:center"><p class="muted">Signed in as '+esc(authUser.email||'')+'</p><button class="btn sm ghost" id="status-out">Sign out</button></div>'+
+ (rows.length?rows.map(r=>{const a=r.application_data||{};return '<div style="margin-bottom:.8rem">'+stCard(esc(a.name||a.type||'Application')+' · '+esc(a.series||'')+' '+esc(String(a.type||'').toLowerCase()),r.status,r.staff_note,'Reference '+r.reference_code+' · Submitted '+new Date(r.created_at).toLocaleDateString('en-GB'))+'</div>'}).join(''):'<div class="panel"><p>No applications are associated with this verified email address.</p></div>');
+ $('#status-out').onclick=async()=>{await sb.auth.signOut()};
+}
+V.status=()=>({html:'<h1>Application status</h1><div id="sr" aria-live="polite" style="margin-top:1.2rem;max-width:620px"></div>',after:()=>renderStatus()});
+let adminTab='apps',adminRows=[];
+function admin(){
+ const R=$('#adm');if(!R)return;
+ if(!authUser){
+  R.innerHTML='<div class="panel" style="max-width:500px"><h3>Staff sign-in</h3><p class="muted">Sign in with your staff email. Administrator access is granted separately by league staff; creating an account does not grant privileges.</p><form id="admin-login"><label>Staff email<input name="email" type="email" autocomplete="email" required></label><span class="er" id="admin-error" role="alert"></span><button class="btn" type="submit">Email sign-in link</button></form></div>';
+  $('#admin-login').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#admin-error'),btn=$('button',f);btn.disabled=true;try{await emailSignIn(clean(f.email.value,120).toLowerCase(),'#admin',true);f.innerHTML='<p><b>Check your inbox for the staff sign-in link.</b></p>'}catch(x){err.textContent=x.message||'Could not send the email.'}finally{btn.disabled=false}};
+  return;
+ }
+ if(authUser.app_metadata?.fiws_role!=='admin'){
+  R.innerHTML='<div class="panel" style="max-width:600px"><h3>Administrator access not enabled</h3><p class="muted">This account is signed in, but it has not been granted the trusted FIWS administrator role. Contact the project owner to provision access.</p><p>'+esc(authUser.email||'')+'</p><button class="btn sm ghost" id="admin-out">Sign out</button></div>';
+  $('#admin-out').onclick=async()=>{await sb.auth.signOut()};return;
+ }
+ adminLoad();
+}
+async function adminLoad(){
+ const R=$('#adm');if(!R)return;
+ R.innerHTML='<div class="panel">Loading shared administration data…</div>';
+ const {data,error}=await sb.from('applications').select('id,reference_code,application_data,status,staff_note,created_at,decided_at').order('created_at',{ascending:false});
+ if(error){R.innerHTML='<div class="panel">'+esc(error.message)+'</div>';return}
+ adminRows=data||[];
+ const tabs=[['apps','Applications ('+adminRows.length+')'],['data','Standings data'],['col','Team colours'],['brand','Logos'],['sec','Account']];
+ R.innerHTML='<div class="tabs seg" style="display:flex">'+tabs.map(x=>'<button data-at="'+x[0]+'" aria-pressed="'+(adminTab===x[0])+'">'+x[1]+'</button>').join('')+'<button id="admin-out">Sign out</button></div><div id="admin-content"></div>';
+ $('[data-at]').forEach(b=>b.onclick=()=>{adminTab=b.dataset.at;adminLoad()});
+ $('#admin-out').onclick=async()=>{await sb.auth.signOut()};
+ const P=$('#admin-content');
+ if(adminTab==='apps'){
+  const rows=adminRows;
+  P.innerHTML=rows.length?rows.map(r=>{
+   const a=r.application_data||{},fields=FIELDS.filter(f=>f.r.includes(a.type==='Steward'?'S':'D')&&a[f.k]&&!['name','email','series'].includes(f.k));
+   return '<div class="panel" style="margin-bottom:.8rem" data-app="'+esc(r.id)+'"><div class="row" style="justify-content:space-between"><h3>'+esc(a.name||'Applicant')+' <span class="muted" style="font:500 1rem Barlow;text-transform:none">'+esc(a.type||'')+' · '+esc(a.series||'')+'</span></h3><span class="chip '+(r.status==='accepted'?'ok':r.status==='rejected'?'bad':'warn')+'">'+esc(r.status)+'</span></div><p class="muted" style="margin:.4rem 0">'+esc(r.reference_code)+' · '+esc(a.email||'')+' · '+esc(new Date(r.created_at).toLocaleString('en-GB'))+'</p><dl class="dl2">'+fields.map(f=>'<dt>'+esc(lab(f,a.type==='Steward'?'S':'D'))+'</dt><dd>'+esc(a[f.k])+'</dd>').join('')+'</dl><label>Note shown to applicant<input data-note maxlength="1000" value="'+esc(r.staff_note||'')+'"></label><div class="row" style="margin-top:.7rem"><button class="btn sm" data-state="accepted">Accept</button><button class="btn sm bad" data-state="rejected">Reject</button><button class="btn sm ghost" data-state="pending">Reset</button><button class="btn sm ghost" data-delete>Delete</button></div></div>';
+  }).join(''):'<div class="panel"><h3>No applications</h3><p class="muted">New verified applications will appear here for all staff.</p></div>';
+  $('[data-app]',P).forEach(card=>{
+   $('[data-state]',card).forEach(b=>b.onclick=async()=>{
+    b.disabled=true;const id=card.dataset.app,st=b.dataset.state,staff_note=clean($('[data-note]',card).value,1000);
+    const {error}=await sb.from('applications').update({status:st,staff_note:staff_note,decided_at:st==='pending'?null:new Date().toISOString(),decided_by:authUser.id}).eq('id',id);
+    if(error)toast(error.message);else{toast('Application '+st);adminLoad()}
+   });
+   $('[data-delete]',card).onclick=async()=>{if(!confirm('Delete this application permanently?'))return;const {error}=await sb.from('applications').delete().eq('id',card.dataset.app);if(error)toast(error.message);else{toast('Application deleted');adminLoad()}};
+  });
+  P.insertAdjacentHTML('afterbegin','<div class="row" style="margin-bottom:1rem"><button class="btn sm ghost" id="export-json">Export JSON</button><button class="btn sm ghost" id="export-csv">Export CSV</button></div>');
+  $('#export-json').onclick=()=>dl('fiws-applications.json',JSON.stringify(rows.map(r=>({...r.application_data,ref:r.reference_code,status:r.status,note:r.staff_note,created:r.created_at})),null,1),'application/json');
+  $('#export-csv').onclick=()=>{const ks=['reference_code','status','created_at',...FIELDS.map(f=>f.k)];dl('fiws-applications.csv',ks.join(',')+'\n'+rows.map(r=>{const a=r.application_data||{};return ks.map(k=>csvc(r[k]??a[k])).join(',')}).join('\n'),'text/csv')};
+ }
+ if(adminTab==='data'){
+  P.innerHTML='<div class="panel"><h3>Shared standings workbook</h3><p class="muted">Upload a workbook once and every visitor will use it. Current source: '+esc(srcNote)+'.</p><label class="dz" id="shared-drop" tabindex="0"><b>Choose or drop the .xlsx workbook</b><span>Up to 3 MB · shared with every visitor</span><input type="file" id="shared-xlsx" accept=".xlsx" hidden></label><div id="shared-preview" style="margin-top:1rem"></div><p class="tbl-note">Parsed: '+D.map(x=>esc(x.sheet+' S'+x.num+' ('+x.drv.length+' drivers, '+x.cal.length+' rounds)')).join('; ')+'</p></div>';
+  const input=$('#shared-xlsx'),zone=$('#shared-drop');
+  const handle=async file=>{
+   const preview=$('#shared-preview');if(!file)return;
+   if(!/\.xlsx$/i.test(file.name)||file.size>3e6){preview.textContent='Choose a valid .xlsx file up to 3 MB.';return}
+   try{
+    const bytes=new Uint8Array(await file.arrayBuffer());if(bytes[0]!==0x50||bytes[1]!==0x4B)throw new Error('Not a valid XLSX file.');
+    const parsed=parseWB(XLSX.read(bytes,{type:'array',cellDates:true}));if(!parsed.length)throw new Error('No FIWS season blocks found.');
+    preview.innerHTML='<p><b>'+esc(file.name)+': '+parsed.length+' season blocks found.</b></p><button class="btn sm" id="publish-workbook">Publish to everyone</button>';
+    $('#publish-workbook').onclick=async()=>{
+     const btn=$('#publish-workbook');btn.disabled=true;
+     try{
+      const {error:uploadError}=await sb.storage.from('fiws-public').upload('workbooks/current.xlsx',file,{upsert:true,contentType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      if(uploadError)throw uploadError;
+      await saveSharedSetting('workbook',{path:'workbooks/current.xlsx',updated_at:new Date().toISOString()});
+      await loadSharedData();cur.key=defKey(cur.series);toast('Shared standings workbook published');render(true);adminTab='data';admin();
+     }catch(x){toast(x.message||'Workbook upload failed')}finally{btn.disabled=false}
+    };
+   }catch(x){preview.textContent='Could not read workbook: '+x.message}
+  };
+  input.onchange=e=>{handle(e.target.files[0]);input.value=''};
+  zone.onclick=e=>{if(e.target!==input)input.click()};
+  zone.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click()}};
+  zone.ondragover=e=>{e.preventDefault();zone.classList.add('on')};
+  zone.ondragleave=()=>zone.classList.remove('on');
+  zone.ondrop=e=>{e.preventDefault();zone.classList.remove('on');handle(e.dataTransfer.files[0])};
+ }
+ if(adminTab==='col'){
+  const names=[...new Set(D.flatMap(x=>[...x.teams.map(t=>t.Team),...x.con.map(t=>t.name)]))].filter(Boolean).sort();
+  P.innerHTML='<div class="panel"><h3>Shared team colours</h3><p class="muted">Changes are saved centrally and apply to every visitor.</p>'+names.map((n,i)=>'<div class="row" style="align-items:center;margin:.5rem 0"><input type="color" data-col="'+i+'" value="'+esc(tcol(n))+'" style="width:52px;height:38px;padding:2px" aria-label="Colour for '+esc(n)+'"><b>'+esc(n)+'</b><button class="btn sm ghost" data-reset="'+i+'">Reset</button></div>').join('')+'</div>';
+  $('[data-col]',P).forEach(i=>i.onchange=async()=>{const n=names[+i.dataset.col];REMOTE_COLORS[n]=i.value;try{await saveSharedSetting('team_colors',REMOTE_COLORS);toast('Shared colour saved')}catch(x){toast(x.message)}});
+  $('[data-reset]',P).forEach(b=>b.onclick=async()=>{delete REMOTE_COLORS[names[+b.dataset.reset]];try{await saveSharedSetting('team_colors',REMOTE_COLORS);adminLoad()}catch(x){toast(x.message)}});
+ }
+ if(adminTab==='brand'){
+  P.innerHTML='<div class="g3">'+['FIWS','FITC'].map(k=>'<div class="panel"><h3>'+k+' logo</h3><div style="background:var(--gr);padding:1rem;border-radius:6px;display:grid;place-items:center;min-height:90px"><img alt="'+k+' logo preview" src="'+esc(REMOTE_LOGOS[k]||LOGO[k])+'" style="max-height:60px;max-width:100%" onerror="this.style.visibility=\'hidden\'"></div><p class="tbl-note">'+(REMOTE_LOGOS[k]?'Shared logo uploaded.':'Using built-in logo until one is uploaded.')+'</p><label>Upload PNG, JPG or SVG (up to 300 KB)<input type="file" data-logo="'+k+'" accept="image/png,image/jpeg,image/svg+xml"></label><button class="btn sm ghost" data-logo-remove="'+k+'" style="margin-top:.6rem">Remove shared logo</button></div>').join('')+'</div><p class="tbl-note">SVG uploads are sanitized to a safe element/attribute allowlist and rasterized to PNG before storage. Neutral white/black pixels adapt to the active light/dark theme; other colours and transparency are retained.</p>';
+  $('[data-logo]',P).forEach(i=>i.onchange=async e=>{
+   const file=e.target.files[0],k=i.dataset.logo;if(!file)return;
+   if(file.size>3e5){toast('Logo is larger than 300 KB.');return}
+   try{
+    const png=await sanitizeLogoToPng(file);
+    const path='logos/'+k.toLowerCase()+'.png';
+    const {error}=await sb.storage.from('fiws-public').upload(path,png,{upsert:true,contentType:'image/png'});if(error)throw error;
+    const paths={FIWS:null,FITC:null};Object.assign(paths,((await sb.from('site_settings').select('setting_value').eq('setting_key','logos').maybeSingle()).data||{}).setting_value||{});paths[k]=path;
+    await saveSharedSetting('logos',paths);await loadSharedData();setLogo();toast(k+' logo published for everyone');
+   }catch(x){toast(x.message||'Logo could not be uploaded')}finally{i.value=''}
+  });
+  $('[data-logo-remove]',P).forEach(b=>b.onclick=async()=>{
+   const k=b.dataset.logoRemove,paths={...Object.fromEntries(Object.entries(REMOTE_LOGOS).map(([key])=>[key,null]))};
+   const {data}=await sb.from('site_settings').select('setting_value').eq('setting_key','logos').maybeSingle();Object.assign(paths,data?.setting_value||{});const old=paths[k];delete paths[k];
+   try{if(old)await sb.storage.from('fiws-public').remove([old]);await saveSharedSetting('logos',paths);await loadSharedData();setLogo();adminLoad()}catch(x){toast(x.message)}
+  });
+ }
+ if(adminTab==='sec'){
+  P.innerHTML='<div class="panel" style="max-width:560px"><h3>Signed in</h3><p>'+esc(authUser.email||'')+'</p><p class="muted">Administrator access is verified by the trusted app_metadata role and database Row Level Security, not by a browser-only passcode.</p><button class="btn sm ghost" id="admin-signout">Sign out of FIWS</button></div>';
+  $('#admin-signout').onclick=async()=>{await sb.auth.signOut()};
+ }
+}
+function sanitizeSvgSource(source){
+ if(/<!DOCTYPE|<!ENTITY/i.test(source))throw new Error('SVG document types and entities are not allowed.');
+ const doc=new DOMParser().parseFromString(source,'image/svg+xml');
+ if(doc.querySelector('parsererror')||doc.documentElement.localName!=='svg')throw new Error('Invalid SVG file.');
+ const tags=new Set(['svg','g','path','rect','circle','ellipse','line','polyline','polygon','defs','linearGradient','radialGradient','stop','clipPath','mask','title']);
+ const attrs=new Set(['xmlns','viewBox','width','height','x','y','x1','x2','y1','y2','cx','cy','r','rx','ry','d','points','fill','fill-rule','fill-opacity','stroke','stroke-width','stroke-linecap','stroke-linejoin','stroke-opacity','opacity','transform','offset','stop-color','stop-opacity','gradientUnits','gradientTransform','clip-path','mask','id']);
+ [...doc.documentElement.querySelectorAll('*')].forEach(node=>{
+  if(!tags.has(node.localName)){node.remove();return}
+  [...node.attributes].forEach(a=>{
+   const n=a.name,v=a.value.trim();
+   if(!attrs.has(n)||/^on/i.test(n)){node.removeAttribute(n);return}
+   if((n==='clip-path'||n==='mask'||n==='fill'||n==='stroke')&&/url\\(/i.test(v)&&!/^url\\(#[A-Za-z_][\\w.-]*\\)$/.test(v)){node.removeAttribute(n);return}
+   if(n==='xmlns'&&v!=='http://www.w3.org/2000/svg'){node.removeAttribute(n);return}
+   if(n==='d'&&!/^[MmLlHhVvCcSsQqTtAaZz0-9eE, .+-]*$/.test(v)){node.removeAttribute(n);return}
+   if(n==='points'&&!/^[0-9eE, .+-]*$/.test(v)){node.removeAttribute(n);return}
+   if(n==='transform'&&!/^[A-Za-z0-9(), .+-]*$/.test(v)){node.removeAttribute(n);return}
+   if(['fill','stroke','stop-color'].includes(n)&&!/^url\\(#[A-Za-z_][\\w.-]*\\)$/.test(v)&&!/^#[0-9a-fA-F]{3,8}$/.test(v)&&!/^[A-Za-z]+$/.test(v)&&!/^rgba?\\([0-9.,% ]+\\)$/.test(v)){node.removeAttribute(n);return}
+   if(['width','height','x','y','x1','x2','y1','y2','cx','cy','r','rx','ry','opacity','fill-opacity','stroke-opacity','stroke-width','offset','stop-opacity'].includes(n)&&!/^[0-9.eE%+-]+$/.test(v)){node.removeAttribute(n);return}
+  });
+ });
+ const root=doc.documentElement;root.setAttribute('xmlns','http://www.w3.org/2000/svg');
+ return new XMLSerializer().serializeToString(root);
+}
+async function sanitizeLogoToPng(file){
+ let source;
+ if(file.type==='image/svg+xml')source=sanitizeSvgSource(await file.text());
+ else if(file.type!=='image/png'&&file.type!=='image/jpeg')throw new Error('Use PNG, JPG or SVG.');
+ let url;
+ try{
+  const blob=source?new Blob([source],{type:'image/svg+xml'}):file;
+  url=URL.createObjectURL(blob);const img=new Image();
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('Image could not be decoded.'));img.src=url});
+  const scale=Math.min(1,1200/img.naturalWidth,1200/img.naturalHeight),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
+  const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+  const png=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!png)throw new Error('Could not rasterize logo.');return png;
+ }finally{if(url)URL.revokeObjectURL(url)}
+}
+function setLogo(){
+ const k=cur.series,L=$('#logo'),T=$('.brand b');if(!L)return;
+ L.innerHTML=mark;T.hidden=false;T.textContent=k;setIcon();
+ const src=REMOTE_LOGOS[k]||((LS.get('logos',{})||{})[k])||LOGO[k]||LOGO.FIWS;
+ if(!src)return;
+ const img=new Image();if(/^https?:/.test(src))img.crossOrigin='anonymous';
+ img.onload=()=>{
+  if(cur.series!==k)return;
+  try{
+   const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+   const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
+   const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),p=pixels.data;
+   const dark=document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+   for(let i=0;i<p.length;i+=4){
+    if(!p[i+3])continue;const hi=Math.max(p[i],p[i+1],p[i+2]),lo=Math.min(p[i],p[i+1],p[i+2]);
+    if(hi-lo>18)continue;const y=.2126*p[i]+.7152*p[i+1]+.0722*p[i+2];
+    if(!dark&&y>=225){p[i]=p[i+1]=p[i+2]=0}
+    else if(dark&&y<=30){p[i]=p[i+1]=p[i+2]=255}
+   }
+   ctx.putImageData(pixels,0,0);canvas.setAttribute('role','img');canvas.setAttribute('aria-label',k+' logo');canvas.style.maxWidth='200px';L.innerHTML='';L.append(canvas);T.hidden=true;
+  }catch(e){console.warn('Logo theme processing unavailable',e)}
+ };
+ img.onerror=()=>{L.innerHTML=mark;T.hidden=false};img.src=src;
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!document.documentElement.dataset.theme)setLogo()});
+
 /* legal */
 const legal={privacy:['Privacy notice',`<p>This notice explains what the FIWS website does with personal data.</p><h3>What we collect</h3><ul><li><b>Applications:</b> the details you type into the form (name or alias, email, Steam ID, date of birth, nationality, race and car numbers, control type, voice chat access, experience, pace, past series and motivation), plus a reference code and timestamp. Date of birth is used only to check eligibility: applicants must be 13 or older. Decisions may be published in an anonymised status file (a hashed code, the decision and a note) so you can check your status.</li><li><b>Preferences:</b> your last selected series and season, only if you accept preference storage.</li></ul><h3>Why and on what basis</h3><p>Application data is used only to assess and answer your application (legitimate interest and steps you request before joining). Emails about your decision are sent only if you tick the optional email box (consent). You can withdraw consent at any time by contacting league staff.</p><h3>Where it is stored</h3><p>This site has no tracking, analytics or advertising. Data you submit is stored in your browser's local storage on this device. If you email your application to league staff, they receive it through your email provider. Fonts are loaded from Google Fonts and the spreadsheet reader from cdnjs, so those providers receive your IP address when pages load.</p><h3>Retention and your rights</h3><p>Staff keep applications only as long as needed to run the season, then delete them. You may ask to access, correct or erase your data by contacting league staff. Clearing site data in your browser removes what this device holds.</p><h3>Security</h3><p>Input is length-limited and cleaned, output is escaped, and the admin panel is passcode-protected. No browser-only site can guarantee server-grade protection, so avoid including sensitive personal details in free-text fields.</p>`],
 terms:['Terms of use',`<p>By using this site and applying to race you agree to these terms.</p><ul><li>League standings and results are published by league staff and may be corrected after steward decisions.</li><li>Applying does not guarantee an entry. Staff may accept or reject any application.</li><li>Entrants must follow the <a href="#rules">rules and driving standards</a> and steward rulings, and behave respectfully towards other drivers and staff.</li><li>Cars, brands, track names and logos belong to their owners and appear for identification. FIWS is an independent community league.</li><li>The site is provided as is, without warranty. Do not attempt to interfere with its operation or other users' data.</li></ul>`],
@@ -395,13 +686,15 @@ let first=true;
 function render(soft){cleanup();document.documentElement.dataset.series=cur.series;if(lastS!==cur.series){lastS=cur.series;setLogo()}const h=(location.hash||'#home').slice(1),k=V[h]?h:'home',v=V[k](),run=()=>{$('#main').innerHTML=v.html;v.after&&v.after();bindPick();$$('#nav a').forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+k)||a.removeAttribute('aria-current'));$$('#nav a').forEach(a=>{if(a.hasAttribute('aria-current'))a.setAttribute('aria-current','page')});document.title=(k==='home'?'':(legal[k]?legal[k][0]:NAV.find(n=>n[0]===k)?.[1]||'Admin')+' – ')+'FIWS – Formula Imperial Worldwide Series';if(!soft&&!first){$('#main').focus({preventScroll:true});scrollTo(0,0)}first=false};
  !RM&&document.startViewTransition?document.startViewTransition(run):run()}
 $('#skip').onclick=()=>$('#main').focus();$('#cset').onclick=e=>{e.preventDefault();cbar()};
-$('#theme').onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark'};
+$('#theme').onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark';setLogo()};
 addEventListener('hashchange',()=>render());
 const hasF=e=>e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files'),zone=on=>{const z=$('#dz');z&&z.classList.toggle('on',on)};
 addEventListener('dragover',e=>{if(!hasF(e))return;e.preventDefault();e.dataTransfer.dropEffect='copy';if(onDrop)zone(true)});
 addEventListener('dragleave',e=>{if(!e.relatedTarget)zone(false)});
 addEventListener('drop',e=>{if(!hasF(e))return;e.preventDefault();zone(false);const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(onDrop&&f)onDrop(f)});
-load();const pf=LS.get('pref',null);cur.series=series().includes('FIWS')?'FIWS':series()[0];cur.key=pf&&D.some(s=>s.key===pf.key&&s.sheet===cur.series)?pf.key:defKey(cur.series);
+load();
+try{await initSupabase();await loadSharedData()}catch(e){console.error('FIWS shared backend:',e);toast('Shared data could not be loaded. Showing the bundled workbook.')} 
+const pf=LS.get('pref',null);cur.series=series().includes('FIWS')?'FIWS':series()[0];cur.key=pf&&D.some(s=>s.key===pf.key&&s.sheet===cur.series)?pf.key:defKey(cur.series);
 if(!LS.get('consent',null))cbar();render();
 })();
 </script></body></html>
