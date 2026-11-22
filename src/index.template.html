@@ -130,7 +130,7 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
 const SUPABASE_URL='https://yipzokjzqltxcufixrsv.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_Ugy5e88mhjKwqOIZ_RR9DA_sMAwNcMF';
 const sb=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let authSession=null,authUser=null,REMOTE_COLORS={},REMOTE_LOGOS={},REMOTE_APPS=[];
+let authSession=null,authUser=null,adminToken=null,adminIdentity=null,REMOTE_COLORS={},REMOTE_LOGOS={},REMOTE_APPS=[];
 const B64='__B64__';
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -419,12 +419,18 @@ async function loadSharedData(){
  }
  if(typeof setLogo==='function'&&document.querySelector('#logo'))setLogo();
 }
-async function saveSharedSetting(key,value){
- const {data,error:userError}=await sb.auth.getUser();if(userError)throw userError;
- if(!data.user)throw new Error('Sign in is required.');
- const {error}=await sb.from('site_settings').upsert({setting_key:key,setting_value:value,updated_at:new Date().toISOString(),updated_by:data.user.id},{onConflict:'setting_key'});
- if(error)throw error;
+async function fiwsAdminApi(action,payload={}){
+ if(!adminToken)throw new Error('Administrator session expired. Sign in again.');
+ const response=await fetch(SUPABASE_URL+'/functions/v1/fiws-admin',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY,'x-fiws-session':adminToken},body:JSON.stringify({action,...payload})});
+ const result=await response.json().catch(()=>({error:'Invalid server response.'}));
+ if(!response.ok)throw new Error(result.error||('Administrator request failed ('+response.status+').'));
+ return result;
 }
+async function adminUploadFile(file,path,contentType){
+ const bytes=new Uint8Array(await file.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+ return fiwsAdminApi('asset-upload',{path,content_type:contentType,base64:btoa(binary)});
+}
+async function saveSharedSetting(key,value){await fiwsAdminApi('setting-write',{key,value})}
 function authErrorDetails(err){
  const parts=[];
  const message=String(err?.message||err?.error_description||err||'Unknown authentication error');
@@ -531,29 +537,38 @@ async function renderStatus(){
 }
 V.status=()=>({html:'<h1>Application status</h1><div id="sr" aria-live="polite" style="margin-top:1.2rem;max-width:620px"></div>',after:()=>renderStatus()});
 let adminTab='apps',adminRows=[];
-function admin(){
+async function admin(){
  const R=$('#adm');if(!R)return;
- if(!authUser){
-  R.innerHTML='<div class="panel" style="max-width:500px"><h3>Staff sign-in</h3><p class="muted">Sign in with your staff email. Administrator access is granted separately by league staff; creating an account does not grant privileges.</p><form id="admin-login"><label>Staff email<input name="email" type="email" autocomplete="email" required></label><span class="er" id="admin-error" role="alert"></span><button class="btn" type="submit">Email sign-in link</button></form></div>';
-  $('#admin-login').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#admin-error'),btn=$('button',f);btn.disabled=true;try{await emailSignIn(clean(f.email.value,120).toLowerCase(),'#admin',true);f.innerHTML='<p><b>Check your inbox for the staff sign-in link.</b></p>'}catch(x){err.textContent=authErrorDetails(x)}finally{btn.disabled=false}};
+ if(!adminIdentity){
+  R.innerHTML='<div class="panel" style="max-width:520px"><h3>FIWS staff sign-in</h3><p class="muted">Username and password, followed by mandatory authenticator-app MFA. No email is sent.</p><form id="admin-login"><label>Username<input name="username" autocomplete="username" maxlength="32" required></label><label>Password<input name="password" type="password" autocomplete="current-password" maxlength="128" required></label><label id="admin-otp-wrap" hidden>Authenticator code<input name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6"></label><span class="er" id="admin-error" role="alert"></span><button class="btn" type="submit">Sign in securely</button></form><p class="tbl-note">New accounts must enroll an authenticator app on first sign-in. Sessions are held in memory and end when this page is reloaded or signed out.</p></div>';
+  $('#admin-login').onsubmit=async e=>{
+   e.preventDefault();const f=e.target,err=$('#admin-error'),btn=$('button',f);btn.disabled=true;err.textContent='';
+   try{
+    const response=await fetch(SUPABASE_URL+'/functions/v1/fiws-admin',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({action:'login',username:clean(f.username.value,32).toLowerCase(),password:f.password.value,otp:f.otp.value})});
+    const result=await response.json();if(!response.ok&&!result.mfa_required)throw new Error(result.error||'Sign-in failed.');
+    if(result.mfa_enrollment_required){
+     adminToken=result.session;const setup=await fiwsAdminApi('mfa-enroll');
+     R.innerHTML='<div class="panel" style="max-width:560px"><h3>Set up mandatory authenticator MFA</h3><p>In your authenticator app, add an account manually using this secret:</p><p style="font:700 1.2rem monospace;overflow-wrap:anywhere">'+esc(setup.secret)+'</p><p class="muted">Account: '+esc(result.username||f.username.value)+' · Issuer: FIWS · 6 digits · 30-second interval</p><form id="mfa-confirm"><label>Six-digit authenticator code<input name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required></label><span class="er" id="mfa-error" role="alert"></span><button class="btn" type="submit">Verify and enable MFA</button></form></div>';
+     $('#mfa-confirm').onsubmit=async ev=>{ev.preventDefault();const form=ev.target,out=$('#mfa-error'),button=$('button',form);button.disabled=true;try{const done=await fiwsAdminApi('mfa-confirm',{otp:form.otp.value});adminIdentity=done.admin;R.innerHTML='<div class="panel"><h3>Save your recovery codes</h3><p>Each code works once. Store these somewhere safe; they will not be shown again.</p><pre style="white-space:pre-wrap;user-select:all">'+esc(done.recovery_codes.join('\n'))+'</pre><button class="btn" id="continue-admin">Continue to Admin</button></div>';$('#continue-admin').onclick=()=>adminLoad()}catch(x){out.textContent=x.message}finally{button.disabled=false}};
+     return;
+    }
+    if(result.mfa_required){$('#admin-otp-wrap').hidden=false;err.textContent='Enter the six-digit code from your authenticator app, then sign in again.';return}
+    if(result.success){adminToken=result.session;adminIdentity=result.admin;adminLoad()}
+   }catch(x){err.textContent=x.message||'Sign-in failed.'}finally{btn.disabled=false}
+  };
   return;
- }
- if(authUser.app_metadata?.fiws_role!=='admin'){
-  R.innerHTML='<div class="panel" style="max-width:600px"><h3>Administrator access not enabled</h3><p class="muted">This account is signed in, but it has not been granted the trusted FIWS administrator role. Contact the project owner to provision access.</p><p>'+esc(authUser.email||'')+'</p><button class="btn sm ghost" id="admin-out">Sign out</button></div>';
-  $('#admin-out').onclick=async()=>{await sb.auth.signOut()};return;
  }
  adminLoad();
 }
 async function adminLoad(){
  const R=$('#adm');if(!R)return;
  R.innerHTML='<div class="panel">Loading shared administration data…</div>';
- const {data,error}=await sb.from('applications').select('id,reference_code,application_data,status,staff_note,created_at,decided_at').order('created_at',{ascending:false});
- if(error){R.innerHTML='<div class="panel">'+esc(error.message)+'</div>';return}
- adminRows=data||[];
- const tabs=[['apps','Applications ('+adminRows.length+')'],['data','Standings data'],['col','Team colours'],['brand','Logos'],['sec','Account']];
- R.innerHTML='<div class="tabs seg" style="display:flex">'+tabs.map(x=>'<button data-at="'+x[0]+'" aria-pressed="'+(adminTab===x[0])+'">'+x[1]+'</button>').join('')+'<button id="admin-out">Sign out</button></div><div id="admin-content"></div>';
+ let result;try{result=await fiwsAdminApi('applications-list')}catch(error){R.innerHTML='<div class="panel">'+esc(error.message)+'</div>';return}
+ adminRows=result.applications||[];
+ const tabs=[['apps','Applications ('+adminRows.length+')'],['data','Standings data'],['col','Team colours'],['brand','Logos'],['logbook','Staff logbook'],...(adminIdentity.rank==='owner'?[['admins','Administrators']]:[]),['sec','Account']];
+ R.innerHTML='<div class="tabs seg" style="display:flex;flex-wrap:wrap">'+tabs.map(x=>'<button data-at="'+x[0]+'" aria-pressed="'+(adminTab===x[0])+'">'+x[1]+'</button>').join('')+'<button id="admin-out">Sign out</button></div><div id="admin-content"></div>';
  $('[data-at]').forEach(b=>b.onclick=()=>{adminTab=b.dataset.at;adminLoad()});
- $('#admin-out').onclick=async()=>{await sb.auth.signOut()};
+ $('#admin-out').onclick=async()=>{try{await fiwsAdminApi('logout')}catch{}adminToken=null;adminIdentity=null;admin()};
  const P=$('#admin-content');
  if(adminTab==='apps'){
   const rows=adminRows;
@@ -564,10 +579,9 @@ async function adminLoad(){
   $('[data-app]',P).forEach(card=>{
    $('[data-state]',card).forEach(b=>b.onclick=async()=>{
     b.disabled=true;const id=card.dataset.app,st=b.dataset.state,staff_note=clean($('[data-note]',card).value,1000);
-    const {error}=await sb.from('applications').update({status:st,staff_note:staff_note,decided_at:st==='pending'?null:new Date().toISOString(),decided_by:authUser.id}).eq('id',id);
-    if(error)toast(error.message);else{toast('Application '+st);adminLoad()}
+    try{await fiwsAdminApi('application-update',{id,status:st,staff_note});toast('Application '+st);adminLoad()}catch(error){toast(error.message)}
    });
-   $('[data-delete]',card).onclick=async()=>{if(!confirm('Delete this application permanently?'))return;const {error}=await sb.from('applications').delete().eq('id',card.dataset.app);if(error)toast(error.message);else{toast('Application deleted');adminLoad()}};
+   $('[data-delete]',card).onclick=async()=>{if(!confirm('Delete this application permanently?'))return;try{await fiwsAdminApi('application-delete',{id:card.dataset.app});toast('Application deleted');adminLoad()}catch(error){toast(error.message)}};
   });
   P.insertAdjacentHTML('afterbegin','<div class="row" style="margin-bottom:1rem"><button class="btn sm ghost" id="export-json">Export JSON</button><button class="btn sm ghost" id="export-csv">Export CSV</button></div>');
   $('#export-json').onclick=()=>dl('fiws-applications.json',JSON.stringify(rows.map(r=>({...r.application_data,ref:r.reference_code,status:r.status,note:r.staff_note,created:r.created_at})),null,1),'application/json');
@@ -615,7 +629,7 @@ async function adminLoad(){
    try{
     const png=await sanitizeLogoToPng(file);
     const path='logos/'+k.toLowerCase()+'.png';
-    const {error}=await sb.storage.from('fiws-public').upload(path,png,{upsert:true,contentType:'image/png'});if(error)throw error;
+    await adminUploadFile(png,path,'image/png');
     const paths={FIWS:null,FITC:null};Object.assign(paths,((await sb.from('site_settings').select('setting_value').eq('setting_key','logos').maybeSingle()).data||{}).setting_value||{});paths[k]=path;
     await saveSharedSetting('logos',paths);await loadSharedData();setLogo();toast(k+' logo published for everyone');
    }catch(x){toast(x.message||'Logo could not be uploaded')}finally{i.value=''}
@@ -626,9 +640,22 @@ async function adminLoad(){
    try{if(old)await sb.storage.from('fiws-public').remove([old]);await saveSharedSetting('logos',paths);await loadSharedData();setLogo();adminLoad()}catch(x){toast(x.message)}
   });
  }
+ if(adminTab==='logbook'){
+  P.innerHTML='<div class="panel" style="margin-bottom:1rem"><h3>Staff logbook</h3><p class="muted">Shared staff memory and handovers. Entries are attributed and retained centrally.</p><form id="logbook-form"><label>Category<select name="category"><option value="general">General</option><option value="handover">Handover</option><option value="driver">Driver</option><option value="team">Team</option><option value="application">Application</option><option value="incident">Incident</option><option value="competition">Competition</option></select></label><label>Title<input name="title" maxlength="160" required></label><label>Note<textarea name="body" maxlength="12000" rows="4" required></textarea></label><label>Related reference (optional)<input name="related_reference" maxlength="120"></label><button class="btn">Save logbook entry</button><span class="er" id="logbook-error" role="alert"></span></form></div><div id="logbook-entries">Loading entries…</div>';
+  const loadEntries=async()=>{try{const data=await fiwsAdminApi('logbook-list');$('#logbook-entries').innerHTML=data.entries.length?data.entries.map(x=>'<article class="panel" style="margin-bottom:.7rem"><div class="row" style="justify-content:space-between"><b>'+esc(x.title)+'</b><span class="chip">'+esc(x.category)+'</span></div><p class="muted">'+esc(x.author?.display_name||x.author?.username||'Staff')+' · '+esc(new Date(x.created_at).toLocaleString('en-GB'))+(x.related_reference?' · '+esc(x.related_reference):'')+'</p><p style="white-space:pre-wrap">'+esc(x.body)+'</p></article>').join(''):'<div class="panel">No staff notes yet.</div>'}catch(e){$('#logbook-entries').textContent=e.message}};
+  $('#logbook-form').onsubmit=async e=>{e.preventDefault();const f=e.target,b=$('button',f);b.disabled=true;try{await fiwsAdminApi('logbook-create',Object.fromEntries(new FormData(f)));f.reset();await loadEntries();toast('Logbook entry saved')}catch(x){$('#logbook-error').textContent=x.message}finally{b.disabled=false}};
+  loadEntries();
+ }
+ if(adminTab==='admins'&&adminIdentity.rank==='owner'){
+  P.innerHTML='<div class="panel"><h3>Create administrator</h3><form id="new-admin"><label>Username<input name="username" pattern="[a-z0-9][a-z0-9._-]{2,31}" maxlength="32" required></label><label>Display name<input name="display_name" maxlength="80" required></label><label>Initial password (14+ characters)<input name="password" type="password" minlength="14" maxlength="128" required></label><label>Rank<select name="rank"><option value="administrator">Administrator</option><option value="moderator">Moderator</option></select></label><button class="btn">Create account</button><span class="er" id="new-admin-error" role="alert"></span></form></div><div id="admin-list" class="panel" style="margin-top:1rem">Loading staff…</div>';
+  const refresh=async()=>{try{const data=await fiwsAdminApi('admin-list');$('#admin-list').innerHTML='<h3>Staff accounts</h3>'+data.admins.map(a=>'<div class="row" style="justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--line)"><span><b>'+esc(a.display_name)+'</b> · '+esc(a.username)+' · '+esc(a.admin_rank)+' · '+(a.disabled?'Disabled':'Active')+' · MFA '+(a.totp_enabled?'enabled':'not enrolled')+'</span>'+(a.admin_rank==='owner'?'':'<button class="btn sm ghost" data-disable="'+esc(a.id)+'">'+(a.disabled?'Enable':'Disable')+'</button>')+'</div>').join('')}catch(e){$('#admin-list').textContent=e.message}};
+  $('#new-admin').onsubmit=async e=>{e.preventDefault();const f=e.target,b=$('button',f);b.disabled=true;try{await fiwsAdminApi('admin-create',Object.fromEntries(new FormData(f)));f.reset();await refresh();toast('Administrator created. They must enroll MFA at first login.')}catch(x){$('#new-admin-error').textContent=x.message}finally{b.disabled=false}};
+  refresh();
+  $('#admin-list').onclick=async e=>{const b=e.target.closest('[data-disable]');if(!b)return;try{await fiwsAdminApi('admin-disable',{id:b.dataset.disable,disabled:b.textContent.trim()==='Disable'});await refresh()}catch(x){toast(x.message)}};
+ }
  if(adminTab==='sec'){
-  P.innerHTML='<div class="panel" style="max-width:560px"><h3>Signed in</h3><p>'+esc(authUser.email||'')+'</p><p class="muted">Administrator access is verified by the trusted app_metadata role and database Row Level Security, not by a browser-only passcode.</p><button class="btn sm ghost" id="admin-signout">Sign out of FIWS</button></div>';
-  $('#admin-signout').onclick=async()=>{await sb.auth.signOut()};
+  P.innerHTML='<div class="panel" style="max-width:560px"><h3>Signed in</h3><p>'+esc(adminIdentity.display_name)+' · <b>'+esc(adminIdentity.username)+'</b></p><p class="muted">Rank: '+esc(adminIdentity.rank)+' · Authenticator MFA enabled. Session expires after 8 hours and is cleared when this page reloads.</p><button class="btn sm ghost" id="admin-signout">Sign out of FIWS</button></div>';
+  $('#admin-signout').onclick=async()=>{try{await fiwsAdminApi('logout')}catch{}adminToken=null;adminIdentity=null;admin()};
  }
 }
 function sanitizeSvgSource(source){
