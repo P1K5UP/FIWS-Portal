@@ -272,6 +272,29 @@ Deno.serve(async (req) => {
       if (auth) await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("id", auth.row.id);
       return json({ success: true });
     }
+    if (action === "owner-recover") {
+      const expected = Deno.env.get("FIWS_OWNER_RECOVERY_SECRET") || "";
+      const supplied = req.headers.get("x-fiws-owner-recovery-secret") || "";
+      if (expected.length < 40 || !same(expected, supplied)) return json({ error: "Owner recovery is unavailable or unauthorized." }, 403);
+      const password = String(body.new_password || "");
+      if (password.length < 14 || password.length > 128) return json({ error: "Choose a password of at least 14 characters." }, 400);
+      const { data: state } = await db.from("fiws_admin_bootstrap_state").select("owner_recovery_used_at").eq("singleton", true).single();
+      if (state?.owner_recovery_used_at) return json({ error: "The one-time owner recovery secret has already been used." }, 409);
+      const { data: owner } = await db.from("fiws_admin_accounts").select("id,username,admin_rank").eq("admin_rank", "owner").maybeSingle();
+      if (!owner) return json({ error: "No owner account exists." }, 404);
+      const { data: reserved } = await db.from("fiws_admin_bootstrap_state").update({ owner_recovery_used_at: new Date().toISOString() }).eq("singleton", true).is("owner_recovery_used_at", null).select("singleton").maybeSingle();
+      if (!reserved) return json({ error: "Owner recovery has already been consumed." }, 409);
+      await db.from("fiws_admin_accounts").update({
+        password_hash: await hashPassword(password), password_salt: "embedded-in-argon2id-hash",
+        password_changed_at: new Date().toISOString(), totp_secret_ciphertext: null,
+        totp_secret_iv: null, totp_enabled: false, totp_last_step: null,
+        failed_login_count: 0, locked_until: null, disabled: false,
+      }).eq("id", owner.id);
+      await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", owner.id).is("revoked_at", null);
+      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", owner.id);
+      await audit(owner, "auth.owner_emergency_recovery", "admin", owner.id);
+      return json({ success: true, message: "Owner password reset. All sessions and recovery codes were revoked. Sign in and enroll MFA again. Remove the consumed recovery secret from project secrets." });
+    }
     if (action === "recover-password") {
       const username = String(body.username || "").trim().toLowerCase();
       const code = String(body.recovery_code || "").replace(/[^a-f0-9]/gi, "").toUpperCase();
