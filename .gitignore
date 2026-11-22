@@ -1,2 +1,13 @@
-.DS_Store
+# Local dependencies and generated Python files
 node_modules/
+__pycache__/
+*.py[cod]
+
+# Local environment and Supabase CLI state (never commit secrets)
+.env
+.env.*
+!.env.example
+supabase/.temp/
+
+# OS metadata
+.DS_Store
