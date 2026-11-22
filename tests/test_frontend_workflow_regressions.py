@@ -99,12 +99,14 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn('decided_at: status === "pending" ? null : new Date().toISOString()', function)
 
 
-    def test_mobile_scoreboard_scrubbing_disables_row_tweening(self):
+    def test_mobile_scoreboard_scrubbing_keeps_smooth_row_tweening(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("el.classList.add('tower')", page)
         self.assertIn("rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')})", page)
         self.assertIn("if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v", page)
-        self.assertIn(".tower.scrubbing .tr{transition:none!important}", page)
+        self.assertNotIn(".tower.scrubbing .tr{transition:none!important}", page)
+        self.assertIn(".tower.scrubbing .pt{transition:none!important}", page)
+        self.assertIn("transition:transform .5s cubic-bezier(.22,.75,.25,1)", page)
 
     def test_mobile_navigation_uses_one_compact_top_bar(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
@@ -149,12 +151,62 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("main{padding-bottom:calc(6.8rem + env(safe-area-inset-bottom,0px))}", page)
             self.assertIn("const NAV_ICONS=", page)
 
-    def test_leaderboard_track_names_are_shortened_only_on_phones(self):
+    def test_leaderboard_round_titles_are_shortened_only_on_phones(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("function leaderboardTrackLabel(s,r)", page)
+        self.assertIn("function leaderboardRoundLabel(s,r)", page)
         self.assertIn("matchMedia('(max-width:700px)').matches", page)
-        self.assertIn("leaderboardTrackLabel(s,r)", page)
-        self.assertIn("if(!matchMedia('(max-width:700px)').matches)return raw", page)
+        self.assertIn("paintLeaderboardRound(el,s,round)", page)
+        self.assertIn("paintLeaderboardRound(el,s,max)", page)
+        self.assertIn("grand prix", page)
+
+    def test_standings_includes_all_entry_drivers_even_without_points_rows(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("function allSeasonDrivers(s)", page)
+        self.assertIn("(s.drivers||[]).forEach(entry=>", page)
+        self.assertIn("vals:s.codes.map(()=>0)", page)
+        self.assertIn("const standingsSeason=k==='drv'?{...s,drv:allSeasonDrivers(s)}:s", page)
+        self.assertIn("tower($('#tw'),standingsSeason,k,l.length)", page)
+
+    def test_leaderboard_cancelled_rounds_use_compact_red_marker(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("function paintLeaderboardRound(el,s,r)", page)
+        self.assertIn("mark.textContent='(C)'", page)
+        self.assertIn(".cancel-mark{display:inline-block;color:#ef9292", page)
+        self.assertIn("leaderboardRoundLabel(s,r)", page)
+
+    def test_fitc_live_dot_accepts_live_status_variants(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("/^(ONGOING|LIVE|ACTIVE)$/i.test(String(s.status||''))", page)
+        self.assertIn(":root[data-series=FITC] .live{background:var(--sky)", page)
+
+    def test_home_discord_fallback_is_join_link_and_unneeded_tagline_removed(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertNotIn("If the panel does not appear", page)
+        self.assertIn("Join the server", page)
+        self.assertIn("https://discord.com/servers/1430272514591817861", page)
+        self.assertNotIn("Live server preview loads automatically", page)
+        self.assertIn("The FIWS paddock.", page)
+
+    def test_standings_dynamic_entries_are_not_hard_coded_and_zero_point_rows_remain_visible(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("entry.Driver??entry['Driver Name']??entry.Name", page)
+        self.assertIn("if(!l.length||(k==='con'&&s.done<0))", page)
+        self.assertIn("s.done>=0?(d.vals[s.done]??0):0", page)
+        for name in ("Yoshinaran", "29deCesaris", "Mariusz", "Formula B", "Protomango", "Jetto", "Yishmate", "P1K5UP", "BlackDragon", "Endo", "Putra", "Pmoneyspread"):
+            self.assertNotIn(name, page)
+
+    def test_homepage_ctas_have_distinct_but_coordinated_interactions(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(".home-intro .btn:first-child::after", page)
+        self.assertIn(".home-intro .btn.ghost::after", page)
+        self.assertIn(".home-info .btn:not(.ghost)", page)
+        self.assertIn(".home-info .btn:hover,.home-intro .btn:hover", page)
+
+    def test_leaderboard_rank_swaps_animate_during_slider_scrubbing(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("transition:transform .5s cubic-bezier(.22,.75,.25,1)", page)
+        self.assertNotIn(".tower.scrubbing .tr{transition:none!important}", page)
+        self.assertIn("@media(max-width:700px){.tower .tr{transition-duration:.42s}", page)
 
 if __name__ == "__main__":
     unittest.main()
