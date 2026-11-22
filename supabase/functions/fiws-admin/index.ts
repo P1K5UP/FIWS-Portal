@@ -38,6 +38,11 @@ async function hashPassword(password: string) {
 async function passwordOK(password: string, hash: string) {
   try { return await argon2Verify({ password, hash }); } catch { return false; }
 }
+let dummyPasswordHash: Promise<string> | null = null;
+async function getDummyPasswordHash() {
+  if (!dummyPasswordHash) dummyPasswordHash = hashPassword("FIWS dummy password timing equalizer");
+  return await dummyPasswordHash;
+}
 async function encryptSecret(secret: string) {
   const raw = Deno.env.get("FIWS_TOTP_ENCRYPTION_KEY") || "";
   const keyBytes = unb64(raw);
@@ -198,9 +203,10 @@ Deno.serve(async (req) => {
       const throttle = Array.isArray(throttleData) ? throttleData[0] : throttleData;
       if (throttle?.locked_until && new Date(throttle.locked_until).getTime() > Date.now()) return json({ error: "Invalid username or password." }, 429);
       const { data: account } = await db.from("fiws_admin_accounts").select("*").eq("username", username).maybeSingle();
-      const valid = account && !account.disabled && (!account.locked_until || new Date(account.locked_until).getTime() < Date.now())
-        ? await passwordOK(password, account.password_hash)
-        : false;
+      const eligible = !!account && !account.disabled && (!account.locked_until || new Date(account.locked_until).getTime() < Date.now());
+      const candidateHash = account?.password_hash || await getDummyPasswordHash();
+      const passwordMatches = await passwordOK(password, candidateHash);
+      const valid = eligible && passwordMatches;
       if (!valid) {
         if (account) {
           const failures = (account.failed_login_count || 0) + 1;
