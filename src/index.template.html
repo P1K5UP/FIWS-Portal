@@ -693,7 +693,7 @@ addEventListener('dragover',e=>{if(!hasF(e))return;e.preventDefault();e.dataTran
 addEventListener('dragleave',e=>{if(!e.relatedTarget)zone(false)});
 addEventListener('drop',e=>{if(!hasF(e))return;e.preventDefault();zone(false);const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(onDrop&&f)onDrop(f)});
 load();
-try{await initSupabase();await loadSharedData()}catch(e){console.error('FIWS shared backend:',e);toast('Shared data could not be loaded. Showing the bundled workbook.')} 
+try{await initSupabase();await loadSharedData();await finishPendingApplication()}catch(e){console.error('FIWS shared backend:',e);toast('Shared data could not be loaded. Showing the bundled workbook.')} 
 const pf=LS.get('pref',null);cur.series=series().includes('FIWS')?'FIWS':series()[0];cur.key=pf&&D.some(s=>s.key===pf.key&&s.sheet===cur.series)?pf.key:defKey(cur.series);
 if(!LS.get('consent',null))cbar();render();
 })();
