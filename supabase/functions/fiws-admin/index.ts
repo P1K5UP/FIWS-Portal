@@ -73,11 +73,11 @@ async function totp(secret: string, step = Math.floor(Date.now() / 30000)) {
   const num = (((mac[offset] & 127) << 24) | (mac[offset + 1] << 16) | (mac[offset + 2] << 8) | mac[offset + 3]) % 1000000;
   return String(num).padStart(6, "0");
 }
-async function verifyTotp(secret: string, code: string) {
-  if (!/^\d{6}$/.test(code)) return false;
+async async function matchingTotpStep(secret: string, code: string) {
+  if (!/^\d{6}$/.test(code)) return null;
   const now = Math.floor(Date.now() / 30000);
-  for (let delta = -1; delta <= 1; delta++) if (same(await totp(secret, now + delta), code)) return true;
-  return false;
+  for (let delta = -1; delta <= 1; delta++) if (same(await totp(secret, now + delta), code)) return now + delta;
+  return null;
 }
 async function audit(admin: any, action: string, targetType?: string, targetId?: string, details = {}) {
   await db.from("fiws_admin_audit_log").insert({
@@ -209,7 +209,10 @@ Deno.serve(async (req) => {
       if (!valid) return json({ error: "Invalid username or password." }, 401);
       if (account.totp_enabled) {
         const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
-        if (!await verifyTotp(secret, String(body.otp || ""))) return json({ mfa_required: true, error: "Enter a valid authenticator code." }, 401);
+        const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
+        if (matchedStep === null) return json({ mfa_required: true, error: "Enter a valid authenticator code." }, 401);
+        const { data: stepUpdated } = await db.from("fiws_admin_accounts").update({ totp_last_step: matchedStep }).eq("id", account.id).or(`totp_last_step.is.null,totp_last_step.lt.${matchedStep}`).select("id").maybeSingle();
+        if (!stepUpdated) return json({ mfa_required: true, error: "That authenticator code has already been used. Wait for the next code." }, 401);
         const token = await newSession(account.id, true, 8 * 60);
         await db.from("fiws_admin_accounts").update({ failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id);
         await audit(account, "auth.login", "admin", account.id);
@@ -233,7 +236,10 @@ Deno.serve(async (req) => {
       const { data: account } = await db.from("fiws_admin_accounts").select("*").eq("id", auth.admin.id).single();
       if (!account?.totp_secret_ciphertext) return json({ error: "Start authenticator enrollment first." }, 409);
       const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
-      if (!await verifyTotp(secret, String(body.otp || ""))) return json({ error: "Authenticator code is incorrect." }, 401);
+      const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
+      if (matchedStep === null) return json({ error: "Authenticator code is incorrect." }, 401);
+      const { data: stepUpdated } = await db.from("fiws_admin_accounts").update({ totp_last_step: matchedStep }).eq("id", account.id).or(`totp_last_step.is.null,totp_last_step.lt.${matchedStep}`).select("id").maybeSingle();
+      if (!stepUpdated) return json({ error: "That authenticator code has already been used. Wait for the next code." }, 401);
       const codes = makeRecoveryCodes();
       const rows = await Promise.all(codes.map(async code => ({ admin_id: account.id, code_hash: await sha(code) })));
       await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", account.id);
@@ -334,7 +340,10 @@ Deno.serve(async (req) => {
       const { data: account } = await db.from("fiws_admin_accounts").select("totp_secret_ciphertext,totp_secret_iv").eq("id", auth.admin.id).single();
       if (!account?.totp_secret_ciphertext) return json({ error: "MFA is not configured." }, 409);
       const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
-      if (!await verifyTotp(secret, String(body.otp || ""))) return json({ error: "Authenticator code is incorrect." }, 401);
+      const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
+      if (matchedStep === null) return json({ error: "Authenticator code is incorrect." }, 401);
+      const { data: stepUpdated } = await db.from("fiws_admin_accounts").update({ totp_last_step: matchedStep }).eq("id", auth.admin.id).or(`totp_last_step.is.null,totp_last_step.lt.${matchedStep}`).select("id").maybeSingle();
+      if (!stepUpdated) return json({ error: "That authenticator code has already been used. Wait for the next code." }, 401);
       const codes = makeRecoveryCodes();
       await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", auth.admin.id);
       const { error } = await db.from("fiws_admin_recovery_codes").insert(await Promise.all(codes.map(async code => ({ admin_id: auth.admin.id, code_hash: await sha(code) }))));
