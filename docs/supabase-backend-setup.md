@@ -18,6 +18,7 @@ The following migrations are applied to the `fiws-portal` project and tracked in
 - `20261122162550_fiws_public_asset_storage.sql`
 - `20261122162729_fiws_application_identity_and_duplicate_guard.sql`
 - `20261122162809_fiws_submission_ip_rate_limit.sql`
+- `20261122163037_fiws_ip_limit_deny_policy.sql`
 
 The website template now uses the project's URL and publishable key. These are public client configuration; RLS remains the security boundary. The `submit-application` Edge Function is deployed and applies a network-level HMACed IP rate limit plus the database per-account limit. It uses the Edge Function's secret-key context; no secret key is shipped to the browser.
 
@@ -27,7 +28,7 @@ The website template now uses the project's URL and publishable key. These are p
 3. Create the first staff account using **Admin → Staff sign-in** on the site and complete its email link. Then set `app_metadata.fiws_role` to `admin` for that exact account using a trusted dashboard/server-side process. Never set the role in user-editable metadata and never expose a secret key.
 4. Test applicant and admin accounts separately before accepting applications. Confirm applicants can only read their own applications and only admins can read the queue, change decisions, upload workbooks, edit team colours, or publish logos.
 5. Confirm the public `fiws-public` bucket contains only public website assets (workbooks and logos), never applicant data.
-6. Add CAPTCHA/anti-bot controls before wide public launch. IP/account limits are defense in depth, not a complete bot defence.
+6. Add CAPTCHA/anti-bot controls before wide public launch. The deployed IP/account limits are defense in depth, not a complete bot defence.
 
 ## Tables
 - site_settings: public shared settings such as team colour overrides, selected logo asset paths, and the published workbook pointer. Only admins can write.
@@ -35,9 +36,9 @@ The website template now uses the project's URL and publishable key. These are p
 - admin_audit_log: administrator action metadata for traceability. It does not store changed values or applicant payloads.
 
 ## Migration and deployment notes
-- Do not switch the live frontend to Supabase until the project URL, publishable key, auth flow, and storage policies are configured and tested.
+- Do not merge or publish the connected frontend until the allowed redirect URL is configured, the first admin is provisioned, and applicant/admin flows have been tested end-to-end.
 - Existing browser-local applications, workbooks, colours, and logos are not automatically migrated. Export/import legacy applications only after matching each record to a verified applicant identity; do not assign arbitrary local records to an applicant account. Publish the workbook, team colours and logos from the authenticated Admin panel.
 - Uploaded SVG logos are sanitized against an element/attribute allowlist and rasterized to PNG in the browser before upload. Uploaded logo images are rendered through a canvas pass that changes only neutral near-black/near-white pixels for the active theme; colored pixels and alpha are retained. Never inject uploaded SVG markup with innerHTML.
-- Keep applicant status private. Cross-device status lookup should use a verified email magic link or a rate-limited Edge Function returning only minimum status fields.
+- Keep applicant status private. The portal currently requires a verified email sign-in and queries only the authenticated user's own rows under RLS.
 - Define a retention/deletion schedule for application personal data before production use.
 - Test RLS with separate applicant and admin accounts before deployment.
