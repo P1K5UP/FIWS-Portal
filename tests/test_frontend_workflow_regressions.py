@@ -102,7 +102,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_mobile_scoreboard_scrubbing_disables_row_tweening(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("el.classList.add('tower')", page)
-        self.assertIn("rng.addEventListener('pointerdown',()=>el.classList.add('scrubbing'))", page)
+        self.assertIn("rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')})", page)
         self.assertIn("if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v", page)
         self.assertIn(".tower.scrubbing .tr{transition:none!important}", page)
 
