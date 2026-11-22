@@ -1,8 +1,10 @@
 import { withSupabase } from "npm:@supabase/server";
 
-const SITE_ORIGIN = "https://p1k5up.github.io";
+const ALLOWED_ORIGINS = new Set([
+  "https://p1k5up.github.io",
+  "http://localhost:8000",
+]);
 const corsHeaders = {
-  "Access-Control-Allow-Origin": SITE_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
@@ -81,13 +83,19 @@ const authenticatedHandler = withSupabase({ auth: "user" }, async (req, ctx) => 
   }
 });
 
+function withAllowedOrigin(response: Response, origin: string) {
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", origin);
+  headers.set("Vary", "Origin");
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 Deno.serve(async (req) => {
+  const origin = req.headers.get("origin") || "";
+  if (!ALLOWED_ORIGINS.has(origin)) return new Response("Forbidden", { status: 403 });
   if (req.method === "OPTIONS") {
-    const origin = req.headers.get("origin");
-    if (origin !== SITE_ORIGIN) return new Response("Forbidden", { status: 403 });
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: { ...corsHeaders, "Access-Control-Allow-Origin": origin } });
   }
-  if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
-  if (req.headers.get("origin") !== SITE_ORIGIN) return json({ error: "Origin not allowed." }, 403);
-  return await authenticatedHandler(req);
+  if (req.method !== "POST") return withAllowedOrigin(json({ error: "Method not allowed." }, 405), origin);
+  return withAllowedOrigin(await authenticatedHandler(req), origin);
 });
