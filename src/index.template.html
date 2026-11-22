@@ -294,13 +294,13 @@ V.apply=()=>({html:`<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply 
 <label class="ck"><input type="checkbox" name="priv"><span>I agree to the processing of this application as described in the <a href="#privacy">privacy notice</a>.</span></label><span class="er" data-e="priv"></span>
 <label class="ck"><input type="checkbox" name="mail"><span>League staff may email me about my application status (optional).</span></label>
 <button class="btn" type="submit">Submit application</button></form></div>`,after:()=>{
- const f=$('#af'),vals={};const draw=()=>{$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===aTy));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(aTy)).map(x=>fieldHTML(x,aTy,vals[x.k]||'')).join('')};
+ const f=$('#af'),vals={};const draw=()=>{$$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===aTy));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(aTy)).map(x=>fieldHTML(x,aTy,vals[x.k]||'')).join('')};
  const grab=()=>FIELDS.forEach(x=>{const el=f.elements[x.k];if(el)vals[x.k]=el.value});
- $('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();aTy=b.dataset.ty;draw()});draw();
+ $$('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();aTy=b.dataset.ty;draw()});draw();
  f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f));if(d.website)return;const E={},v={};
   FIELDS.filter(x=>x.r.includes(aTy)).forEach(x=>{const s=clean(d[x.k],x.m||60);v[x.k]=s;const m=chk(x,s);if(m)E[x.k]=m});
   if(!d.rules)E.rules='You must accept the rules to apply.';if(!d.priv)E.priv='Consent is required to process your application.';
-  $('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){const el=f.elements[ks[0]];(el||f).focus();return}
+  $$('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){const el=f.elements[ks[0]];(el||f).focus();return}
   if(Date.now()-LS.get('last',0)<30000){toast('Please wait a moment before submitting again.');return}
   v.email=v.email.toLowerCase();const rec={ref:ref(),type:aTy==='S'?'Steward':'Driver',...v,mail:!!d.mail,status:'pending',note:'',created:new Date().toISOString()},a=apps();
   if(a.some(x=>x.email===rec.email&&x.status==='pending'&&x.type===rec.type)){toast('You already have a pending application of this type.');return}
@@ -437,14 +437,14 @@ function sendLinkPanel(title,description,hash,createUser){
 }
 V.apply=()=>({html:'<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply as a driver or steward. A secure email sign-in verifies your address and lets you check your application from any device.</p><div class="panel" style="margin-top:1rem;max-width:860px" id="box"><form id="af" novalidate><div class="seg" role="group" aria-label="Applying as"><button type="button" data-ty="D">Driver</button><button type="button" data-ty="S">Steward</button></div><div class="f2" id="fl"></div><input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><label class="ck"><input type="checkbox" name="rules"><span>I have read the <a href="#rules">rules and driving standards</a> and will follow steward decisions.</span></label><span class="er" data-e="rules"></span><label class="ck"><input type="checkbox" name="priv"><span>I agree to the processing of this application as described in the <a href="#privacy">privacy notice</a>.</span></label><span class="er" data-e="priv"></span><label class="ck"><input type="checkbox" name="mail"><span>League staff may email me about my application status (optional).</span></label><button class="btn" type="submit">Continue securely</button></form></div>',after:()=>{
  const f=$('#af'),vals={};let type=aTy;
- const draw=()=>{$$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===type));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(type)).map(x=>fieldHTML(x,type,vals[x.k]||'')).join('')};
+ const draw=()=>{$$$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===type));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(type)).map(x=>fieldHTML(x,type,vals[x.k]||'')).join('')};
  const grab=()=>FIELDS.forEach(x=>{const el=f.elements[x.k];if(el)vals[x.k]=el.value});
- $$('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();type=b.dataset.ty;draw()});draw();
+ $$$('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();type=b.dataset.ty;draw()});draw();
  f.onsubmit=async e=>{
   e.preventDefault();const d=Object.fromEntries(new FormData(f));if(d.website)return;
   const E={},v={};FIELDS.filter(x=>x.r.includes(type)).forEach(x=>{const z=clean(d[x.k],x.m||60);v[x.k]=z;const m=chk(x,z);if(m)E[x.k]=m});
   if(!d.rules)E.rules='You must accept the rules to apply.';if(!d.priv)E.priv='Consent is required to process your application.';
-  $$('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){(f.elements[ks[0]]||f).focus();return}
+  $$$('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){(f.elements[ks[0]]||f).focus();return}
   if(Date.now()-LS.get('last',0)<30000){toast('Please wait a moment before submitting again.');return}
   v.email=v.email.toLowerCase();
   const draft={type:type==='S'?'Steward':'Driver',data:v,mail:!!d.mail};
