@@ -43,6 +43,19 @@ The emergency owner recovery action is `owner-recover`; send the one-time secret
 ## Explicitly not included
 Replacing Supabase/Postgres, moving hosting away from GitHub Pages, changing applicant authentication, or deleting existing Supabase Auth users. Those are separate architectural decisions.
 
+## Generate and configure server secrets
+
+Generate these on your own computer with OpenSSL (do not send them to anyone):
+```sh
+openssl rand -hex 32       # FIWS_BOOTSTRAP_SECRET
+openssl rand -base64 32    # FIWS_TOTP_ENCRYPTION_KEY
+openssl rand -hex 32       # FIWS_RATE_LIMIT_PEPPER
+openssl rand -hex 32       # FIWS_OWNER_RECOVERY_SECRET
+```
+In Supabase Dashboard → Edge Functions → Secrets, add each value under the matching name. Keep the bootstrap and owner recovery secrets in a password manager or offline secure store. Never put them in GitHub, the website, or chat. The TOTP encryption key must remain stable: losing it makes existing authenticator secrets undecryptable.
+
+After the secrets are configured, deploy the fiws-admin Edge Function with JWT verification disabled (it validates its own random session tokens and rejects every non-allowlisted browser Origin). The public website uses only the publishable key; all service credentials stay in the Edge Function environment.
+
 ## Bootstrap request example (run locally, never from the browser)
 Use a local terminal after configuring secrets and deploying the function. Keep the secret out of shell history and do not paste it into chat:
 ```sh
