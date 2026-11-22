@@ -115,21 +115,21 @@ drop policy if exists "Public can read published settings" on public.site_settin
 create policy "Public can read published settings" on public.site_settings for select to anon, authenticated using (true);
 drop policy if exists "Admins manage settings" on public.site_settings;
 create policy "Admins manage settings" on public.site_settings for all to authenticated
-using (public.is_fiws_admin()) with check (public.is_fiws_admin());
+using (private.is_fiws_admin()) with check (private.is_fiws_admin());
 
 drop policy if exists "Applicants read their own application" on public.applications;
 create policy "Applicants read their own application" on public.applications for select to authenticated
-using (applicant_id = auth.uid() or public.is_fiws_admin());
+using (applicant_id = auth.uid() or private.is_fiws_admin());
 drop policy if exists "Applicants submit as themselves" on public.applications;
 create policy "Applicants submit as themselves" on public.applications for insert to authenticated
 with check (applicant_id = auth.uid() and status = 'pending');
 drop policy if exists "Admins update applications" on public.applications;
 create policy "Admins update applications" on public.applications for update to authenticated
-using (public.is_fiws_admin()) with check (public.is_fiws_admin());
+using (private.is_fiws_admin()) with check (private.is_fiws_admin());
 drop policy if exists "Admins delete applications" on public.applications;
 create policy "Admins delete applications" on public.applications for delete to authenticated
-using (public.is_fiws_admin());
+using (private.is_fiws_admin());
 drop policy if exists "Admins read audit log" on public.admin_audit_log;
 create policy "Admins read audit log" on public.admin_audit_log for select to authenticated
-using (public.is_fiws_admin());
+using (private.is_fiws_admin());
 commit;
