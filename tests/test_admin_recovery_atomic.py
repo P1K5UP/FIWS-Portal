@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FUNCTION = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
 MIGRATION = (ROOT / "supabase/migrations/20261122183000_fiws_atomic_admin_recovery.sql").read_text(encoding="utf-8")
+BOOTSTRAP = (ROOT / "supabase/migrations/20261122184500_fiws_atomic_owner_bootstrap.sql").read_text(encoding="utf-8")
 
 
 class AdminRecoveryAtomicityTests(unittest.TestCase):
@@ -32,6 +33,15 @@ class AdminRecoveryAtomicityTests(unittest.TestCase):
         self.assertRegex(MIGRATION, r"revoke all on function public\.fiws_complete_admin_recovery\([^;]+ from public, anon, authenticated")
         self.assertRegex(MIGRATION, r"revoke all on function public\.fiws_complete_owner_recovery\([^;]+ from public, anon, authenticated")
         self.assertIn("to service_role", MIGRATION)
+
+    def test_bootstrap_state_and_owner_creation_are_atomic(self):
+        body = FUNCTION.split('action === "bootstrap"')[1].split('action === "login"')[0]
+        self.assertIn('db.rpc("fiws_bootstrap_admin"', body)
+        self.assertNotIn("fiws_admin_bootstrap_state", body)
+        self.assertIn("for update", BOOTSTRAP.lower())
+        self.assertIn("completed_at = now()", BOOTSTRAP)
+        self.assertIn("bootstrap.owner_created", BOOTSTRAP)
+        self.assertIn("to service_role", BOOTSTRAP)
 
     def test_transaction_rolls_back_if_a_later_step_fails(self):
         self.assertIn("begin;", MIGRATION.lower())
