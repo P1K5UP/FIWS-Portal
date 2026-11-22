@@ -73,7 +73,7 @@ async function totp(secret: string, step = Math.floor(Date.now() / 30000)) {
   const num = (((mac[offset] & 127) << 24) | (mac[offset + 1] << 16) | (mac[offset + 2] << 8) | mac[offset + 3]) % 1000000;
   return String(num).padStart(6, "0");
 }
-async async function matchingTotpStep(secret: string, code: string) {
+async function matchingTotpStep(secret: string, code: string) {
   if (!/^\d{6}$/.test(code)) return null;
   const now = Math.floor(Date.now() / 30000);
   for (let delta = -1; delta <= 1; delta++) if (same(await totp(secret, now + delta), code)) return now + delta;
