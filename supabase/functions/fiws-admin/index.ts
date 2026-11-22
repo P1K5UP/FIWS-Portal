@@ -1,0 +1,262 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.119.2";
+import { argon2id, argon2Verify } from "npm:hash-wasm@4.13.0";
+
+const SITE_ORIGIN = "https://p1k5up.github.io";
+const cors = {
+  "Access-Control-Allow-Origin": SITE_ORIGIN,
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-fiws-session, x-fiws-bootstrap-secret",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
+};
+const url = Deno.env.get("SUPABASE_URL")!;
+const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+const enc = new TextEncoder();
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
+  status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" },
+});
+const b64 = (b: Uint8Array) => btoa(String.fromCharCode(...b)).replace(/=/g, "");
+const unb64 = (s: string) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const hex = (b: Uint8Array) => [...b].map(x => x.toString(16).padStart(2, "0")).join("");
+const random = (n: number) => crypto.getRandomValues(new Uint8Array(n));
+async function sha(value: string) { return hex(new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(value)))); }
+async function hmac(value: string, secret: string) {
+  const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return hex(new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(value))));
+}
+function same(a: string, b: string) {
+  const x = enc.encode(a), y = enc.encode(b);
+  let d = x.length ^ y.length;
+  for (let i = 0; i < Math.max(x.length, y.length); i++) d |= (x[i] || 0) ^ (y[i] || 0);
+  return d === 0;
+}
+async function hashPassword(password: string) {
+  const salt = random(16);
+  return await argon2id({ password, salt, parallelism: 1, iterations: 2, memorySize: 19456, hashLength: 32, outputType: "encoded" });
+}
+async function passwordOK(password: string, hash: string) {
+  try { return await argon2Verify({ password, hash }); } catch { return false; }
+}
+async function encryptSecret(secret: string) {
+  const raw = Deno.env.get("FIWS_TOTP_ENCRYPTION_KEY") || "";
+  const keyBytes = unb64(raw);
+  if (keyBytes.length !== 32) throw new Error("FIWS_TOTP_ENCRYPTION_KEY must be base64 for exactly 32 random bytes.");
+  const key = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt"]);
+  const iv = random(12);
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(secret));
+  return { ciphertext: b64(new Uint8Array(ciphertext)), iv: b64(iv) };
+}
+async function decryptSecret(ciphertext: string, iv: string) {
+  const keyBytes = unb64(Deno.env.get("FIWS_TOTP_ENCRYPTION_KEY") || "");
+  if (keyBytes.length !== 32) throw new Error("TOTP encryption key is not configured.");
+  const key = await crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(iv) }, key, unb64(ciphertext));
+  return new TextDecoder().decode(plain);
+}
+function base32(bytes: Uint8Array) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; let bits = 0, value = 0, out = "";
+  for (const byte of bytes) { value = (value << 8) | byte; bits += 8; while (bits >= 5) { out += alphabet[(value >>> (bits - 5)) & 31]; bits -= 5; } }
+  if (bits) out += alphabet[(value << (5 - bits)) & 31];
+  return out;
+}
+function fromBase32(s: string) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; let bits = 0, value = 0; const out: number[] = [];
+  for (const c of s.replace(/=+$/g, "").toUpperCase()) { const n = alphabet.indexOf(c); if (n < 0) throw new Error("Invalid TOTP secret."); value = (value << 5) | n; bits += 5; if (bits >= 8) { out.push((value >>> (bits - 8)) & 255); bits -= 8; } }
+  return new Uint8Array(out);
+}
+async function totp(secret: string, step = Math.floor(Date.now() / 30000)) {
+  const key = await crypto.subtle.importKey("raw", fromBase32(secret), { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+  const msg = new Uint8Array(8); new DataView(msg.buffer).setBigUint64(0, BigInt(step));
+  const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, msg));
+  const offset = mac[mac.length - 1] & 15;
+  const num = (((mac[offset] & 127) << 24) | (mac[offset + 1] << 16) | (mac[offset + 2] << 8) | mac[offset + 3]) % 1000000;
+  return String(num).padStart(6, "0");
+}
+async function verifyTotp(secret: string, code: string) {
+  if (!/^\d{6}$/.test(code)) return false;
+  const now = Math.floor(Date.now() / 30000);
+  for (let delta = -1; delta <= 1; delta++) if (same(await totp(secret, now + delta), code)) return true;
+  return false;
+}
+async function audit(admin: any, action: string, targetType?: string, targetId?: string, details = {}) {
+  await db.from("fiws_admin_audit_log").insert({
+    actor_admin_id: admin?.id || null, actor_username: admin?.username || "bootstrap",
+    actor_rank: admin?.admin_rank || "owner", action, target_type: targetType || null,
+    target_id: targetId || null, details,
+  });
+}
+async function newSession(adminId: string, verified: boolean, minutes: number) {
+  const token = b64(random(32));
+  const tokenHash = await sha(token);
+  const { error } = await db.from("fiws_admin_sessions").insert({
+    admin_id: adminId, token_hash: tokenHash, mfa_verified: verified,
+    expires_at: new Date(Date.now() + minutes * 60000).toISOString(),
+  });
+  if (error) throw error;
+  return token;
+}
+async function session(req: Request, requireMfa = true) {
+  const token = req.headers.get("x-fiws-session") || "";
+  if (token.length < 32 || token.length > 128) return null;
+  const { data, error } = await db.from("fiws_admin_sessions")
+    .select("id,admin_id,mfa_verified,expires_at,revoked_at,fiws_admin_accounts(id,username,display_name,admin_rank,disabled,totp_enabled)")
+    .eq("token_hash", await sha(token)).is("revoked_at", null).gt("expires_at", new Date().toISOString()).maybeSingle();
+  if (error || !data || !data.mfa_verified && requireMfa) return null;
+  const admin = Array.isArray(data.fiws_admin_accounts) ? data.fiws_admin_accounts[0] : data.fiws_admin_accounts;
+  if (!admin || admin.disabled) return null;
+  await db.from("fiws_admin_sessions").update({ last_seen_at: new Date().toISOString() }).eq("id", data.id);
+  return { token, row: data, admin };
+}
+function allowedRank(rank: string, min: string) {
+  const level: Record<string, number> = { moderator: 1, administrator: 2, owner: 3 };
+  return (level[rank] || 0) >= (level[min] || 99);
+}
+function makeRecoveryCodes() {
+  return Array.from({ length: 10 }, () => {
+    const bytes = random(10);
+    return [...bytes].map(x => x.toString(16).padStart(2, "0")).join("").toUpperCase().match(/.{1,5}/g)!.join("-");
+  });
+}
+async function logbookAction(action: string, req: Request, body: any) {
+  const auth = await session(req);
+  if (!auth) return json({ error: "Authentication required." }, 401);
+  if (action === "logbook-list") {
+    const { data, error } = await db.from("fiws_staff_logbook").select("id,category,title,body,related_reference,pinned,created_by,created_at,updated_by,updated_at,archived_at,author:fiws_admin_accounts!fiws_staff_logbook_created_by_fkey(username,display_name)").is("archived_at", null).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(200);
+    if (error) return json({ error: "Could not load staff logbook." }, 500);
+    return json({ entries: data || [] });
+  }
+  if (!allowedRank(auth.admin.admin_rank, "moderator")) return json({ error: "Insufficient permissions." }, 403);
+  if (action === "logbook-create") {
+    const category = ["general","handover","driver","team","application","incident","competition"].includes(body.category) ? body.category : "general";
+    const title = String(body.title || "").trim().slice(0,160), text = String(body.body || "").trim().slice(0,12000);
+    if (!title || !text) return json({ error: "A title and note are required." }, 400);
+    const { data, error } = await db.from("fiws_staff_logbook").insert({
+      category, title, body: text, related_reference: String(body.related_reference || "").trim().slice(0,120) || null,
+      pinned: body.pinned === true, created_by: auth.admin.id,
+    }).select("id").single();
+    if (error) return json({ error: "Could not save the logbook entry." }, 500);
+    await audit(auth.admin, "logbook.create", "logbook", data.id, { category });
+    return json({ success: true, id: data.id }, 201);
+  }
+  if (action === "logbook-update" || action === "logbook-archive") {
+    const id = String(body.id || "");
+    const patch = action === "logbook-archive"
+      ? { archived_at: new Date().toISOString(), updated_by: auth.admin.id, updated_at: new Date().toISOString() }
+      : { title: String(body.title || "").trim().slice(0,160), body: String(body.body || "").trim().slice(0,12000), category: body.category, pinned: body.pinned === true, updated_by: auth.admin.id, updated_at: new Date().toISOString() };
+    const { error } = await db.from("fiws_staff_logbook").update(patch).eq("id", id).is("archived_at", null);
+    if (error) return json({ error: "Could not update the logbook entry." }, 500);
+    await audit(auth.admin, action, "logbook", id);
+    return json({ success: true });
+  }
+  return json({ error: "Unknown action." }, 400);
+}
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    if (req.headers.get("origin") !== SITE_ORIGIN) return new Response("Forbidden", { status: 403 });
+    return new Response("ok", { headers: cors });
+  }
+  if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
+  if (req.headers.get("origin") !== SITE_ORIGIN) return json({ error: "Origin not allowed." }, 403);
+  if (!url || !serviceKey) return json({ error: "Server is not configured." }, 503);
+  let body: any;
+  try { body = await req.json(); } catch { return json({ error: "Invalid JSON." }, 400); }
+  const action = String(body.action || "");
+  try {
+    if (action === "bootstrap") {
+      const expected = Deno.env.get("FIWS_BOOTSTRAP_SECRET") || "";
+      const supplied = req.headers.get("x-fiws-bootstrap-secret") || "";
+      if (expected.length < 40 || !same(expected, supplied)) return json({ error: "Bootstrap is unavailable or unauthorized." }, 403);
+      const { data: state } = await db.from("fiws_admin_bootstrap_state").select("completed_at").eq("singleton", true).single();
+      const { count } = await db.from("fiws_admin_accounts").select("id", { count: "exact", head: true });
+      if (state?.completed_at || (count || 0) > 0) return json({ error: "Bootstrap has already been completed." }, 409);
+      const username = String(body.username || "").trim().toLowerCase();
+      const displayName = String(body.display_name || "").trim();
+      const password = String(body.password || "");
+      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || displayName.length < 1 || displayName.length > 80 || password.length < 14 || password.length > 128) return json({ error: "Username, display name or password does not meet the required format." }, 400);
+      const passwordHash = await hashPassword(password);
+      const { data: owner, error } = await db.from("fiws_admin_accounts").insert({
+        username, display_name: displayName, admin_rank: "owner", password_hash: passwordHash, password_salt: "embedded-in-argon2id-hash",
+      }).select("id").single();
+      if (error) return json({ error: "Could not create the initial owner account." }, 500);
+      await db.from("fiws_admin_bootstrap_state").update({ completed_at: new Date().toISOString(), completed_by: owner.id }).eq("singleton", true);
+      const token = await newSession(owner.id, false, 15);
+      await audit({ id: owner.id, username, admin_rank: "owner" }, "bootstrap.owner_created", "admin", owner.id);
+      return json({ success: true, enrollment_required: true, session: token, username });
+    }
+    if (action === "login") {
+      const username = String(body.username || "").trim().toLowerCase();
+      const password = String(body.password || "");
+      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || password.length > 128) return json({ error: "Invalid username or password." }, 401);
+      const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+      const pepper = Deno.env.get("FIWS_RATE_LIMIT_PEPPER") || "";
+      if (pepper.length < 32) return json({ error: "Authentication service is not configured." }, 503);
+      const ipHash = await hmac(ip, pepper);
+      const key = await hmac(username, pepper);
+      const { data: limit } = await db.from("fiws_admin_login_limits").select("*").eq("username_key", key).eq("ip_hash", ipHash).maybeSingle();
+      if (limit?.locked_until && new Date(limit.locked_until).getTime() > Date.now()) return json({ error: "Invalid username or password." }, 429);
+      const { data: account } = await db.from("fiws_admin_accounts").select("*").eq("username", username).maybeSingle();
+      const valid = account && !account.disabled && (!account.locked_until || new Date(account.locked_until).getTime() < Date.now())
+        ? await passwordOK(password, account.password_hash)
+        : false;
+      const attempts = (limit && Date.now() - new Date(limit.window_started_at).getTime() < 15 * 60000 ? limit.attempts : 0) + (valid ? 0 : 1);
+      const lockedUntil = !valid && attempts >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(attempts - 5, 4)) * 60000).toISOString() : null;
+      await db.from("fiws_admin_login_limits").upsert({
+        username_key: key, ip_hash: ipHash,
+        window_started_at: limit && Date.now() - new Date(limit.window_started_at).getTime() < 15 * 60000 ? limit.window_started_at : new Date().toISOString(),
+        attempts, locked_until: lockedUntil,
+      }, { onConflict: "username_key,ip_hash" });
+      if (!valid) return json({ error: "Invalid username or password." }, 401);
+      if (account.totp_enabled) {
+        const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
+        if (!await verifyTotp(secret, String(body.otp || ""))) return json({ mfa_required: true, error: "Enter a valid authenticator code." }, 401);
+        const token = await newSession(account.id, true, 8 * 60);
+        await db.from("fiws_admin_accounts").update({ failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id);
+        await audit(account, "auth.login", "admin", account.id);
+        return json({ success: true, session: token, admin: { username: account.username, display_name: account.display_name, rank: account.admin_rank } });
+      }
+      const token = await newSession(account.id, false, 15);
+      return json({ success: true, mfa_enrollment_required: true, session: token, username: account.username });
+    }
+    if (action === "mfa-enroll") {
+      const auth = await session(req, false);
+      if (!auth || auth.row.mfa_verified) return json({ error: "Enrollment session required." }, 401);
+      const secret = base32(random(20));
+      const encrypted = await encryptSecret(secret);
+      await db.from("fiws_admin_accounts").update({ totp_secret_ciphertext: encrypted.ciphertext, totp_secret_iv: encrypted.iv, totp_enabled: false }).eq("id", auth.admin.id);
+      const uri = "otpauth://totp/" + encodeURIComponent("FIWS:" + auth.admin.username) + "?secret=" + secret + "&issuer=FIWS&algorithm=SHA1&digits=6&period=30";
+      return json({ secret, otpauth_uri: uri });
+    }
+    if (action === "mfa-confirm") {
+      const auth = await session(req, false);
+      if (!auth || auth.row.mfa_verified) return json({ error: "Enrollment session required." }, 401);
+      const { data: account } = await db.from("fiws_admin_accounts").select("*").eq("id", auth.admin.id).single();
+      if (!account?.totp_secret_ciphertext) return json({ error: "Start authenticator enrollment first." }, 409);
+      const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
+      if (!await verifyTotp(secret, String(body.otp || ""))) return json({ error: "Authenticator code is incorrect." }, 401);
+      const codes = makeRecoveryCodes();
+      const rows = await Promise.all(codes.map(async code => ({ admin_id: account.id, code_hash: await sha(code) })));
+      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", account.id);
+      const { error } = await db.from("fiws_admin_recovery_codes").insert(rows);
+      if (error) return json({ error: "Could not create recovery codes." }, 500);
+      await db.from("fiws_admin_accounts").update({ totp_enabled: true, last_login_at: new Date().toISOString() }).eq("id", account.id);
+      await db.from("fiws_admin_sessions").update({ mfa_verified: true, expires_at: new Date(Date.now() + 8 * 3600000).toISOString() }).eq("id", auth.row.id);
+      await audit(account, "auth.mfa_enabled", "admin", account.id);
+      return json({ success: true, recovery_codes: codes, admin: { username: account.username, display_name: account.display_name, rank: account.admin_rank } });
+    }
+    if (action === "session") {
+      const auth = await session(req);
+      return auth ? json({ authenticated: true, admin: { username: auth.admin.username, display_name: auth.admin.display_name, rank: auth.admin.admin_rank } }) : json({ authenticated: false }, 401);
+    }
+    if (action === "logout") {
+      const auth = await session(req, false);
+      if (auth) await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("id", auth.row.id);
+      return json({ success: true });
+    }
+    if (action.startsWith("logbook-")) return await logbookAction(action, req, body);
+    return json({ error: "Unknown action." }, 400);
+  } catch (error) {
+    console.error("FIWS admin operation failed:", error instanceof Error ? error.message : "unknown");
+    return json({ error: "The administrator operation could not be completed." }, 500);
+  }
+});
