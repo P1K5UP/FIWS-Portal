@@ -193,19 +193,14 @@ Deno.serve(async (req) => {
       if (pepper.length < 32) return json({ error: "Authentication service is not configured." }, 503);
       const ipHash = await hmac(ip, pepper);
       const key = await hmac(username, pepper);
-      const { data: limit } = await db.from("fiws_admin_login_limits").select("*").eq("username_key", key).eq("ip_hash", ipHash).maybeSingle();
-      if (limit?.locked_until && new Date(limit.locked_until).getTime() > Date.now()) return json({ error: "Invalid username or password." }, 429);
+      const { data: throttleData, error: throttleError } = await db.rpc("fiws_consume_admin_login_attempt", { p_username_key: key, p_ip_hash: ipHash });
+      if (throttleError) throw throttleError;
+      const throttle = Array.isArray(throttleData) ? throttleData[0] : throttleData;
+      if (throttle?.locked_until && new Date(throttle.locked_until).getTime() > Date.now()) return json({ error: "Invalid username or password." }, 429);
       const { data: account } = await db.from("fiws_admin_accounts").select("*").eq("username", username).maybeSingle();
       const valid = account && !account.disabled && (!account.locked_until || new Date(account.locked_until).getTime() < Date.now())
         ? await passwordOK(password, account.password_hash)
         : false;
-      const attempts = (limit && Date.now() - new Date(limit.window_started_at).getTime() < 15 * 60000 ? limit.attempts : 0) + 1;
-      const lockedUntil = attempts >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(attempts - 5, 4)) * 60000).toISOString() : null;
-      await db.from("fiws_admin_login_limits").upsert({
-        username_key: key, ip_hash: ipHash,
-        window_started_at: limit && Date.now() - new Date(limit.window_started_at).getTime() < 15 * 60000 ? limit.window_started_at : new Date().toISOString(),
-        attempts, locked_until: lockedUntil,
-      }, { onConflict: "username_key,ip_hash" });
       if (!valid) {
         if (account) {
           const failures = (account.failed_login_count || 0) + 1;
@@ -232,7 +227,7 @@ Deno.serve(async (req) => {
         }
         const token = await newSession(account.id, true, 8 * 60);
         await db.from("fiws_admin_accounts").update({ failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id);
-        await db.from("fiws_admin_login_limits").update({ attempts: 0, locked_until: null, window_started_at: new Date().toISOString() }).eq("username_key", key).eq("ip_hash", ipHash);
+        await db.from("fiws_admin_login_limits").delete().eq("username_key", key).eq("ip_hash", ipHash);
         await audit(account, "auth.login", "admin", account.id);
         return json({ success: true, session: token, admin: { username: account.username, display_name: account.display_name, rank: account.admin_rank } });
       }
