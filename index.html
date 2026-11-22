@@ -197,10 +197,88 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
  .btn:hover,.ib:hover,.seg button:hover,.home-info:hover,.home-result:hover{transform:none}
 }
 
+
+/* Mobile-first navigation and championship tower refinements */
+.home-championship{min-width:0;padding:0;background:transparent;color:inherit;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.home-championship-head{display:none}
+.home-championship #tw.tower{width:100%;min-width:0;max-width:100%;background:var(--gr);color:#fff;border-radius:9px;overflow:hidden;border-top:4px solid var(--sky);box-shadow:0 18px 42px -26px #06192b}
+.home-championship #tw .th{padding:.85rem 1rem;border-bottom:2px solid var(--sky);font-size:1.08rem}
+.home-championship #tw .th small{font-size:.82rem;color:#c9dae8;opacity:.9}
+.home-championship #tw .tb{margin:0;overflow:hidden}
+.home-championship #tw .tr{height:46px;grid-template-columns:38px 5px minmax(0,1fr) auto 54px;gap:.55rem;padding:0 .65rem 0 0;border-bottom:1px solid #ffffff18}
+.home-championship #tw .pos{background:#ffffff12;color:#e8f2fa;font-size:1.25rem}
+.home-championship #tw .tr[data-p="0"] .pos{background:var(--sky);color:#04223a}
+.home-championship #tw .tc{width:5px;height:66%}
+.home-championship #tw .who strong{font-size:1.02rem;color:#fff}
+.home-championship #tw .who small{font-size:.7rem;color:#c6d6e4}
+.home-championship #tw .dl{font-size:.82rem;min-width:1.7rem}
+.home-championship #tw .pt{font-size:1.22rem;color:#fff}
+.home-championship #tw .sc{gap:.65rem;padding:.75rem .85rem;background:#00000035}
+.home-championship #tw .sc .btn{min-height:36px}
+.home-championship #tw .sc input[type=range]{min-height:24px}
+.mobile-dock{display:none}
+@media(max-width:700px){
+ html{scroll-padding-top:4.5rem;scroll-padding-bottom:5.5rem}
+ body{background-attachment:scroll}
+ .bar{padding:.45rem .75rem;gap:.55rem}
+ .brand svg,.brand img,.brand canvas{height:32px;max-width:150px}
+ .nav{order:3;flex:1 0 100%;width:100%;padding:.05rem 0 .15rem;gap:.25rem;scroll-snap-type:x proximity}
+ .nav a{padding:.5rem .7rem;font-size:.98rem;min-height:40px;display:inline-flex;align-items:center;scroll-snap-align:start}
+ .ib{width:42px;height:42px;flex:0 0 42px}
+ main{padding:1rem .8rem calc(6.5rem + env(safe-area-inset-bottom,0px))}
+ .pick{gap:.5rem;margin-bottom:1rem;flex-direction:column;align-items:stretch}
+ .pick .seg{display:flex;width:100%;max-width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;overscroll-behavior-x:contain}
+ .pick .seg::-webkit-scrollbar{display:none}
+ .pick .seg button{flex:0 0 auto;min-height:44px;padding:.55rem .8rem;white-space:nowrap}
+ .home-hero{gap:1rem;padding:.65rem 0 1rem}
+ .home-intro h1{max-width:12ch;font-size:clamp(2.6rem,10.5vw,3.55rem)}
+ .home-championship #tw .tr{grid-template-columns:34px 4px minmax(0,1fr) auto 48px;gap:.42rem}
+ .home-championship #tw .who strong{font-size:.96rem}
+ .home-championship #tw .pt{font-size:1.12rem}
+ .home-championship #tw .sc{gap:.5rem;padding:.7rem .65rem}
+ .home-championship #tw .sc .btn{font-size:.88rem;padding-inline:.65rem}
+ .home-championship #tw .sc span{font-size:.72rem}
+ .home-highlights{margin-top:1rem}
+ .community-band{margin-top:1.2rem}
+ .mobile-dock{position:fixed;z-index:25;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.15rem;padding:.4rem .35rem calc(.4rem + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--panel) 94%,transparent);border-top:1px solid var(--line);box-shadow:0 -10px 28px -22px #0008;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+ .mobile-dock a{min-width:0;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.08rem;border-radius:8px;text-decoration:none;color:var(--mute);font:600 .75rem 'Barlow Condensed';letter-spacing:.02em;touch-action:manipulation}
+ .mobile-dock a span{font:400 1.25rem/1 system-ui,sans-serif}
+ .mobile-dock a small{font:600 .72rem 'Barlow Condensed';white-space:nowrap}
+ .mobile-dock a[aria-current=page]{color:var(--acc);background:color-mix(in srgb,var(--sky) 12%,var(--panel))}
+ .mobile-dock a[aria-current=page] span{transform:translateY(-1px)}
+ .btn{min-height:44px;justify-content:center}
+ .row{gap:.55rem}
+ input,select,textarea{min-height:44px;font-size:16px}
+ input[type=checkbox]{min-height:0;width:20px;height:20px}
+ .sc input[type=range]{min-height:24px}
+ .cal{gap:.65rem;padding:.75rem;grid-template-columns:48px minmax(0,1fr)}
+ .cal h3{font-size:1.12rem}
+ .rh{grid-template-columns:46px minmax(0,1fr) 24px;gap:.55rem;padding:.65rem}
+ .rw{grid-column:2;font-size:1.05rem}
+ .rt{display:none}
+ .chev{grid-column:3;grid-row:1/3}
+ .rbi{grid-template-columns:minmax(0,1fr);gap:.8rem;padding:.5rem .7rem 1rem}
+ .pb{grid-template-columns:minmax(75px,110px) minmax(0,1fr) 34px;gap:.45rem}
+ .dl2{grid-template-columns:1fr;gap:.1rem}
+ .dl2 dd{margin-bottom:.45rem}
+ .ft .in{padding:1.2rem .8rem;display:grid}
+ .cb{left:.6rem;right:.6rem;bottom:calc(5.4rem + env(safe-area-inset-bottom,0px));padding:.85rem}
+}
+@media(max-width:380px){
+ .mobile-dock a small{font-size:.66rem}
+ .home-championship #tw .tr{grid-template-columns:30px 4px minmax(0,1fr) auto 42px;gap:.32rem}
+ .home-championship #tw .who strong{font-size:.88rem}
+ .home-championship #tw .pt{font-size:1rem}
+ .home-championship #tw .sc{gap:.35rem}
+}
+@media(min-width:701px){.mobile-dock{display:none!important}}
+@media(prefers-reduced-motion:reduce){.mobile-dock *{transition:none!important}}
+
 </style></head><body>
 <button class="skip btn" id="skip">Skip to content</button>
 <header class="top"><div class="bar"><a class="brand" href="#home" aria-label="FIWS home"><span id="logo"></span><b>FIWS</b></a>
 <nav class="nav" id="nav" aria-label="Main"></nav><button class="ib" id="theme" aria-label="Toggle light and dark theme">◐</button></div></header>
+<nav class="mobile-dock" id="mobile-nav" aria-label="Quick navigation"></nav>
 <main id="main" tabindex="-1"></main>
 <footer class="ft"><div class="in"><span>© Formula Imperial Worldwide Series. Unofficial league data is shown as provided by league staff.</span><span><a href="#privacy">Privacy</a> &nbsp; <a href="#terms">Terms</a> &nbsp; <a href="#cookies">Cookies</a> &nbsp; <a href="#admin">Admin</a> &nbsp; <a href="#" id="cset">Cookie settings</a></span></div></footer>
 <div id="cbw"></div>
@@ -301,7 +379,7 @@ const savePref=()=>{if((LS.get('consent',{})||{}).pref)LS.set('pref',{series:cur
 const empty=(t,h)=>`<div class="panel"><h3>${t}</h3><p class="muted">${h}</p></div>`;
 const V={};
 V.home=()=>{const s=seas(),li=s?latest(s):-1;
- return{html:`${pick()}<section class="home-hero"><div class="home-intro"><div class="home-kicker">OFFICIAL LEAGUE PORTAL <span></span></div><h1>Formula Imperial<span>Worldwide Series</span></h1><p>Competitive sim racing on Assetto Corsa. Formula cars, ovals and road courses, backed by stewarded races, clear driving standards and a close racing community.</p><div class="row"><a class="btn" href="#standings">View standings</a><a class="btn ghost" href="#apply">Apply to race</a></div><div class="home-tags"><span>ASSETTO CORSA</span><span>FIWS + FITC</span><span>STEWARD-LED RACING</span></div></div><div class="home-championship"><div class="home-championship-head"><span>Championship snapshot</span><span class="chip">Season ${esc(s?.num??'—')}</span></div><div id="tw"></div></div></section>
+ return{html:`${pick()}<section class="home-hero"><div class="home-intro"><div class="home-kicker">OFFICIAL LEAGUE PORTAL <span></span></div><h1>Formula Imperial<span>Worldwide Series</span></h1><p>Competitive sim racing on Assetto Corsa. Formula cars, ovals and road courses, backed by stewarded races, clear driving standards and a close racing community.</p><div class="row"><a class="btn" href="#standings">View standings</a><a class="btn ghost" href="#apply">Apply to race</a></div><div class="home-tags"><span>ASSETTO CORSA</span><span>FIWS + FITC</span><span>STEWARD-LED RACING</span></div></div><div class="home-championship"><div class="home-championship-head"><span>Championship snapshot</span><span class="chip">Season ${esc(s?.num??'—')}</span></div><div id="tw" class="tower"></div></div></section>
  <section class="home-highlights sec"><div class="gr res home-result"><div class="hd"><h3>Latest result</h3><small>${li>=0?esc(rLabel(s,li)):'No race completed yet'}</small></div>${li>=0?[['1',s.res[li].win],['2',s.res[li].p2],['3',s.res[li].p3]].map(([p,n])=>`<div class="pd"><b>${p}</b><span>${esc(valid(n)?n:'—')}</span></div>`).join(''):'<p class="muted" style="padding:0 1rem 1rem">The first classified result will appear here.</p>'}</div>
  <article class="panel home-info"><span class="home-card-kicker">THE CHAMPIONSHIP</span><h3>Season archive</h3><p class="muted">Explore completed rounds, race classifications and the story of each season.</p><a class="home-text-link" href="#calendar">Browse past rounds <span aria-hidden="true">↗</span></a></article>
  <article class="panel home-info"><span class="home-card-kicker">GET ON THE GRID</span><h3>Race with us</h3><p class="muted">Drivers and stewards are welcome. Apply to join and follow your application with a private reference code.</p><div class="row"><a class="btn sm" href="#apply">Apply</a><a class="btn sm ghost" href="#status">Application status</a></div></article></section>
@@ -631,6 +709,7 @@ Object.keys(legal).forEach(k=>V[k]=()=>({html:`<h1>${legal[k][0]}</h1><div class
 /* shell */
 const NAV=[['home','Home'],['standings','Standings'],['results','Results'],['calendar','Calendar'],['entries','Entries'],['rules','Rules'],['apply','Apply'],['status','Status']];
 $('#nav').innerHTML=NAV.map(([k,l])=>`<a href="#${k}">${l}</a>`).join('');
+$('#mobile-nav').innerHTML=[['home','⌂','Home'],['standings','▤','Standings'],['results','▣','Results'],['calendar','◷','Calendar'],['apply','＋','Apply']].map(([k,i,l])=>`<a href="#${k}"><span aria-hidden="true">${i}</span><small>${l}</small></a>`).join('');
 const mark=`<svg viewBox="0 0 54 48" role="img" aria-label="FIWS logo"><rect width="36" height="8" style="fill:var(--sky)"/><rect x="42" width="12" height="8" style="fill:var(--sky)"/><rect y="16" width="12" height="32" fill="currentColor"/><rect x="12" y="16" width="22" height="12" fill="currentColor"/><rect x="42" y="16" width="12" height="32" fill="currentColor"/></svg>`;
 const LOGO={FIWS:'assets/fiws-logo.png',FITC:'assets/fitc-logo.png'};
 const iconSvg=c=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#0B2239"/><g transform="translate(10.5 12.8) scale(.8)"><rect width="36" height="8" fill="${c}"/><rect x="42" width="12" height="8" fill="${c}"/><g fill="#fff"><rect y="16" width="12" height="32"/><rect x="12" y="16" width="22" height="12"/><rect x="42" y="16" width="12" height="32"/></g></g></svg>`;
@@ -639,7 +718,7 @@ function setLogoLegacy(){const k=cur.series,L=$('#logo'),T=$('.brand b');L.inner
 let lastS;
 function cbar(){$('#cbw').innerHTML=`<div class="cb panel" role="dialog" aria-label="Storage consent"><b>Your storage choice.</b> This site uses an essential cookie to remember your latest application reference code. Optional preferences remember your selected season.<div class="row" style="margin-top:.7rem"><button class="btn sm" id="c1">Accept preferences</button><button class="btn sm ghost" id="c2">Necessary only</button><a href="#cookies">Details</a></div></div>`;const s=p=>{LS.set('consent',{pref:p,t:Date.now()});if(!p)LS.del('pref');if(pendingReferenceCookie)saveReferenceCookie(pendingReferenceCookie);$('#cbw').innerHTML='';if(p)savePref()};$('#c1').onclick=()=>s(true);$('#c2').onclick=()=>s(false)}
 let first=true;
-function render(soft){cleanup();document.documentElement.dataset.series=cur.series;if(lastS!==cur.series){lastS=cur.series;setLogo()}const h=(location.hash||'#home').slice(1),k=V[h]?h:'home',v=V[k](),run=()=>{$('#main').innerHTML=v.html;v.after&&v.after();bindPick();$$('#nav a').forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+k)||a.removeAttribute('aria-current'));$$('#nav a').forEach(a=>{if(a.hasAttribute('aria-current'))a.setAttribute('aria-current','page')});document.title=(k==='home'?'':(legal[k]?legal[k][0]:NAV.find(n=>n[0]===k)?.[1]||'Admin')+' – ')+'FIWS – Formula Imperial Worldwide Series';if(!soft&&!first){$('#main').focus({preventScroll:true});scrollTo(0,0)}first=false};
+function render(soft){cleanup();document.documentElement.dataset.series=cur.series;if(lastS!==cur.series){lastS=cur.series;setLogo()}const h=(location.hash||'#home').slice(1),k=V[h]?h:'home',v=V[k](),run=()=>{$('#main').innerHTML=v.html;v.after&&v.after();bindPick();$('#nav a,#mobile-nav a').forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+k)||a.removeAttribute('aria-current'));$('#nav a,#mobile-nav a').forEach(a=>{if(a.hasAttribute('aria-current'))a.setAttribute('aria-current','page')});document.title=(k==='home'?'':(legal[k]?legal[k][0]:NAV.find(n=>n[0]===k)?.[1]||'Admin')+' – ')+'FIWS – Formula Imperial Worldwide Series';if(!soft&&!first){$('#main').focus({preventScroll:true});scrollTo(0,0)}first=false};
  !RM&&document.startViewTransition?document.startViewTransition(run):run()}
 $('#skip').onclick=()=>$('#main').focus();$('#cset').onclick=e=>{e.preventDefault();cbar()};
 $('#theme').onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark';setLogo()};
