@@ -1,6 +1,6 @@
 # FIWS – Formula Imperial Worldwide Series
 
-Static website: standings, results, calendar, entries, rules, application portal, status page and admin panel. No server, no tracking, no cookies.
+Static website: standings, results, calendar, entries, rules, application portal, status page and admin panel. Hosted on GitHub Pages with Supabase Auth, Postgres and Storage for shared persistence.
 
 ## Run / deploy
 - Open `index.html` directly, or serve the folder (GitHub Pages: Settings → Pages → deploy from `main`, root).
@@ -11,17 +11,17 @@ Static website: standings, results, calendar, entries, rules, application portal
 2. Drag the new `.xlsx` onto Admin → Standings data → Publish (stored in that browser only).
 
 ## Logo
-Add `assets/fiws-logo.png` and `assets/fitc-logo.png` (they switch with the selected series), or upload them in Admin → Logo.
+Add `assets/fiws-logo.png` and `assets/fitc-logo.png` (they switch with the selected series), or upload them in Admin → Logos. Admin uploads are sanitized/rasterized and stored in Supabase Storage. Neutral white/black pixels adapt to light/dark theme while other colours and alpha are retained.
 
 ## Team colours
-Teams and entries come from the workbook. Colours default to an automatic palette; change them in Admin → Team colours (this device) or put them in `TEAM_COLORS` in `src/index.template.html` and rebuild (everyone).
+Teams and entries come from the workbook. Colours default to an automatic palette; administrators can change them in Admin → Team colours. Overrides are stored in Supabase and shared across devices.
 
 ## Configure
 - `LEAGUE_EMAIL` near the top of the script in `src/index.template.html`: enables the "Email to league staff" button after an application.
 - Rebuild with `python3 build.py` after any change to `src/`.
 
 ## Security notes
-A static site has no server-side access control. The admin passcode (PBKDF2, 600k rounds, lockout with backoff, 20-minute idle timeout) protects the review panel on one device only. Applications are stored in the applicant's browser; use a backend or form service to collect them centrally. A Content-Security-Policy meta tag limits scripts to the page and cdnjs.
+Supabase Auth verifies applicant and staff email addresses. PostgreSQL Row Level Security scopes applicant reads to their own records and restricts administrative actions to accounts with the trusted `app_metadata.fiws_role=admin` claim. Never put a secret/service-role key in the browser. Application submission uses a Supabase Edge Function with HMACed IP throttling and a per-account database limit. Public assets are kept in a separate public Storage bucket; applicant data is never stored there.
 
 ## Workbook format
 Each sheet holds season blocks side by side. Row 2 has the season titles, row 5 the section titles (ENTRIES, CALENDAR, STANDINGS (RACE BY RACE), STANDINGS (POINTS)), row 7 the column headers. Standings are cumulative points per round.
