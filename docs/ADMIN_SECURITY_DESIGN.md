@@ -1,95 +1,88 @@
-# FIWS administrator security redesign
+# FIWS administrator security and operations
 
-## Scope and compatibility
-This is an additive redesign on the existing FIWS shared-backend branch. It does not delete or rewrite applications, site settings, Storage objects, workbook data, or existing Supabase Auth users. Applicant email verification remains unchanged for now; administrator sign-in is being separated from Supabase Auth so admin login no longer sends email.
+## Current status
+
+The custom administrator system is implemented on `feat/shared-supabase-backend` and deployed separately to the production Supabase project. The Owner account has been provisioned, signed in, and enrolled in authenticator-app MFA. The administrator panel and its normal features have been exercised by the site owner.
+
+The website pull request remains open and unmerged. GitHub Pages production still publishes from `main`; this feature branch does not publish the website. Edge Function deployments and database migrations are separate from the GitHub Pages release.
+
+This document describes the current system and the remaining verification gates. A passing GitHub Actions workflow does not replace live integration, security, or real-device testing.
 
 ## Administrator ranks
-- **Owner**: bootstrap authority, create/disable admins, assign ranks, reset other accounts, manage security configuration, and perform all admin operations. At least one owner must always remain.
-- **Administrator**: manage applications, published workbook, logos, team colours, and normal portal settings; manage logbook entries.
-- **Moderator**: review applications and contribute to the staff logbook. Cannot create/disable staff accounts, change ranks, or alter security configuration.
-- There is deliberately no Steward website role.
 
-All authorization is enforced in Edge Functions, never by hiding UI controls. The database tables for custom admin identities are RLS-enabled and inaccessible to anon/authenticated clients.
+- **Owner:** manage administrator accounts and ranks, perform account recovery, and use all administrative features.
+- **Administrator:** manage applications, published workbook, logos, team colours, normal portal settings and staff logbook entries.
+- **Moderator:** review applications and contribute to the staff logbook. Cannot manage staff accounts, ranks or security configuration.
+- There is no Steward website role.
 
-## Authentication design
-- Unique username and password; no public staff registration and no email-based admin login.
-- Password hashes use per-account random salts and a server-side, deliberately expensive password KDF. The implementation must use a supported, reviewed implementation and document its parameters; passwords are never returned or logged.
-- TOTP authenticator-app MFA is mandatory for every admin. New accounts remain pending until MFA enrollment is confirmed.
-- Login throttles atomically by normalized username and network source, applies progressive account and network lockouts to password and MFA failures, and returns generic credential errors to reduce account enumeration.
-- Sessions are random opaque bearer tokens; only SHA-256 token hashes are stored in Postgres. An eight-hour absolute expiry and server-side revocation are enforced; browser memory-only storage means reload requires a fresh login.
-- Because the website is hosted on GitHub Pages and the API is on a different site (Supabase), browser third-party-cookie restrictions make cross-site HttpOnly cookies unreliable. The browser keeps the opaque bearer token in page memory only (not localStorage or sessionStorage) and sends it over HTTPS. Reloading the page requires a fresh login; the server-side session expires after eight hours. This avoids leaving an admin token in persistent browser storage. Strong CSP and safe DOM handling remain important XSS defenses.
-- Recovery codes are generated once, displayed once, stored only as hashes, and individually consumed. A higher-ranked administrator can reset a lower-ranked account. Owner recovery uses a separately configured, one-time server secret and is never exposed to the browser. It resets the owner password and MFA, revokes sessions, and consumes the emergency secret.
-- Initial owner bootstrap is a one-time Edge Function operation protected by a server-side secret configured outside Git. It becomes permanently unavailable after successful creation.
+Authorization is checked server-side in `fiws-admin`; hiding a browser control is never treated as an authorization boundary. Database procedures also validate privileged operations.
 
-## Staff memory and audit
-The shared staff logbook stores general notes, handovers, driver/team/application/incident/competition notes, optional related references, and author/timestamp attribution. The current website interface supports creating and reading entries; the API also supports updates and archiving. Audit entries record administrative security and moderation actions without copying applicant PII or passwords into the audit stream. Logbook and audit reads/writes are rank-checked server-side.
+## Authentication and session design
 
-## Database
-The additive migrations `20261122175332_fiws_admin_identity_logbook.sql`, `20261122175349_fiws_admin_mfa_login_hardening.sql`, `20261122175630_fiws_totp_replay_protection.sql`, `20261122175748_fiws_admin_atomic_login_throttle.sql`, `20261122175846_fiws_owner_recovery_gate.sql`, `20261122175855_fiws_retire_legacy_auth_admin_policies.sql`, `20261122183000_fiws_atomic_admin_recovery.sql`, `20261122184500_fiws_atomic_owner_bootstrap.sql`, `20261122190000_fiws_atomic_mfa_enrollment.sql`, and `20261122191500_fiws_atomic_admin_account_lifecycle.sql` add custom admin accounts, sessions, recovery codes, bootstrap state, staff logbook, audit, MFA replay protection, atomic login throttling, and remove the old Supabase Auth admin policies. Existing applications, settings, Auth users, and Storage objects are not rewritten. All custom-admin tables deny direct access to anon/authenticated roles; Edge Functions use server-side service credentials.
+- Staff use a provisioned username and password. There is no public staff registration or email-based administrator login.
+- Passwords are hashed server-side with Argon2id (19 MiB memory, two iterations, one lane). Passwords and hashes are never returned to the browser.
+- TOTP authenticator-app MFA is mandatory. TOTP secrets are encrypted server-side using AES-GCM and the stable `FIWS_TOTP_ENCRYPTION_KEY`.
+- Login throttling is enforced atomically by normalized username and network source. Password and MFA failures receive progressive throttling; credential errors are intentionally generic.
+- Sessions use random opaque bearer tokens. Only SHA-256 hashes are stored in Postgres; server-side expiry and revocation are enforced. The absolute session lifetime is eight hours.
+- The browser holds the opaque session token in page memory only, not localStorage or sessionStorage. Reloading the page requires a new sign-in. This is intentional.
+- Recovery codes are generated once, shown once, stored as hashes and individually consumed. Owner recovery uses a separate one-time server-side secret.
 
-## Deployment gates (must all pass before public rollout)
-1. In Supabase → Edge Functions → Secrets, configure `FIWS_BOOTSTRAP_SECRET` (at least 40 random characters), `FIWS_TOTP_ENCRYPTION_KEY` (base64 encoding of exactly 32 random bytes), and `FIWS_RATE_LIMIT_PEPPER` (at least 32 random characters), and `FIWS_OWNER_RECOVERY_SECRET` (at least 40 random characters; store offline and only use for a one-time emergency). Never put these in the repository. The Supabase service-role key is read only from the function environment. Never expose any of these secrets in HTML or a public browser request.
-2. Apply the additive migration and verify RLS, grants, constraints, and advisors.
-3. Deploy `fiws-admin` with JWT verification disabled only because it validates its own opaque sessions. The function enforces the exact GitHub Pages Origin, checks all admin sessions server-side, and uses only server-side service credentials. Run automated tests for login, TOTP, replay resistance, brute-force throttling, recovery, role escalation, session revocation, CORS and origin checks.
-4. Create the initial Owner by sending a POST to `/functions/v1/fiws-admin` with `{"action":"bootstrap","username":"...","display_name":"...","password":"..."}` and the `x-fiws-bootstrap-secret` header from a trusted local terminal. Never put the bootstrap secret in the website. The function permits bootstrap only while no admin exists and permanently marks it complete after success. Then sign in on the website, enroll MFA, generate and safely store recovery codes.
-5. Create the second admin through the owner UI and test every rank against the permission matrix.
-6. The custom API source includes rank-checked application review, settings writes, asset upload/delete, logbook, account creation/rank changes/disable, password reset, recovery, and session operations. Direct Auth-claim-based database write permissions have been removed; public applicant access remains scoped to each applicant's own records. Verify every operation against each rank before removing old admin access.
-7. Verify applicant flows separately; applicant email authentication is not being changed in this admin-only redesign.
-8. Retire the old email-based admin bootstrap only after the new owner has successfully logged in with MFA and all staff operations pass.
-9. Do not merge the PR or change GitHub Pages deployment until end-to-end tests pass.
+## Applicant workflow
 
-The emergency owner recovery action is `owner-recover`; send the one-time secret in `x-fiws-owner-recovery-secret` from a trusted local terminal with a new password. The endpoint consumes the recovery gate and resets MFA; immediately remove `FIWS_OWNER_RECOVERY_SECRET` from project secrets after use.
+Applicants do not create Supabase Auth accounts and do not receive verification or status emails. The email field is contact information for league staff only.
 
-## Explicitly not included
-Replacing Supabase/Postgres, moving hosting away from GitHub Pages, changing applicant authentication, or deleting existing Supabase Auth users. Those are separate architectural decisions.
+The public `submit-application` function generates a reference code containing 13 cryptographically random bytes (104 bits), displayed as `FIWS-` plus 26 uppercase hexadecimal characters. The code is the credential for status lookup. The latest code may be remembered in a first-party cookie after the visitor chooses the necessary-cookie option; manual entry always remains available.
 
-## Generate and configure server secrets
+The status endpoint returns only the applicant name, application type, series, status and staff note. It does not return the contact email or full application payload. Application table access is restricted to the server-side service role; public submission and lookup are mediated by the rate-limited Edge Function.
 
-Generate these on your own computer with OpenSSL (do not send them to anyone):
-```sh
-openssl rand -hex 32       # FIWS_BOOTSTRAP_SECRET
-openssl rand -base64 32    # FIWS_TOTP_ENCRYPTION_KEY
-openssl rand -hex 32       # FIWS_RATE_LIMIT_PEPPER
-openssl rand -hex 32       # FIWS_OWNER_RECOVERY_SECRET
-```
-In Supabase Dashboard → Edge Functions → Secrets, add each value under the matching name. Keep the bootstrap and owner recovery secrets in a password manager or offline secure store. Never put them in GitHub, the website, or chat. The TOTP encryption key must remain stable: losing it makes existing authenticator secrets undecryptable.
+Accepted and rejected applications are deleted by a Postgres `pg_cron` job once they are at least 24 hours past `decided_at`. The job runs every five minutes, so deletion can occur up to five minutes after the 24-hour point. Resetting an application to pending must clear its decision timestamp.
 
-After the secrets are configured, deploy the fiws-admin Edge Function with JWT verification disabled (it validates its own random session tokens and rejects every non-allowlisted browser Origin). The public website uses only the publishable key; all service credentials stay in the Edge Function environment.
+## Server-side functions and secrets
 
-## Bootstrap request example (run locally, never from the browser)
-Use a local terminal after configuring secrets and deploying the function. Keep the secret out of shell history and do not paste it into chat:
-```sh
-read -rsp "FIWS bootstrap secret: " FIWS_BOOTSTRAP_SECRET; echo
-read -rp "Owner username: " FIWS_OWNER_USERNAME
-read -rp "Owner display name: " FIWS_OWNER_NAME
-read -rsp "Owner password (14+ chars): " FIWS_OWNER_PASSWORD; echo
-read -rsp "Supabase publishable key: " FIWS_PUBLISHABLE_KEY; echo
-export FIWS_BOOTSTRAP_SECRET FIWS_OWNER_USERNAME FIWS_OWNER_NAME FIWS_OWNER_PASSWORD FIWS_PUBLISHABLE_KEY
-python3 - <<'PY'
-import json, os, urllib.request
-payload = {
-    "action": "bootstrap",
-    "username": os.environ["FIWS_OWNER_USERNAME"],
-    "display_name": os.environ["FIWS_OWNER_NAME"],
-    "password": os.environ["FIWS_OWNER_PASSWORD"],
-}
-request = urllib.request.Request(
-    "https://yipzokjzqltxcufixrsv.supabase.co/functions/v1/fiws-admin",
-    data=json.dumps(payload).encode(),
-    headers={
-        "Origin": "https://p1k5up.github.io",
-        "apikey": os.environ["FIWS_PUBLISHABLE_KEY"],
-        "Content-Type": "application/json",
-        "x-fiws-bootstrap-secret": os.environ["FIWS_BOOTSTRAP_SECRET"],
-    },
-    method="POST",
-)
-with urllib.request.urlopen(request) as response:
-    print(response.read().decode())
-PY
-unset FIWS_BOOTSTRAP_SECRET FIWS_OWNER_PASSWORD FIWS_PUBLISHABLE_KEY
-```
-Replace the publishable key placeholder with the existing public key from project configuration. If Python is unavailable, construct the JSON request locally without placing the secret in the URL. The bootstrap secret is a one-time capability; rotate or remove it after successful bootstrap.
+The active website API functions are:
 
-## Current implementation status
-The custom admin database schema and the removal of legacy Auth-claim admin policies have been applied additively and verified. The Edge Function and website integration are in the feature branch; they are not yet deployed/merged. Required secrets are not configured by this repository change. Do not treat the admin system as production-ready until the deployment gates and browser/API tests pass.
+- `fiws-admin`: custom admin authentication, MFA, session validation, rank-checked staff operations and shared admin data.
+- `submit-application`: public application submission and reference-code status lookup.
+
+Both functions validate the request Origin against the exact allowlist:
+- `https://p1k5up.github.io`
+- `http://localhost:8000`
+
+The service-role key is read only from the Edge Function environment. The following secrets are also server-side only:
+
+- `FIWS_BOOTSTRAP_SECRET`
+- `FIWS_TOTP_ENCRYPTION_KEY`
+- `FIWS_RATE_LIMIT_PEPPER`
+- `FIWS_OWNER_RECOVERY_SECRET`
+
+Never commit these values, place them in website code, include them in a browser request, or send them in chat. The TOTP encryption key must remain stable; losing it makes existing authenticator secrets undecryptable. The bootstrap and owner-recovery secrets are sensitive one-time capabilities and should be removed/rotated when their documented use is complete.
+
+The legacy `bootstrap-fiws-admins` function remains active as a separate older deployment. It is not part of the normal custom-admin login flow. Review its remaining need and access controls before deliberately retiring it; do not remove it as an incidental frontend change.
+
+## Database and migrations
+
+The migrations in `supabase/migrations/` cover the shared backend, storage, application validation and rate limits, custom admin accounts/sessions/MFA/recovery/logbook/audit, atomic privileged operations, service-role settings access, reference-code applications, service-role-only application table access, and scheduled application cleanup.
+
+These production migrations have already been applied. Treat existing migration files as immutable history. For future schema changes, add a new timestamped migration, review its grants/RLS/security-definer behavior, test it against a non-production project where possible, and obtain approval before applying it to production.
+
+Custom administrator tables deny direct access to `anon` and `authenticated` roles. Application rows are similarly unavailable to browser roles. Service-role access is used only from the Edge Functions. Public Storage is reserved for public site assets such as logos and published workbooks; never put applicant or administrator data there.
+
+## Operational verification before public rollout
+
+The following checks remain separate from CI and should be completed before the website is merged/published:
+
+1. Exercise every rank against both allowed and denied actions, including account creation, rank changes, disable/re-enable, password reset, session revocation and logbook permissions.
+2. Exercise MFA enrollment, TOTP replay resistance, login throttling, recovery-code consumption and the one-time Owner recovery procedure using controlled test accounts.
+3. Run a controlled applicant lifecycle: submit, retain/copy code, check status, accept/reject, reset to pending, delete manually, and verify scheduled 24-hour cleanup. Do not use real applicant data for test submissions.
+4. Review the still-active legacy `bootstrap-fiws-admins` function and deliberately decide whether to retain or retire it.
+5. Confirm database backup and restore arrangements and that the 24-hour post-decision application retention meets league requirements.
+6. Test the released site on real iOS and Android devices, including the fixed bottom navigation, safe-area spacing, keyboard behavior, forms, tables and admin panel.
+
+The owner has confirmed the Discord widget and admin features render/work. The latest GitHub Actions run has passed the build, Edge Function type checks, regression tests and inline JavaScript syntax check. Physical-device testing and the broader controlled end-to-end checks above have not been claimed as complete.
+
+## Release boundaries
+
+- Website source changes stay on `feat/shared-supabase-backend` until the pull request is reviewed and release approval is given.
+- GitHub Pages publishes from `main`; a feature-branch commit does not update the public site.
+- Deploying an Edge Function or applying a database migration is a separate production action. Do not infer approval for backend deployment from approval to merge frontend code.
+- Never merge, publish, disable a production function, rotate secrets or apply an ad-hoc production SQL change without explicit authorization.
