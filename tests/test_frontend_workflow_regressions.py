@@ -149,12 +149,27 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("main{padding-bottom:calc(6.8rem + env(safe-area-inset-bottom,0px))}", page)
             self.assertIn("const NAV_ICONS=", page)
 
-    def test_leaderboard_track_names_are_shortened_only_on_phones(self):
+    def test_leaderboard_round_titles_are_shortened_only_on_phones(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("function leaderboardTrackLabel(s,r)", page)
+        self.assertIn("function leaderboardRoundLabel(s,r)", page)
         self.assertIn("matchMedia('(max-width:700px)').matches", page)
-        self.assertIn("leaderboardTrackLabel(s,r)", page)
-        self.assertIn("if(!matchMedia('(max-width:700px)').matches)return raw", page)
+        self.assertIn("leaderboardRoundLabel(s,round)", page)
+        self.assertIn("leaderboardRoundLabel(s,max)", page)
+        self.assertIn("grand prix", page)
+
+    def test_standings_includes_all_entry_drivers_even_without_points_rows(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("function allSeasonDrivers(s)", page)
+        self.assertIn("(s.drivers||[]).forEach(entry=>", page)
+        self.assertIn("vals:s.codes.map(()=>0)", page)
+        self.assertIn("const standingsSeason=k==='drv'?{...s,drv:allSeasonDrivers(s)}:s", page)
+        self.assertIn("tower($('#tw'),standingsSeason,k,l.length)", page)
+
+    def test_leaderboard_rank_swaps_animate_during_slider_scrubbing(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("transition:transform .5s cubic-bezier(.22,.75,.25,1)", page)
+        self.assertNotIn(".tower.scrubbing .tr{transition:none!important}", page)
+        self.assertIn("@media(max-width:700px){.tower .tr{transition-duration:.42s}", page)
 
 if __name__ == "__main__":
     unittest.main()
