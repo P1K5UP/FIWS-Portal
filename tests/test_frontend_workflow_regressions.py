@@ -140,5 +140,21 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         ):
             self.assertIn(phrase, rules)
 
+    def test_phone_navigation_is_a_bottom_app_dock_with_icon_labels(self):
+        for relative in ("src/index.template.html", "index.html"):
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn(".top{position:fixed;top:auto;bottom:0", page)
+            self.assertIn(".nav-ico{display:block;width:19px;height:19px", page)
+            self.assertIn(".nav-label{display:block;font:600 .61rem", page)
+            self.assertIn("main{padding-bottom:calc(6.8rem + env(safe-area-inset-bottom,0px))}", page)
+            self.assertIn("const NAV_ICONS=", page)
+
+    def test_leaderboard_track_names_are_shortened_only_on_phones(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("function leaderboardTrackLabel(s,r)", page)
+        self.assertIn("matchMedia('(max-width:700px)').matches", page)
+        self.assertIn("leaderboardTrackLabel(s,r)", page)
+        self.assertIn("if(!matchMedia('(max-width:700px)').matches)return raw", page)
+
 if __name__ == "__main__":
     unittest.main()
