@@ -85,5 +85,14 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("decided_at <= now() - interval '24 hours'", migration)
 
 
+    def test_privacy_notice_matches_public_status_and_retention_behavior(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        privacy = page.split("privacy:['Privacy notice'", 1)[1].split("terms:['Terms of use'", 1)[0]
+        self.assertIn("does not return the contact email or full application", privacy)
+        self.assertIn("automatically deleted 24 hours after the decision", privacy)
+        self.assertIn("Pending applications remain stored until staff make a decision or delete them", privacy)
+        self.assertNotIn("Staff keep applications only as long as needed to run the season", privacy)
+
+
 if __name__ == "__main__":
     unittest.main()
