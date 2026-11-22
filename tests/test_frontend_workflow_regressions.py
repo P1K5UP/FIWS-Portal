@@ -99,5 +99,34 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn('decided_at: status === "pending" ? null : new Date().toISOString()', function)
 
 
+    def test_mobile_scoreboard_scrubbing_disables_row_tweening(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("el.classList.add('tower')", page)
+        self.assertIn("rng.addEventListener('pointerdown',()=>el.classList.add('scrubbing'))", page)
+        self.assertIn("if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v", page)
+        self.assertIn(".tower.scrubbing .tr{transition:none!important}", page)
+
+    def test_mobile_dock_does_not_cover_footer_and_admin_toolbar_is_not_sticky(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(".ft{padding-bottom:calc(6rem + env(safe-area-inset-bottom,0px))}", page)
+        self.assertIn(".admin-toolbar{position:static;top:auto;backdrop-filter:none}", page)
+        self.assertIn(".pick .seg:last-child{width:100%;display:grid", page)
+
+    def test_rules_page_covers_current_sporting_directive_and_championship(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        rules = page.split("V.rules=()=>", 1)[1].split("/* application form definitions */", 1)[0]
+        for phrase in (
+            "one change of direction",
+            "Do not move under braking",
+            "120 km/h (75 mph) in FIWS",
+            "80 km/h (50 mph) in FITC",
+            "one mandatory pitstop",
+            "12 penalty points",
+            "Round 18",
+            "best four results",
+            "Reverse Gear Glitch abuse",
+        ):
+            self.assertIn(phrase, rules)
+
 if __name__ == "__main__":
     unittest.main()
