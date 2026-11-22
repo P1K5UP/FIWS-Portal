@@ -615,12 +615,12 @@ function sanitizeSvgSource(source){
   [...node.attributes].forEach(a=>{
    const n=a.name,v=a.value.trim();
    if(!attrs.has(n)||/^on/i.test(n)){node.removeAttribute(n);return}
-   if((n==='clip-path'||n==='mask'||n==='fill'||n==='stroke')&&/url\(/i.test(v)&&!/^url\(#[A-Za-z_][\\w.-]*\\)$/.test(v)){node.removeAttribute(n);return}
+   if((n==='clip-path'||n==='mask'||n==='fill'||n==='stroke')&&/url\(/i.test(v)&&!/^url\(#[A-Za-z_][\w.-]*\)$/.test(v)){node.removeAttribute(n);return}
    if(n==='xmlns'&&v!=='http://www.w3.org/2000/svg'){node.removeAttribute(n);return}
    if(n==='d'&&!/^[MmLlHhVvCcSsQqTtAaZz0-9eE, .+-]*$/.test(v)){node.removeAttribute(n);return}
    if(n==='points'&&!/^[0-9eE, .+-]*$/.test(v)){node.removeAttribute(n);return}
    if(n==='transform'&&!/^[A-Za-z0-9(), .+-]*$/.test(v)){node.removeAttribute(n);return}
-   if(['fill','stroke','stop-color'].includes(n)&&!/^url\(#[A-Za-z_][\\w.-]*\\)$/.test(v)&&!/^#[0-9a-fA-F]{3,8}$/.test(v)&&!/^[A-Za-z]+$/.test(v)&&!/^rgba?\\([0-9.,% ]+\\)$/.test(v)){node.removeAttribute(n);return}
+   if(['fill','stroke','stop-color'].includes(n)&&!/^url\(#[A-Za-z_][\w.-]*\)$/.test(v)&&!/^#[0-9a-fA-F]{3,8}$/.test(v)&&!/^[A-Za-z]+$/.test(v)&&!/^rgba?\([0-9.,% ]+\)$/.test(v)){node.removeAttribute(n);return}
    if(['width','height','x','y','x1','x2','y1','y2','cx','cy','r','rx','ry','opacity','fill-opacity','stroke-opacity','stroke-width','offset','stop-opacity'].includes(n)&&!/^[0-9.eE%+-]+$/.test(v)){node.removeAttribute(n);return}
   });
  });
