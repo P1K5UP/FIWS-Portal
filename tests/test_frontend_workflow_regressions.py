@@ -167,6 +167,32 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("const standingsSeason=k==='drv'?{...s,drv:allSeasonDrivers(s)}:s", page)
         self.assertIn("tower($('#tw'),standingsSeason,k,l.length)", page)
 
+    def test_explicit_core_roster_is_included_in_standings(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        for driver in ("Yoshinaran", "29deCesaris", "Mariusz", "Formula B", "Protomango", "Jetto", "Yishmate", "P1K5UP", "BlackDragon", "Endo", "Putra", "Pmoneyspread"):
+            self.assertIn(driver, page)
+        self.assertIn("CORE_SEASON_DRIVERS.forEach(add)", page)
+        self.assertIn("tower($('#tw'),standingsSeason,k,Infinity)", page)
+
+    def test_discord_community_cta_replaces_widget_warning(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn('class="btn discord-join"', page)
+        self.assertIn('href="https://discord.com/servers/1430272514591817861"', page)
+        self.assertNotIn("If the panel does not appear", page)
+        self.assertNotIn("Hangout with people who get it", page)
+        self.assertNotIn('discord.com/widget?id=', page)
+
+    def test_fitc_live_indicator_and_cancelled_leaderboard_marker(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("/ONGOING|LIVE|ACTIVE|CURRENT/i.test(String(s.status||''))", page)
+        self.assertIn("cancelled-mark", page)
+        self.assertIn("return esc(label)+(cancelled?' <span class=", page)
+
+    def test_home_actions_share_motion_language_without_becoming_identical(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(".home-intro>.row .btn:hover", page)
+        self.assertIn(".home-info .row .btn", page)
+        self.assertIn(".discord-join:hover", page)
     def test_leaderboard_rank_swaps_animate_during_slider_scrubbing(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("transition:transform .5s cubic-bezier(.22,.75,.25,1)", page)
