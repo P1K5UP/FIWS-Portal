@@ -610,7 +610,7 @@ function sanitizeSvgSource(source){
  if(doc.querySelector('parsererror')||doc.documentElement.localName!=='svg')throw new Error('Invalid SVG file.');
  const tags=new Set(['svg','g','path','rect','circle','ellipse','line','polyline','polygon','defs','linearGradient','radialGradient','stop','clipPath','mask','title']);
  const attrs=new Set(['xmlns','viewBox','width','height','x','y','x1','x2','y1','y2','cx','cy','r','rx','ry','d','points','fill','fill-rule','fill-opacity','stroke','stroke-width','stroke-linecap','stroke-linejoin','stroke-opacity','opacity','transform','offset','stop-color','stop-opacity','gradientUnits','gradientTransform','clip-path','mask','id']);
- [...doc.documentElement.querySelectorAll('*')].forEach(node=>{
+ [doc.documentElement,...doc.documentElement.querySelectorAll('*')].forEach(node=>{
   if(!tags.has(node.localName)){node.remove();return}
   [...node.attributes].forEach(a=>{
    const n=a.name,v=a.value.trim();
