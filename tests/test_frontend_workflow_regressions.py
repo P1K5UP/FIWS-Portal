@@ -106,11 +106,23 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v", page)
         self.assertIn(".tower.scrubbing .tr{transition:none!important}", page)
 
-    def test_mobile_dock_does_not_cover_footer_and_admin_toolbar_is_not_sticky(self):
+    def test_mobile_navigation_uses_one_compact_top_bar(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn(".ft{padding-bottom:calc(6rem + env(safe-area-inset-bottom,0px))}", page)
+        self.assertNotIn('id="mobile-nav"', page)
+        self.assertNotIn(".mobile-dock{position:fixed", page)
+        self.assertIn(".bar{padding:.4rem .55rem;gap:.45rem;flex-wrap:nowrap;min-width:0}", page)
+        self.assertIn(".nav{order:0;flex:1 1 auto;width:auto;min-width:0", page)
+        self.assertIn("main{padding:1rem .8rem calc(3rem + env(safe-area-inset-bottom,0px))}", page)
         self.assertIn(".admin-toolbar{position:static;top:auto;backdrop-filter:none}", page)
         self.assertIn(".pick .seg:last-child{width:100%;display:grid", page)
+
+    def test_mobile_leaderboard_slider_prevents_page_pan_and_haptics_on_touch(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("touch-action:none;overscroll-behavior:contain", page)
+        self.assertIn("e.pointerType==='touch'", page)
+        self.assertIn("matchMedia('(pointer:coarse)').matches&&typeof navigator.vibrate==='function'", page)
+        self.assertIn("navigator.vibrate(8)", page)
+        self.assertIn("rng.addEventListener('pointercancel'", page)
 
     def test_rules_page_covers_current_sporting_directive_and_championship(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
