@@ -512,7 +512,7 @@ async function adminLoad(){
  adminRows=result.applications||[];
  const tabs=[['apps','Applications ('+adminRows.length+')'],...(adminIdentity.rank!=='moderator'?[['data','Standings data'],['col','Team colours'],['brand','Logos']]:[]),['logbook','Staff logbook'],...(adminIdentity.rank==='owner'?[['admins','Administrators']]:[]),['sec','Account']];
  R.innerHTML='<div class="tabs seg" style="display:flex;flex-wrap:wrap">'+tabs.map(x=>'<button data-at="'+x[0]+'" aria-pressed="'+(adminTab===x[0])+'">'+x[1]+'</button>').join('')+'<button id="admin-out">Sign out</button></div><div id="admin-content"></div>';
- $('[data-at]').forEach(b=>b.onclick=()=>{adminTab=b.dataset.at;adminLoad()});
+ $$('[data-at]').forEach(b=>b.onclick=()=>{adminTab=b.dataset.at;adminLoad()});
  $('#admin-out').onclick=async()=>{try{await fiwsAdminApi('logout')}catch{}adminToken=null;adminIdentity=null;admin()};
  const P=$('#admin-content');
  if(adminTab==='apps'){
