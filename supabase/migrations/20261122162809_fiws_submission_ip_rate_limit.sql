@@ -6,6 +6,9 @@ create table if not exists public.application_ip_limits (
  request_count integer not null default 1 check (request_count >= 1)
 );
 alter table public.application_ip_limits enable row level security;
+drop policy if exists "No client access to IP rate limits" on public.application_ip_limits;
+create policy "No client access to IP rate limits" on public.application_ip_limits
+for all to anon, authenticated using (false) with check (false);
 revoke all on public.application_ip_limits from public, anon, authenticated;
 grant select, insert, update, delete on public.application_ip_limits to service_role;
 
