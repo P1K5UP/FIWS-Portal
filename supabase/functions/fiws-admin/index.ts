@@ -478,13 +478,13 @@ Deno.serve(async (req) => {
       if (!auth || !allowedRank(auth.admin.admin_rank, "administrator")) return reply({ error: "Administrator permission required." }, 403);
       const path = String(body.path || "");
       const mime = String(body.content_type || "");
-      const allowed = path === "workbooks/current.xlsx" && mime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      const allowed = (path === "workbooks/current.xlsx" || /^workbooks\/current-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.xlsx$/i.test(path)) && mime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         || /^logos\/(FIWS|FITC)\.png$/.test(path) && mime === "image/png";
       if (!allowed || typeof body.base64 !== "string" || body.base64.length > 8_000_000) return reply({ error: "Invalid asset upload." }, 400);
       let bytes: Uint8Array;
       try { bytes = unb64(body.base64); } catch { return reply({ error: "Invalid asset encoding." }, 400); }
       if (!bytes.length || bytes.length > 6_000_000) return reply({ error: "Asset exceeds the 6 MB upload limit." }, 413);
-      const { error } = await db.storage.from("fiws-public").upload(path, bytes, { upsert: true, contentType: mime });
+      const { error } = await db.storage.from("fiws-public").upload(path, bytes, { upsert: true, contentType: mime, cacheControl: path.startsWith("workbooks/") ? "0" : "3600" });
       if (error) return reply({ error: "Could not publish the asset." }, 500);
       await audit(auth.admin, "asset.upload", "asset", path, { bytes: bytes.length, content_type: mime });
       return reply({ success: true, path });
