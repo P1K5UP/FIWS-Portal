@@ -114,8 +114,8 @@ function allowedRank(rank: string, min: string) {
 }
 function makeRecoveryCodes() {
   return Array.from({ length: 10 }, () => {
-    const bytes = random(10);
-    return [...bytes].map(x => x.toString(16).padStart(2, "0")).join("").toUpperCase().match(/.{1,5}/g)!.join("-");
+    const bytes = random(16);
+    return [...bytes].map(x => x.toString(16).padStart(2, "0")).join("").toUpperCase().match(/.{1,4}/g)!.join("-");
   });
 }
 async function logbookAction(action: string, req: Request, body: any) {
