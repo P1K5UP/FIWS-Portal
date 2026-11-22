@@ -323,6 +323,31 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
  .rule-intro{padding:1rem}
 }
 @media(max-width:380px){.pick .seg:last-child{grid-template-columns:repeat(2,minmax(0,1fr))}.rule-section summary small{max-width:24ch}}
+
+/* Phone navigation dock: app-like bottom navigation with a clear top edge. */
+.nav a{transition:color .16s ease,background .16s ease}
+.nav a:focus-visible{outline-offset:-3px}
+.nav-ico{display:none}
+@media(max-width:700px){
+ .top{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:40;border-bottom:0;border-top:1px solid var(--line);background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -10px 32px -24px #0009;padding-bottom:env(safe-area-inset-bottom,0px)}
+ .bar{max-width:none;padding:.42rem .45rem .38rem;gap:.35rem;min-height:62px}
+ .brand{display:none}
+ .nav{flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;gap:.12rem;scrollbar-width:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+ .nav::-webkit-scrollbar{display:none}
+ .nav a{flex:1 0 43px;min-width:43px;min-height:51px;padding:.28rem .18rem .2rem;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.12rem;border-radius:9px;font-size:.62rem;line-height:1.05;letter-spacing:.01em;scroll-snap-align:center;color:var(--mute)!important}
+ .nav a[aria-current=page]{background:color-mix(in srgb,var(--sky) 13%,var(--panel));color:var(--acc)!important}
+ .nav a::after{display:none}
+ .nav-ico{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+ .nav-label{display:block;font:600 .61rem/1.05 Barlow,system-ui,sans-serif;text-transform:none;white-space:nowrap}
+ .ib{width:36px;height:36px;flex:0 0 36px;border-radius:10px}
+ main{padding-bottom:calc(6.8rem + env(safe-area-inset-bottom,0px))}
+ .ft{padding-bottom:0}
+ .ft .in{padding-bottom:1rem}
+ .cb{bottom:calc(4.8rem + env(safe-area-inset-bottom,0px))}
+ .toast{top:1rem}
+ ::view-transition-old(root),::view-transition-new(root){animation-duration:.14s}
+}
+@media(max-width:380px){.nav a{flex-basis:40px;min-width:40px}.nav-ico{width:18px;height:18px}.nav-label{font-size:.57rem}.bar{padding-inline:.3rem}}
 </style></head><body>
 <button class="skip btn" id="skip">Skip to content</button>
 <header class="top"><div class="bar"><a class="brand" href="#home" aria-label="FIWS home"><span id="logo"></span><b>FIWS</b></a>
@@ -406,7 +431,7 @@ const rLabel=(s,i)=>{const c=s.cal[i];return(c?'R'+c.n+' · '+c.name:'Round '+i)
 const latest=s=>{for(let i=Math.min(s.done<0?s.res.length-1:s.done,s.res.length-1);i>=0;i--)if(valid(s.res[i].win))return i;return -1};
 const cl=[];const cleanup=()=>{while(cl.length)cl.pop()()};
 /* timing tower */
-function tower(el,s,kind,limit){
+function leaderboardTrackLabel(s,r){const raw=String(s.codes[r]||'');if(!matchMedia('(max-width:700px)').matches)return raw;const aliases={'circuit de spa-francorchamps':'Spa','autodromo nazionale di monza':'Monza','circuit of the americas':'COTA','circuit gilles-villeneuve':'Montreal','silverstone circuit':'Silverstone','suzuka international racing course':'Suzuka','circuit de monaco':'Monaco','red bull ring':'Spielberg','nürburgring grand-prix-strecke':'Nürburgring','nurburgring grand-prix-strecke':'Nürburgring','circuit de barcelona-catalunya':'Barcelona','yas marina circuit':'Yas Marina','bahrain international circuit':'Bahrain','jeddah corniche circuit':'Jeddah','shanghai international circuit':'Shanghai','interlagos':'Interlagos'};const key=raw.toLowerCase().replace(/\\s+/g,' ').trim();if(aliases[key])return aliases[key];return raw.replace(/\\b(international racing course|international circuit|grand prix circuit|motor racing circuit|motorsport park|raceway|autodrome|autodromo|circuit)\\b/gi,'').replace(/\\s{2,}/g,' ').replace(/^[,·\\s]+|[,·\\s]+$/g,'').trim()||raw;}\nfunction tower(el,s,kind,limit){
  el.classList.add('tower');
  const list=kind==='con'?s.con:s.drv,n=Math.min(limit,list.length),H=44,max=Math.max(0,s.done);
  el.innerHTML=`<div class="th"><span><i class="live" ${s.status==='ONGOING'?'':'hidden'}></i>${kind==='con'?'Constructors':'Drivers'} · Season ${esc(s.num)}</span><small class="lb"></small></div><div class="tb" style="height:${n*H}px"></div><div class="sc"><button class="btn sm" aria-label="Replay season">Replay</button><input type="range" min="0" max="${max}" value="${max}" aria-label="Round"><span class="rl"></span></div>`;
@@ -415,7 +440,7 @@ function tower(el,s,kind,limit){
  const set=r=>{const key=d=>d.vals[r]??0;const order=list.map((d,i)=>i).sort((a,b)=>key(list[b])-key(list[a])||(r?(list[b].vals[r-1]??0)-(list[a].vals[r-1]??0):0)||list[a].name.localeCompare(list[b].name));
   order.forEach((idx,p)=>{const row=rows[idx],d=list[idx],v=key(d),dv=r>0?v-(d.vals[r-1]??0):0,prior=rankByIndex?rankByIndex[idx]:p;row.dataset.move=!rankByIndex?'flat':p<prior?'up':p>prior?'down':'flat';row.style.transform=`translateY(${p*H}px)`;row.style.opacity=p<n?1:0;row.style.pointerEvents=p<n?'auto':'none';row.dataset.p=p;$('.pos',row).textContent=p+1;$('.dl',row).textContent=dv>0?'+'+dv:dv<0?String(dv):'';
    const pt=$('.pt',row);if(scoreFrames[idx])cancelAnimationFrame(scoreFrames[idx]);if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v;scoreFrames[idx]=0}else{const from=Number(pt.textContent)||shown[idx],t0=performance.now(),duration=RM?0:420;const f=t=>{const k=duration?Math.min(1,(t-t0)/duration):1,eased=1-Math.pow(1-k,3);pt.textContent=+(from+(v-from)*eased).toFixed(1);if(k<1)scoreFrames[idx]=requestAnimationFrame(f);else{shown[idx]=v;scoreFrames[idx]=0}};scoreFrames[idx]=requestAnimationFrame(f)}});rankByIndex=order.reduce((a,idx,p)=>(a[idx]=p,a),[]);
-  $('.lb',el).textContent=s.codes[r]||'';$('.rl',el).textContent=rLabel(s,r).split(' · ')[0]};
+  $('.lb',el).textContent=leaderboardTrackLabel(s,r);$('.rl',el).textContent=rLabel(s,r).split(' · ')[0]};
  const rng=$('input',el),b=$('button',el);
  let touchScrub=false,lastHaptic=+rng.value;const canHaptic=matchMedia('(pointer:coarse)').matches&&typeof navigator.vibrate==='function';rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')});rng.addEventListener('pointerup',()=>{touchScrub=false});rng.addEventListener('pointercancel',()=>{touchScrub=false});rng.addEventListener('keydown',()=>el.classList.add('scrubbing'));rng.addEventListener('change',()=>{el.classList.remove('scrubbing');touchScrub=false});rng.oninput=()=>{clearInterval(tm);el.classList.add('scrubbing');const round=+rng.value;if(canHaptic&&touchScrub&&round!==lastHaptic)navigator.vibrate(8);lastHaptic=round;set(round);$('.lb',el).textContent=rLabel(s,round)};
  b.onclick=()=>{clearInterval(tm);let r=0;rng.value=0;set(0);tm=setInterval(()=>{r++;if(r>max){clearInterval(tm);return}rng.value=r;set(r);$('.lb',el).textContent=rLabel(s,r)},RM?300:1100)};
@@ -871,7 +896,8 @@ cookies:['Cookies & storage',`<p>FIWS uses one essential first-party cookie and 
 Object.keys(legal).forEach(k=>V[k]=()=>({html:`<h1>${legal[k][0]}</h1><div class="panel pr" style="margin-top:1.2rem">${legal[k][1]}<p class="tbl-note">Last updated 23 November 2026.</p></div>`,after:()=>{const b=$('#cs');if(b)b.onclick=cbar}}));
 /* shell */
 const NAV=[['home','Home'],['standings','Standings'],['results','Results'],['calendar','Calendar'],['entries','Entries'],['rules','Rules'],['apply','Apply'],['status','Status']];
-$('#nav').innerHTML=NAV.map(([k,l])=>`<a href="#${k}">${l}</a>`).join('');
+$('#nav').innerHTML=NAV.map(([k,l])=>`<a href="#${k}">${l}</a>`).join('');\nconst NAV_ICONS={home:'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z',standings:'M4 19V9h4v10zm6 0V4h4v15zm6 0v-7h4v7z',results:'M5 4h14v16H5z M8 8h8M8 12h8M8 16h5',calendar:'M4 5h16v16H4z M8 3v4m8-4v4M4 9h16',entries:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',rules:'M6 3h12v18H6z M9 8h6m-6 4h6m-6 4h4',apply:'M12 5v14m-7-7h14',status:'M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0zM8 12l3 3 5-6'};
+$('#nav').innerHTML=NAV.map(([k,l])=>`<a href="#${k}" aria-label="${l}"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${NAV_ICONS[k]||'M12 3v18'}"/></svg><span class="nav-label">${l}</span></a>`).join('');
 const mark=`<svg viewBox="0 0 54 48" role="img" aria-label="FIWS logo"><rect width="36" height="8" style="fill:var(--sky)"/><rect x="42" width="12" height="8" style="fill:var(--sky)"/><rect y="16" width="12" height="32" fill="currentColor"/><rect x="12" y="16" width="22" height="12" fill="currentColor"/><rect x="42" y="16" width="12" height="32" fill="currentColor"/></svg>`;
 const LOGO={FIWS:'assets/fiws-logo.png',FITC:'assets/fitc-logo.png'};
 const iconSvg=c=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#0B2239"/><g transform="translate(10.5 12.8) scale(.8)"><rect width="36" height="8" fill="${c}"/><rect x="42" width="12" height="8" fill="${c}"/><g fill="#fff"><rect y="16" width="12" height="32"/><rect x="12" y="16" width="22" height="12"/><rect x="42" y="16" width="12" height="32"/></g></g></svg>`;
