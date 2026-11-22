@@ -2,9 +2,12 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.119.2";
 import { argon2id, argon2Verify } from "npm:hash-wasm@4.13.0";
 
-const SITE_ORIGIN = "https://p1k5up.github.io";
+const ALLOWED_ORIGINS = new Set([
+  "https://p1k5up.github.io",
+  "http://localhost:8000",
+]);
 const cors = {
-  "Access-Control-Allow-Origin": SITE_ORIGIN,
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-fiws-session, x-fiws-bootstrap-secret, x-fiws-owner-recovery-secret",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
@@ -162,12 +165,10 @@ async function logbookAction(action: string, req: Request, body: any) {
   return json({ error: "Unknown action." }, 400);
 }
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    if (req.headers.get("origin") !== SITE_ORIGIN) return new Response("Forbidden", { status: 403 });
-    return new Response("ok", { headers: cors });
-  }
+  const origin = req.headers.get("origin") || "";
+  if (!ALLOWED_ORIGINS.has(origin)) return new Response("Forbidden", { status: 403 });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
-  if (req.headers.get("origin") !== SITE_ORIGIN) return json({ error: "Origin not allowed." }, 403);
   if (!url || !serviceKey) return json({ error: "Server is not configured." }, 503);
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON." }, 400); }
