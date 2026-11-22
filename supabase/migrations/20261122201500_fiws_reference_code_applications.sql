@@ -15,5 +15,5 @@ begin
 end;
 $$;
 drop index if exists public.applications_one_pending_per_type_idx;
-create unique index if not exists applications_one_pending_per_email_type_idx on public.applications(lower(application_data->>'email'),application_data->>'type') where status='pending' and application_data ? 'email';
+create unique index if not exists applications_one_pending_per_email_type_idx on public.applications ((lower(application_data->>'email')), (application_data->>'type')) where status='pending' and application_data ? 'email';
 commit;
