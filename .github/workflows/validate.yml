@@ -1,0 +1,30 @@
+name: Validate FIWS portal
+on:
+  pull_request:
+  push:
+    branches: [main, feat/shared-supabase-backend]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build self-contained site
+        run: python3 build.py
+      - name: Check inline JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("src/index.template.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
+          if len(scripts) != 1:
+              raise SystemExit(f"Expected one inline application script, found {len(scripts)}")
+          Path("/tmp/fiws-inline.js").write_text(scripts[0], encoding="utf-8")
+          PY
+          node --check /tmp/fiws-inline.js
