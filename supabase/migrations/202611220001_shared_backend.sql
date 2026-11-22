@@ -2,11 +2,15 @@
 -- Apply with the Supabase SQL editor or Supabase CLI migrations.
 -- Never put a service_role key in the browser.
 begin;
-create or replace function public.is_fiws_admin()
+create schema if not exists private;
+revoke all on schema private from public;
+grant usage on schema private to authenticated;
+
+create or replace function private.is_fiws_admin()
 returns boolean language sql stable security definer set search_path = ''
 as $$ select coalesce((auth.jwt() -> 'app_metadata' ->> 'fiws_role') = 'admin', false); $$;
-revoke all on function public.is_fiws_admin() from public, anon;
-grant execute on function public.is_fiws_admin() to authenticated;
+revoke all on function private.is_fiws_admin() from public, anon;
+grant execute on function private.is_fiws_admin() to authenticated;
 
 create table if not exists public.site_settings (
  setting_key text primary key check (length(setting_key) between 1 and 80),
@@ -52,6 +56,7 @@ begin
  if jsonb_typeof(new.application_data) <> 'object' or octet_length(new.application_data::text) > 20000 then
   raise exception 'Invalid application payload';
  end if;
+ perform pg_advisory_xact_lock(hashtextextended(auth.uid()::text, 0));
  select count(*) into recent_count from public.applications a
  where a.applicant_id = auth.uid() and a.created_at > now() - interval '1 hour';
  if recent_count >= 5 then raise exception 'Application submission limit reached' using errcode = 'P0001'; end if;
@@ -72,10 +77,11 @@ returns trigger language plpgsql security definer set search_path = ''
 as $$
 declare target_id text; action_name text;
 begin
- if tg_op = 'DELETE' then
+ if tg_table_name = 'site_settings' then
+  if tg_op = 'DELETE' then target_id := old.setting_key; else target_id := new.setting_key; end if;
+  action_name := lower(tg_op);
+ elsif tg_op = 'DELETE' then
   target_id := old.id::text; action_name := lower(tg_op);
- elsif tg_table_name = 'site_settings' then
-  target_id := new.setting_key; action_name := lower(tg_op);
  else
   target_id := new.id::text; action_name := lower(tg_op);
  end if;
@@ -90,7 +96,7 @@ create trigger site_settings_audit after insert or update or delete on public.si
 for each row execute function public.audit_admin_change();
 drop trigger if exists applications_audit on public.applications;
 create trigger applications_audit after update or delete on public.applications
-for each row when (public.is_fiws_admin()) execute function public.audit_admin_change();
+for each row when (private.is_fiws_admin()) execute function public.audit_admin_change();
 
 alter table public.site_settings enable row level security;
 alter table public.applications enable row level security;
@@ -100,7 +106,7 @@ revoke all on public.applications from anon, authenticated;
 revoke all on public.admin_audit_log from anon, authenticated;
 grant select on public.site_settings to anon, authenticated;
 grant insert, update, delete on public.site_settings to authenticated;
-grant select, insert on public.applications to authenticated;
+grant select, insert, update, delete on public.applications to authenticated;
 grant select on public.admin_audit_log to authenticated;
 
 drop policy if exists "Public can read published settings" on public.site_settings;
