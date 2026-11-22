@@ -199,14 +199,23 @@ Deno.serve(async (req) => {
       const valid = account && !account.disabled && (!account.locked_until || new Date(account.locked_until).getTime() < Date.now())
         ? await passwordOK(password, account.password_hash)
         : false;
-      const attempts = (limit && Date.now() - new Date(limit.window_started_at).getTime() < 15 * 60000 ? limit.attempts : 0) + (valid ? 0 : 1);
-      const lockedUntil = !valid && attempts >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(attempts - 5, 4)) * 60000).toISOString() : null;
+      const attempts = (limit && Date.now() - new Date(limit.window_started_at).getTime() < 15 * 60000 ? limit.attempts : 0) + 1;
+      const lockedUntil = attempts >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(attempts - 5, 4)) * 60000).toISOString() : null;
       await db.from("fiws_admin_login_limits").upsert({
         username_key: key, ip_hash: ipHash,
         window_started_at: limit && Date.now() - new Date(limit.window_started_at).getTime() < 15 * 60000 ? limit.window_started_at : new Date().toISOString(),
         attempts, locked_until: lockedUntil,
       }, { onConflict: "username_key,ip_hash" });
-      if (!valid) return json({ error: "Invalid username or password." }, 401);
+      if (!valid) {
+        if (account) {
+          const failures = (account.failed_login_count || 0) + 1;
+          await db.from("fiws_admin_accounts").update({
+            failed_login_count: failures,
+            locked_until: failures >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(failures - 5, 4)) * 60000).toISOString() : null,
+          }).eq("id", account.id);
+        }
+        return json({ error: "Invalid username or password." }, 401);
+      }
       if (account.totp_enabled) {
         const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
         const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
@@ -215,6 +224,7 @@ Deno.serve(async (req) => {
         if (!stepUpdated) return json({ mfa_required: true, error: "That authenticator code has already been used. Wait for the next code." }, 401);
         const token = await newSession(account.id, true, 8 * 60);
         await db.from("fiws_admin_accounts").update({ failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id);
+        await db.from("fiws_admin_login_limits").update({ attempts: 0, locked_until: null, window_started_at: new Date().toISOString() }).eq("username_key", key).eq("ip_hash", ipHash);
         await audit(account, "auth.login", "admin", account.id);
         return json({ success: true, session: token, admin: { username: account.username, display_name: account.display_name, rank: account.admin_rank } });
       }
