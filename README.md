@@ -11,7 +11,7 @@ Static website: standings, results, calendar, entries, rules, application portal
 2. Drag the new `.xlsx` onto Admin → Standings data → Publish (stored in that browser only).
 
 ## Logo
-Add `assets/fiws-logo.png`, or upload it in Admin → Logo.
+Add `assets/fiws-logo.png` and `assets/fitc-logo.png` (they switch with the selected series), or upload them in Admin → Logo.
 
 ## Team colours
 Teams and entries come from the workbook. Colours default to an automatic palette; change them in Admin → Team colours (this device) or put them in `TEAM_COLORS` in `src/index.template.html` and rebuild (everyone).
@@ -25,3 +25,14 @@ A static site has no server-side access control. The admin passcode (PBKDF2, 600
 
 ## Workbook format
 Each sheet holds season blocks side by side. Row 2 has the season titles, row 5 the section titles (ENTRIES, CALENDAR, STANDINGS (RACE BY RACE), STANDINGS (POINTS)), row 7 the column headers. Standings are cumulative points per round.
+
+## Applications and status (no server needed)
+1. Set `LEAGUE_EMAIL` so applicants can email their application (it contains a JSON block). Applicants can also copy it from the receipt.
+2. Admin → Applications → Import applications: paste the email text or JSON. Review, accept or reject, add a note.
+3. Admin → Applications → Export status file. Save it as `data/status.json` and push. Applicants check Status with their code + email; the file only holds hashed codes, the decision and a note.
+Applicants also see decisions on the device where they applied.
+
+## Link previews (Discord, Slack, X, WhatsApp...)
+`index.html` carries Open Graph and Twitter Card tags, a 1200x630 preview image (`assets/og-image.png`), a theme colour (the Discord embed stripe), a favicon, a web manifest and structured data. The image URL must be absolute, so it is built from `SITE_URL` (default `https://p1k5up.github.io/fiws-portal/`).
+If the address changes: `SITE_URL=https://your.address/ python3 build.py`, then push.
+Discord and others cache previews. After pushing, refresh the cache by posting the link with `?v=2` on the end, or with the Facebook Sharing Debugger / X Card Validator.

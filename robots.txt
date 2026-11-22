@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://p1k5up.github.io/fiws-portal/sitemap.xml
