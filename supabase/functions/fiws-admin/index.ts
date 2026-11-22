@@ -343,25 +343,24 @@ Deno.serve(async (req) => {
       const password = String(body.password || "");
       const rank = ["administrator", "moderator"].includes(body.rank) ? body.rank : "";
       if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || !displayName || displayName.length > 80 || password.length < 14 || password.length > 128 || !rank) return json({ error: "Username, display name, rank or password does not meet requirements." }, 400);
-      const { data, error } = await db.from("fiws_admin_accounts").insert({
-        username, display_name: displayName, admin_rank: rank,
-        password_hash: await hashPassword(password), password_salt: "embedded-in-argon2id-hash",
-        created_by: auth.admin.id,
-      }).select("id,username,admin_rank").single();
-      if (error) return json({ error: "Could not create administrator. The username may already be taken." }, 409);
-      await audit(auth.admin, "admin.create", "admin", data.id, { rank });
-      return json({ success: true, admin: data, note: "The new administrator must enroll authenticator MFA at first sign-in." }, 201);
+      const { data: id, error } = await db.rpc("fiws_owner_create_admin", {
+        p_actor_id: auth.admin.id, p_username: username, p_display_name: displayName,
+        p_rank: rank, p_password_hash: await hashPassword(password),
+      });
+      if (error) {
+        if (/duplicate|unique/i.test(error.message || "")) return json({ error: "That username is already taken." }, 409);
+        throw error;
+      }
+      return json({ success: true, admin: { id, username, admin_rank: rank }, note: "The new administrator must enroll authenticator MFA at first sign-in." }, 201);
     }
     if (action === "admin-change-rank") {
       const auth = await session(req);
       if (!auth || auth.admin.admin_rank !== "owner") return json({ error: "Owner permission required." }, 403);
       const id = String(body.id || ""), rank = String(body.rank || "");
       if (!id || id === auth.admin.id || !["administrator", "moderator"].includes(rank)) return json({ error: "Invalid rank change." }, 400);
-      const { data: target } = await db.from("fiws_admin_accounts").select("id,username,admin_rank").eq("id", id).maybeSingle();
-      if (!target || target.admin_rank === "owner") return json({ error: "Owner rank cannot be reassigned here." }, 403);
-      const { error } = await db.from("fiws_admin_accounts").update({ admin_rank: rank, updated_at: new Date().toISOString() }).eq("id", id);
-      if (error) return json({ error: "Could not change administrator rank." }, 500);
-      await audit(auth.admin, "admin.rank_change", "admin", id, { from: target.admin_rank, to: rank });
+      const { data: changed, error } = await db.rpc("fiws_owner_change_admin_rank", { p_actor_id: auth.admin.id, p_target_id: id, p_rank: rank });
+      if (error) throw error;
+      if (!changed) return json({ error: "Target account not found or cannot be changed." }, 409);
       return json({ success: true });
     }
     if (action === "password-change") {
@@ -369,11 +368,14 @@ Deno.serve(async (req) => {
       if (!auth) return json({ error: "Authentication required." }, 401);
       const current = String(body.current_password || ""), next = String(body.new_password || "");
       if (next.length < 14 || next.length > 128 || next === current) return json({ error: "Choose a different password of at least 14 characters." }, 400);
-      const { data: account } = await db.from("fiws_admin_accounts").select("password_hash").eq("id", auth.admin.id).single();
+      const { data: account, error: accountError } = await db.from("fiws_admin_accounts").select("password_hash").eq("id", auth.admin.id).single();
+      if (accountError) throw accountError;
       if (!account || !await passwordOK(current, account.password_hash)) return json({ error: "Current password is incorrect." }, 401);
-      await db.from("fiws_admin_accounts").update({ password_hash: await hashPassword(next), password_salt: "embedded-in-argon2id-hash", password_changed_at: new Date().toISOString() }).eq("id", auth.admin.id);
-      await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", auth.admin.id).neq("id", auth.row.id).is("revoked_at", null);
-      await audit(auth.admin, "auth.password_changed", "admin", auth.admin.id);
+      const { data: changed, error } = await db.rpc("fiws_change_own_admin_password", {
+        p_admin_id: auth.admin.id, p_current_session_id: auth.row.id, p_password_hash: await hashPassword(next),
+      });
+      if (error) throw error;
+      if (!changed) return json({ error: "Password could not be changed. Sign in again." }, 409);
       return json({ success: true, note: "Other sessions have been revoked." });
     }
     if (action === "admin-disable") {
@@ -381,11 +383,11 @@ Deno.serve(async (req) => {
       if (!auth || auth.admin.admin_rank !== "owner") return json({ error: "Owner permission required." }, 403);
       const id = String(body.id || "");
       if (!id || id === auth.admin.id) return json({ error: "You cannot disable your own owner account." }, 400);
-      const { data: target } = await db.from("fiws_admin_accounts").select("id,username,admin_rank").eq("id", id).maybeSingle();
-      if (!target || target.admin_rank === "owner") return json({ error: "Owner account cannot be disabled here." }, 403);
-      await db.from("fiws_admin_accounts").update({ disabled: body.disabled !== false, updated_at: new Date().toISOString() }).eq("id", id);
-      if (body.disabled !== false) await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", id).is("revoked_at", null);
-      await audit(auth.admin, body.disabled === false ? "admin.enable" : "admin.disable", "admin", id);
+      const { data: changed, error } = await db.rpc("fiws_owner_set_admin_disabled", {
+        p_actor_id: auth.admin.id, p_target_id: id, p_disabled: body.disabled !== false,
+      });
+      if (error) throw error;
+      if (!changed) return json({ error: "Owner account cannot be disabled here or target not found." }, 409);
       return json({ success: true });
     }
     if (action === "admin-reset-password") {
@@ -393,16 +395,11 @@ Deno.serve(async (req) => {
       if (!auth || auth.admin.admin_rank !== "owner") return json({ error: "Owner permission required." }, 403);
       const id = String(body.id || ""), password = String(body.password || "");
       if (!id || id === auth.admin.id || password.length < 14 || password.length > 128) return json({ error: "Select another administrator and provide a 14+ character password." }, 400);
-      const { data: target } = await db.from("fiws_admin_accounts").select("id,username,admin_rank").eq("id", id).maybeSingle();
-      if (!target || target.admin_rank === "owner") return json({ error: "Owner password resets must use the account's recovery codes." }, 403);
-      await db.from("fiws_admin_accounts").update({
-        password_hash: await hashPassword(password), password_salt: "embedded-in-argon2id-hash",
-        password_changed_at: new Date().toISOString(), totp_secret_ciphertext: null,
-        totp_secret_iv: null, totp_enabled: false, totp_last_step: null, updated_at: new Date().toISOString(),
-      }).eq("id", id);
-      await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", id).is("revoked_at", null);
-      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", id);
-      await audit(auth.admin, "admin.password_reset", "admin", id);
+      const { data: reset, error } = await db.rpc("fiws_owner_reset_admin_password", {
+        p_actor_id: auth.admin.id, p_target_id: id, p_password_hash: await hashPassword(password),
+      });
+      if (error) throw error;
+      if (!reset) return json({ error: "Owner password resets must use the account's recovery codes, or the target account was not found." }, 409);
       return json({ success: true, note: "The administrator must enroll MFA again at next sign-in." });
     }
     if (action === "mfa-rotate-recovery") {
