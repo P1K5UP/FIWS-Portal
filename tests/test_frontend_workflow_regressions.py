@@ -33,8 +33,10 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_shared_xlsx_import_parses_before_upload_and_publishes_shared_path(self):
         source = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("XLSX.read(bytes,{type:'array',cellDates:true})", source)
-        self.assertIn("adminUploadFile(file,'workbooks/current.xlsx'", source)
-        self.assertIn("saveSharedSetting('workbook'", source)
+        self.assertIn("const workbookPath='workbooks/current-'+crypto.randomUUID()+'.xlsx'", source)
+        self.assertIn("adminUploadFile(file,workbookPath", source)
+        self.assertIn("saveSharedSetting('workbook',{path:workbookPath", source)
+        self.assertIn("const summary=parsed.map", source)
 
     def test_logo_storage_path_matches_edge_function_allowlist(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
