@@ -28,6 +28,8 @@ jobs:
           deno-version: v2.x
       - name: Check FIWS administrator Edge Function
         run: deno check --no-lock supabase/functions/fiws-admin/index.ts
+      - name: Check application submission Edge Function
+        run: deno check --no-lock supabase/functions/submit-application/index.ts
       - name: Run administrator recovery regression tests
         run: python3 -m unittest discover -s tests -v
       - name: Check inline JavaScript syntax
