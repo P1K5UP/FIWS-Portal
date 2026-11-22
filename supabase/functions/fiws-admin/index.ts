@@ -228,8 +228,7 @@ Deno.serve(async (req) => {
         const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
         if (matchedStep === null) {
           const failures = (account.failed_login_count || 0) + 1;
-          const { error: lockError } = await mustSucceed(db.from("fiws_admin_accounts").update({ failed_login_count: failures, locked_until: failures >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(failures - 5, 4)) * 60000).toISOString() : null }).eq("id", account.id));
-          if (lockError) throw lockError;
+          await mustSucceed(db.from("fiws_admin_accounts").update({ failed_login_count: failures, locked_until: failures >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(failures - 5, 4)) * 60000).toISOString() : null }).eq("id", account.id));
           return json({ mfa_required: true, error: "Enter a valid authenticator code." }, 401);
         }
         const { data: stepUpdated, error: stepError } = await db.from("fiws_admin_accounts").update({ totp_last_step: matchedStep }).eq("id", account.id).or(`totp_last_step.is.null,totp_last_step.lt.${matchedStep}`).select("id").maybeSingle();
