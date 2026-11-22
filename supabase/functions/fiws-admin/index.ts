@@ -253,6 +253,95 @@ Deno.serve(async (req) => {
       if (auth) await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("id", auth.row.id);
       return json({ success: true });
     }
+    if (action === "recover-password") {
+      const username = String(body.username || "").trim().toLowerCase();
+      const code = String(body.recovery_code || "").replace(/[^a-f0-9]/gi, "").toUpperCase();
+      const password = String(body.new_password || "");
+      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || code.length !== 20 || password.length < 14 || password.length > 128) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
+      const { data: account } = await db.from("fiws_admin_accounts").select("id,username,admin_rank,disabled").eq("username", username).maybeSingle();
+      if (!account || account.disabled) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
+      const { data: recovery } = await db.from("fiws_admin_recovery_codes").select("id").eq("admin_id", account.id).eq("code_hash", await sha(code.match(/.{1,5}/g)!.join("-"))).is("used_at", null).maybeSingle();
+      if (!recovery) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
+      const { data: consumed } = await db.from("fiws_admin_recovery_codes").update({ used_at: new Date().toISOString() }).eq("id", recovery.id).is("used_at", null).select("id").maybeSingle();
+      if (!consumed) return json({ error: "Recovery code has already been used." }, 409);
+      const passwordHash = await hashPassword(password);
+      await db.from("fiws_admin_accounts").update({
+        password_hash: passwordHash, password_salt: "embedded-in-argon2id-hash",
+        password_changed_at: new Date().toISOString(), totp_secret_ciphertext: null,
+        totp_secret_iv: null, totp_enabled: false, failed_login_count: 0, locked_until: null,
+      }).eq("id", account.id);
+      await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", account.id).is("revoked_at", null);
+      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", account.id);
+      await audit(account, "auth.recovery_password_reset", "admin", account.id);
+      return json({ success: true, mfa_enrollment_required: true, message: "Password reset. Sign in and enroll your authenticator app again." });
+    }
+    if (action === "admin-list") {
+      const auth = await session(req);
+      if (!auth || auth.admin.admin_rank !== "owner") return json({ error: "Owner permission required." }, 403);
+      const { data, error } = await db.from("fiws_admin_accounts").select("id,username,display_name,admin_rank,totp_enabled,disabled,created_at,last_login_at,password_changed_at").order("created_at");
+      if (error) return json({ error: "Could not load administrator accounts." }, 500);
+      return json({ admins: data || [] });
+    }
+    if (action === "admin-create") {
+      const auth = await session(req);
+      if (!auth || auth.admin.admin_rank !== "owner") return json({ error: "Owner permission required." }, 403);
+      const username = String(body.username || "").trim().toLowerCase();
+      const displayName = String(body.display_name || "").trim();
+      const password = String(body.password || "");
+      const rank = ["administrator", "moderator"].includes(body.rank) ? body.rank : "";
+      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || !displayName || displayName.length > 80 || password.length < 14 || password.length > 128 || !rank) return json({ error: "Username, display name, rank or password does not meet requirements." }, 400);
+      const { data, error } = await db.from("fiws_admin_accounts").insert({
+        username, display_name: displayName, admin_rank: rank,
+        password_hash: await hashPassword(password), password_salt: "embedded-in-argon2id-hash",
+        created_by: auth.admin.id,
+      }).select("id,username,admin_rank").single();
+      if (error) return json({ error: "Could not create administrator. The username may already be taken." }, 409);
+      await audit(auth.admin, "admin.create", "admin", data.id, { rank });
+      return json({ success: true, admin: data, note: "The new administrator must enroll authenticator MFA at first sign-in." }, 201);
+    }
+    if (action === "admin-disable") {
+      const auth = await session(req);
+      if (!auth || auth.admin.admin_rank !== "owner") return json({ error: "Owner permission required." }, 403);
+      const id = String(body.id || "");
+      if (!id || id === auth.admin.id) return json({ error: "You cannot disable your own owner account." }, 400);
+      const { data: target } = await db.from("fiws_admin_accounts").select("id,username,admin_rank").eq("id", id).maybeSingle();
+      if (!target || target.admin_rank === "owner") return json({ error: "Owner account cannot be disabled here." }, 403);
+      await db.from("fiws_admin_accounts").update({ disabled: body.disabled !== false, updated_at: new Date().toISOString() }).eq("id", id);
+      if (body.disabled !== false) await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", id).is("revoked_at", null);
+      await audit(auth.admin, body.disabled === false ? "admin.enable" : "admin.disable", "admin", id);
+      return json({ success: true });
+    }
+    if (action === "admin-reset-password") {
+      const auth = await session(req);
+      if (!auth || auth.admin.admin_rank !== "owner") return json({ error: "Owner permission required." }, 403);
+      const id = String(body.id || ""), password = String(body.password || "");
+      if (!id || id === auth.admin.id || password.length < 14 || password.length > 128) return json({ error: "Select another administrator and provide a 14+ character password." }, 400);
+      const { data: target } = await db.from("fiws_admin_accounts").select("id,username,admin_rank").eq("id", id).maybeSingle();
+      if (!target || target.admin_rank === "owner") return json({ error: "Owner password resets must use the account's recovery codes." }, 403);
+      await db.from("fiws_admin_accounts").update({
+        password_hash: await hashPassword(password), password_salt: "embedded-in-argon2id-hash",
+        password_changed_at: new Date().toISOString(), totp_secret_ciphertext: null,
+        totp_secret_iv: null, totp_enabled: false, updated_at: new Date().toISOString(),
+      }).eq("id", id);
+      await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", id).is("revoked_at", null);
+      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", id);
+      await audit(auth.admin, "admin.password_reset", "admin", id);
+      return json({ success: true, note: "The administrator must enroll MFA again at next sign-in." });
+    }
+    if (action === "mfa-rotate-recovery") {
+      const auth = await session(req);
+      if (!auth) return json({ error: "Authentication required." }, 401);
+      const { data: account } = await db.from("fiws_admin_accounts").select("totp_secret_ciphertext,totp_secret_iv").eq("id", auth.admin.id).single();
+      if (!account?.totp_secret_ciphertext) return json({ error: "MFA is not configured." }, 409);
+      const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
+      if (!await verifyTotp(secret, String(body.otp || ""))) return json({ error: "Authenticator code is incorrect." }, 401);
+      const codes = makeRecoveryCodes();
+      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", auth.admin.id);
+      const { error } = await db.from("fiws_admin_recovery_codes").insert(await Promise.all(codes.map(async code => ({ admin_id: auth.admin.id, code_hash: await sha(code) }))));
+      if (error) return json({ error: "Could not rotate recovery codes." }, 500);
+      await audit(auth.admin, "auth.recovery_codes_rotated", "admin", auth.admin.id);
+      return json({ success: true, recovery_codes: codes });
+    }
     if (action.startsWith("logbook-")) return await logbookAction(action, req, body);
     return json({ error: "Unknown action." }, 400);
   } catch (error) {
