@@ -12,7 +12,8 @@ class AdminRecoveryAtomicityTests(unittest.TestCase):
     def test_recovery_endpoints_use_database_transactions(self):
         self.assertIn('db.rpc("fiws_complete_admin_recovery"', FUNCTION)
         self.assertIn('db.rpc("fiws_complete_owner_recovery"', FUNCTION)
-        self.assertNotIn('action === "recover-password"', FUNCTION.split('action === "admin-list"')[0].split('action === "recover-password"')[1].split('action === "admin-list"')[0] if 'action === "recover-password"' in FUNCTION else "")
+        self.assertEqual(FUNCTION.count('db.rpc("fiws_complete_admin_recovery"'), 1)
+        self.assertEqual(FUNCTION.count('db.rpc("fiws_complete_owner_recovery"'), 1)
 
     def test_recovery_code_consumption_and_password_change_share_transaction(self):
         body = FUNCTION.split('action === "recover-password"')[1].split('action === "admin-list"')[0]
