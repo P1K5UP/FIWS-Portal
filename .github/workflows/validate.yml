@@ -7,7 +7,7 @@ concurrency:
   group: fiws-validate-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 permissions:
-  contents: write
+  contents: read
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -40,14 +40,6 @@ jobs:
           Path("/tmp/fiws-inline.js").write_text(scripts[0], encoding="utf-8")
           PY
           node --check /tmp/fiws-inline.js
-      - name: Commit generated GitHub Pages files
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Build generated FIWS Pages site"
-          branch: ${{ github.head_ref || github.ref_name }}
-          file_pattern: index.html robots.txt sitemap.xml
-
       - name: Package isolated preview
         if: github.event_name == 'pull_request'
         run: |
@@ -64,3 +56,25 @@ jobs:
           path: preview/
           if-no-files-found: error
           retention-days: 7
+
+  commit_generated_site:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Build generated GitHub Pages files
+        run: python3 build.py
+      - name: Commit generated GitHub Pages files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Build generated FIWS Pages site"
+          branch: ${{ github.ref_name }}
+          file_pattern: index.html robots.txt sitemap.xml
