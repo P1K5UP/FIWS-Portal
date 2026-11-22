@@ -99,12 +99,14 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn('decided_at: status === "pending" ? null : new Date().toISOString()', function)
 
 
-    def test_mobile_scoreboard_scrubbing_disables_row_tweening(self):
+    def test_mobile_scoreboard_scrubbing_keeps_smooth_row_tweening(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("el.classList.add('tower')", page)
         self.assertIn("rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')})", page)
         self.assertIn("if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v", page)
-        self.assertIn(".tower.scrubbing .tr{transition:none!important}", page)
+        self.assertNotIn(".tower.scrubbing .tr{transition:none!important}", page)
+        self.assertIn(".tower.scrubbing .pt{transition:none!important}", page)
+        self.assertIn("transition:transform .5s cubic-bezier(.22,.75,.25,1)", page)
 
     def test_mobile_navigation_uses_one_compact_top_bar(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
