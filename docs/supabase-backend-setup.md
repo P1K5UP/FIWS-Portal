@@ -1,44 +1,71 @@
-# Supabase backend setup (FIWS)
+# Supabase backend operations (FIWS)
 
-FIWS remains hosted on GitHub Pages. Supabase provides shared persistence and authentication.
+FIWS is hosted on GitHub Pages. Supabase provides shared persistence and the server-side API. The frontend and backend have separate release lifecycles.
 
-## Security model
-- Browser clients may use only the Supabase project URL and publishable/anon key. Never put a service_role or secret key in HTML, JavaScript, GitHub Pages configuration, or this repository.
-- Applicants use Supabase Auth sessions. Application rows are scoped to the authenticated user ID by PostgreSQL Row Level Security (RLS).
-- Administrators must be provisioned by a trusted operator. Set app_metadata.fiws_role = "admin" using the Supabase dashboard or a trusted server-side admin tool. Never set admin role in user-editable metadata and never expose the service-role key.
-- Public visitors can read site_settings only. Store public configuration there, never secrets or applicant data.
-- Applicants can submit up to five applications per authenticated user per hour and read only their own records. The database trigger overrides client-supplied review fields.
-- Only administrators can review, update, or delete applications and read the audit log.
-- The audit log records action metadata, not application payloads or applicant PII.
+## Current production model
 
-## Applied Supabase setup
-The following migrations are applied to the `fiws-portal` project and tracked in `supabase/migrations/` using the exact database migration versions:
-- `20261122162330_fiws_shared_backend.sql`
-- `20261122162341_fiws_policy_performance_hardening.sql`
-- `20261122162550_fiws_public_asset_storage.sql`
-- `20261122162729_fiws_application_identity_and_duplicate_guard.sql`
-- `20261122162809_fiws_submission_ip_rate_limit.sql`
-- `20261122163037_fiws_ip_limit_deny_policy.sql`
+- The public site is `https://p1k5up.github.io/fiws-portal/`; its browser origin is `https://p1k5up.github.io`.
+- The browser contains only the Supabase project URL and publishable/anon key. The service-role key and all other secrets remain in Edge Function environment variables.
+- `fiws-admin` provides custom username/password authentication, mandatory TOTP MFA, opaque revocable sessions, rank checks, account management, application moderation, shared settings/assets and staff logbook operations. Its JWT verification is disabled because it validates its own session tokens.
+- `submit-application` is a public endpoint for applicant submission and reference-code status lookup. It validates the exact allowed Origin, validates input and applies HMACed network rate limiting. It uses service-role access server-side; browser clients cannot read or write application rows directly.
+- Applications do not require applicant Supabase Auth accounts. Contact email is stored for staff follow-up only; no applicant verification or status email is sent.
+- The latest application reference code can be stored in a first-party cookie after necessary-cookie consent. Manual code entry remains supported.
+- Accepted/rejected applications are scheduled for deletion 24 hours after the decision, with a five-minute cleanup interval.
 
-The website template now uses the project's URL and publishable key. These are public client configuration; RLS remains the security boundary. The `submit-application` Edge Function is deployed and applies a network-level HMACed IP rate limit plus the database per-account limit. It uses the Edge Function's secret-key context; no secret key is shipped to the browser. Its source is tracked at `supabase/functions/submit-application/index.ts`.
+## Administrator security
 
-## Remaining project configuration
-1. In Supabase **Authentication → URL Configuration**, set the Site URL to `https://p1k5up.github.io/fiws-portal/` and add that exact URL as an allowed redirect URL. Also add the preview URL if you use a separate test deployment.
-2. Confirm Email provider / magic-link sign-in is enabled. Supabase's default email sender is rate-limited; configure a custom SMTP provider before opening applications to the public.
-3. Create the first staff account using **Admin → Staff sign-in** on the site and complete its email link. Then set `app_metadata.fiws_role` to `admin` for that exact account using a trusted dashboard/server-side process. Never set the role in user-editable metadata and never expose a secret key.
-4. Test applicant and admin accounts separately before accepting applications. Confirm applicants can only read their own applications and only admins can read the queue, change decisions, upload workbooks, edit team colours, or publish logos.
-5. Confirm the public `fiws-public` bucket contains only public website assets (workbooks and logos), never applicant data.
-6. Add CAPTCHA/anti-bot controls before wide public launch. The deployed IP/account limits are defense in depth, not a complete bot defence.
+Administrator authorization is enforced in the Edge Function and database procedures. The custom admin identity, session, recovery, MFA, audit and logbook tables are not directly accessible to anon/authenticated browser roles. Passwords are Argon2id-hashed server-side; TOTP secrets are encrypted with the server-side `FIWS_TOTP_ENCRYPTION_KEY`; recovery codes are stored as hashes and individually consumed. Session tokens are random and only their SHA-256 hashes are stored server-side.
 
-## Tables
-- site_settings: public shared settings such as team colour overrides, selected logo asset paths, and the published workbook pointer. Only admins can write.
-- applications: applicant-owned submissions. Keep personal fields in application_data; never copy them into public settings, audit logs, or public status JSON. Applicants now retrieve their applications after signing in with a verified email link. The site does not expose a public reference-code lookup endpoint, avoiding reference-code enumeration and PII disclosure.
-- admin_audit_log: administrator action metadata for traceability. It does not store changed values or applicant payloads.
+The website keeps the opaque session token in memory only. A page reload therefore requires a fresh administrator sign-in. This is intentional and avoids persistent browser storage of an admin bearer token.
 
-## Migration and deployment notes
-- Do not merge or publish the connected frontend until the allowed redirect URL is configured, the first admin is provisioned, and applicant/admin flows have been tested end-to-end.
-- Existing browser-local applications, workbooks, colours, and logos are not automatically migrated. Export/import legacy applications only after matching each record to a verified applicant identity; do not assign arbitrary local records to an applicant account. Publish the workbook, team colours and logos from the authenticated Admin panel.
-- Uploaded SVG logos are sanitized against an element/attribute allowlist and rasterized to PNG in the browser before upload. Uploaded logo images are rendered through a canvas pass that changes only neutral near-black/near-white pixels for the active theme; colored pixels and alpha are retained. Never inject uploaded SVG markup with innerHTML.
-- Keep applicant status private. The portal currently requires a verified email sign-in and queries only the authenticated user's own rows under RLS.
-- Define a retention/deletion schedule for application personal data before production use.
-- Test RLS with separate applicant and admin accounts before deployment.
+Never:
+- Put the service-role key or any Edge Function secret in HTML, JavaScript, a public repository, GitHub Pages settings, or a browser request.
+- Grant browser roles direct access to application rows or custom admin tables.
+- Set administrator permissions in user-editable Auth metadata.
+- Use production applicant data or secrets in screenshots, test fixtures or support messages.
+
+## Applied database migrations
+
+The repository tracks the migrations used for the shared backend, admin security and reference-code workflow. The later migrations include:
+- Custom admin identity, MFA, session, recovery, atomic throttling, bootstrap and account lifecycle procedures.
+- Service-role access to the shared `site_settings` API path.
+- Reference-code applications and service-role-only application table access.
+- Scheduled deletion of accepted/rejected applications after 24 hours.
+- Service-role execution permission for the legacy application audit helper used during status updates.
+
+The exact migration files and versions are in `supabase/migrations/`. Production migrations are already applied for the current implementation; do not replay or edit historical migrations to make a new change. Add a new, timestamped migration for any future schema change and review it before applying it to production.
+
+## Edge Functions and operational safeguards
+
+The active frontend API functions are:
+- `fiws-admin`
+- `submit-application`
+
+Both functions allow the production GitHub Pages origin and the local development origin `http://localhost:8000`. If a legitimate deployment origin changes, update and review the allowlist in both function sources, test preflight and POST requests, then deploy each function separately. Do not broaden the allowlist to arbitrary origins.
+
+The legacy `bootstrap-fiws-admins` function is a separate older deployment. It should be reviewed and retired deliberately after confirming it is no longer required; it is not part of the normal website login flow. Do not remove it automatically during a site release.
+
+Application cleanup is scheduled in Postgres using `pg_cron`. The job runs every five minutes and deletes rows whose status is accepted/rejected and whose `decided_at` is at least 24 hours old. A reset-to-pending operation should clear the decision timestamp; verify that behavior if changing moderation logic.
+
+## Frontend development and release
+
+1. Work on `feat/shared-supabase-backend` and run `python3 build.py`.
+2. Serve locally with `python3 -m http.server 8000`; use the local URL rather than `file://`.
+3. Validate the relevant applicant and administrator workflows without using real applicant data.
+4. Check the GitHub Actions workflow on the pull request. It builds the self-contained site, type-checks both active Edge Functions, runs regression tests and checks inline JavaScript syntax.
+5. Review the PR diff and confirm the production branch remains unchanged until release approval.
+6. Merge/publish the website only after explicit approval. Backend function deployments and database migrations are separate operations and require their own review/approval.
+
+## Production verification still required before public launch
+
+- Test the complete applicant submit → reference code → status lookup → accepted/rejected → 24-hour cleanup lifecycle with controlled test data.
+- Verify all administrator ranks against the permission matrix, including denied actions, session revocation, recovery, MFA replay resistance and owner recovery.
+- Confirm the legacy bootstrap function is either deliberately retained with documented controls or safely retired.
+- Test the site on real iOS and Android devices and check the fixed mobile navigation, safe-area spacing, forms and keyboard behavior.
+- Confirm current backup/restore arrangements and the retention policy meet league requirements.
+
+Do not interpret a passing frontend CI run as proof of live Supabase integration, production security, or physical-device compatibility.
+
+## Storage
+
+The public `fiws-public` bucket is for public website assets such as published workbooks and logos only. Never store applicant personal data, admin records, secrets or private documents in a public bucket. Shared settings store public presentation configuration and pointers, not credentials or applicant payloads.
