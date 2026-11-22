@@ -425,8 +425,35 @@ async function saveSharedSetting(key,value){
  const {error}=await sb.from('site_settings').upsert({setting_key:key,setting_value:value,updated_at:new Date().toISOString(),updated_by:data.user.id},{onConflict:'setting_key'});
  if(error)throw error;
 }
+function authErrorDetails(err){
+ const parts=[];
+ const message=String(err?.message||err?.error_description||err||'Unknown authentication error');
+ parts.push(message);
+ const code=err?.code||err?.error_code||err?.name;
+ if(code&&code!==message)parts.push('Code: '+code);
+ if(err?.status)parts.push('HTTP status: '+err.status);
+ if(err?.hint)parts.push('Hint: '+err.hint);
+ if(/rate limit|email rate limit/i.test(message))parts.push('Supabase has temporarily limited email sending. Stop retrying and wait for the limit to reset, or configure custom SMTP.');
+ if(/expired|invalid.*link/i.test(message))parts.push('Request a fresh sign-in email and use only the newest link. Check that the redirect URL is allowlisted in Supabase.');
+ return parts.join(' · ');
+}
+function showAuthRedirectError(){
+ const p=new URLSearchParams(location.hash.slice(1));
+ const code=p.get('error_code')||p.get('error');
+ if(!code)return;
+ const banner=document.createElement('section');
+ banner.className='panel';banner.setAttribute('role','alert');banner.style.cssText='margin:1rem 0;border:1px solid var(--red,#d44);';
+ const heading=document.createElement('h2');heading.textContent='Sign-in link error';
+ const msg=document.createElement('p');msg.textContent=p.get('error_description')||p.get('error')||'Authentication could not be completed.';
+ const meta=document.createElement('p');meta.className='muted';meta.textContent='Error code: '+code+(p.get('sb')?' · Provider: '+p.get('sb'):'');
+ const advice=document.createElement('p');advice.textContent=/expired|otp_expired|access_denied/i.test(code)?'The link may have expired or already been used. Request a new link after the email limit resets.':'Return to the page where you requested the link and try again after checking the details above.';
+ const close=document.createElement('button');close.className='btn sm ghost';close.type='button';close.textContent='Dismiss';close.onclick=()=>banner.remove();
+ banner.append(heading,msg,meta,advice,close);
+ const main=document.querySelector('#main');if(main)main.prepend(banner);
+}
 async function emailSignIn(email,target,createUser){
- const {error}=await sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:location.origin+location.pathname+target,shouldCreateUser:!!createUser}});
+ const redirect=location.origin+location.pathname+target;
+ const {error}=await sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:redirect,shouldCreateUser:!!createUser}});
  if(error)throw error;
 }
 const pendingDraftKey='fiws.pendingApplication';
@@ -458,7 +485,7 @@ async function finishPendingApplication(){
 function sendLinkPanel(title,description,hash,createUser){
  const box=$('#main');if(!box)return;
  box.innerHTML='<h1>'+esc(title)+'</h1><div class="panel" style="margin-top:1rem;max-width:560px"><p class="muted">'+esc(description)+'</p><form id="auth-link"><label>Email address<input name="email" type="email" maxlength="120" autocomplete="email" required></label><span class="er" id="auth-error" role="alert"></span><button class="btn" type="submit">Email me a sign-in link</button></form></div>';
- $('#auth-link').onsubmit=async e=>{e.preventDefault();const f=e.target,btn=$('button',f),out=$('#auth-error');btn.disabled=true;out.textContent='';try{await emailSignIn(clean(f.email.value,120).toLowerCase(),hash,createUser);f.innerHTML='<p><b>Check your inbox.</b></p><p class="muted">Open the sign-in link on this device. You will be returned to FIWS automatically.</p>'; }catch(x){out.textContent=x.message||'Could not send the email.'}finally{btn.disabled=false}};
+ $('#auth-link').onsubmit=async e=>{e.preventDefault();const f=e.target,btn=$('button',f),out=$('#auth-error');btn.disabled=true;out.textContent='';try{await emailSignIn(clean(f.email.value,120).toLowerCase(),hash,createUser);f.innerHTML='<p><b>Check your inbox.</b></p><p class="muted">Open the sign-in link on this device. You will be returned to FIWS automatically.</p>'; }catch(x){out.textContent=authErrorDetails(x)}finally{btn.disabled=false}};
 }
 V.apply=()=>({html:'<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply as a driver or steward. A secure email sign-in verifies your address and lets you check your application from any device.</p><div class="panel" style="margin-top:1rem;max-width:860px" id="box"><form id="af" novalidate><div class="seg" role="group" aria-label="Applying as"><button type="button" data-ty="D">Driver</button><button type="button" data-ty="S">Steward</button></div><div class="f2" id="fl"></div><input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><label class="ck"><input type="checkbox" name="rules"><span>I have read the <a href="#rules">rules and driving standards</a> and will follow steward decisions.</span></label><span class="er" data-e="rules"></span><label class="ck"><input type="checkbox" name="priv"><span>I agree to the processing of this application as described in the <a href="#privacy">privacy notice</a>.</span></label><span class="er" data-e="priv"></span><label class="ck"><input type="checkbox" name="mail"><span>League staff may email me about my application status (optional).</span></label><button class="btn" type="submit">Continue securely</button></form></div>',after:()=>{
  const f=$('#af'),vals={};let type=aTy;
@@ -476,7 +503,7 @@ V.apply=()=>({html:'<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply 
   if(authUser&&String(authUser.email||'').toLowerCase()===v.email){
    const btn=$('button[type=submit]',f);btn.disabled=true;
    try{const result=await persistApplication(draft);LS.set('last',Date.now());applicationReceipt(result)}
-   catch(x){toast(x.message||'Application could not be submitted.')}finally{btn.disabled=false}
+   catch(x){toast(authErrorDetails(x))}finally{btn.disabled=false}
    return;
   }
   sessionStorage.setItem(pendingDraftKey,JSON.stringify(draft));
@@ -485,14 +512,14 @@ V.apply=()=>({html:'<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply 
    if(authUser)await sb.auth.signOut();
    await emailSignIn(v.email,'#apply',true);
    $('#box').innerHTML='<h2>Verify your email</h2><p>We have sent a secure sign-in link to <b>'+esc(v.email)+'</b>.</p><p class="muted">Open that link on this device. Your application draft is temporarily held until you verify your email, then it will be submitted automatically.</p>';
-  }catch(x){toast(x.message||'Could not send a verification email.');btn.disabled=false}
+  }catch(x){toast(authErrorDetails(x));btn.disabled=false}
  };
 }});
 async function renderStatus(){
  const out=$('#sr');if(!out)return;
  if(!authUser){
   out.innerHTML='<div class="panel" style="max-width:620px"><p class="muted">Sign in with the email address used for your application. We will send a one-time link to verify it.</p><form id="sf"><label>Email address<input name="email" type="email" maxlength="120" autocomplete="email" required></label><span class="er" id="se" role="alert"></span><button class="btn" type="submit">Email me a sign-in link</button></form></div>';
-  $('#sf').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#se'),btn=$('button',f);btn.disabled=true;try{await emailSignIn(clean(f.email.value,120).toLowerCase(),'#status',false);f.innerHTML='<p><b>Check your inbox.</b></p><p class="muted">Open the sign-in link to view your applications.</p>'}catch(x){err.textContent=x.message||'Could not send the email.'}finally{btn.disabled=false}};
+  $('#sf').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#se'),btn=$('button',f);btn.disabled=true;try{await emailSignIn(clean(f.email.value,120).toLowerCase(),'#status',false);f.innerHTML='<p><b>Check your inbox.</b></p><p class="muted">Open the sign-in link to view your applications.</p>'}catch(x){err.textContent=authErrorDetails(x)}finally{btn.disabled=false}};
   return;
  }
  const {data,error}=await sb.from('applications').select('id,reference_code,application_data,status,staff_note,created_at,decided_at').order('created_at',{ascending:false});
@@ -508,7 +535,7 @@ function admin(){
  const R=$('#adm');if(!R)return;
  if(!authUser){
   R.innerHTML='<div class="panel" style="max-width:500px"><h3>Staff sign-in</h3><p class="muted">Sign in with your staff email. Administrator access is granted separately by league staff; creating an account does not grant privileges.</p><form id="admin-login"><label>Staff email<input name="email" type="email" autocomplete="email" required></label><span class="er" id="admin-error" role="alert"></span><button class="btn" type="submit">Email sign-in link</button></form></div>';
-  $('#admin-login').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#admin-error'),btn=$('button',f);btn.disabled=true;try{await emailSignIn(clean(f.email.value,120).toLowerCase(),'#admin',true);f.innerHTML='<p><b>Check your inbox for the staff sign-in link.</b></p>'}catch(x){err.textContent=x.message||'Could not send the email.'}finally{btn.disabled=false}};
+  $('#admin-login').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#admin-error'),btn=$('button',f);btn.disabled=true;try{await emailSignIn(clean(f.email.value,120).toLowerCase(),'#admin',true);f.innerHTML='<p><b>Check your inbox for the staff sign-in link.</b></p>'}catch(x){err.textContent=authErrorDetails(x)}finally{btn.disabled=false}};
   return;
  }
  if(authUser.app_metadata?.fiws_role!=='admin'){
@@ -695,6 +722,6 @@ addEventListener('drop',e=>{if(!hasF(e))return;e.preventDefault();zone(false);co
 load();
 try{await initSupabase();await loadSharedData();await finishPendingApplication()}catch(e){console.error('FIWS shared backend:',e);toast('Shared data could not be loaded. Showing the bundled workbook.')} 
 const pf=LS.get('pref',null);cur.series=series().includes('FIWS')?'FIWS':series()[0];cur.key=pf&&D.some(s=>s.key===pf.key&&s.sheet===cur.series)?pf.key:defKey(cur.series);
-if(!LS.get('consent',null))cbar();render();
+if(!LS.get('consent',null))cbar();render();showAuthRedirectError();
 })();
 </script></body></html>
