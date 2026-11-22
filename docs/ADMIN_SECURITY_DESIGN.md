@@ -48,13 +48,31 @@ read -rsp "FIWS bootstrap secret: " FIWS_BOOTSTRAP_SECRET; echo
 read -rp "Owner username: " FIWS_OWNER_USERNAME
 read -rp "Owner display name: " FIWS_OWNER_NAME
 read -rsp "Owner password (14+ chars): " FIWS_OWNER_PASSWORD; echo
-curl --fail-with-body -X POST "https://yipzokjzqltxcufixrsv.supabase.co/functions/v1/fiws-admin" \
-  -H "Origin: https://p1k5up.github.io" \
-  -H "apikey: YOUR_SUPABASE_PUBLISHABLE_KEY" \
-  -H "Content-Type: application/json" \
-  -H "x-fiws-bootstrap-secret: $FIWS_BOOTSTRAP_SECRET" \
-  --data "$(python3 -c 'import json,os; print(json.dumps({"action":"bootstrap","username":os.environ["FIWS_OWNER_USERNAME"],"display_name":os.environ["FIWS_OWNER_NAME"],"password":os.environ["FIWS_OWNER_PASSWORD"]}))')"
-unset FIWS_BOOTSTRAP_SECRET FIWS_OWNER_PASSWORD
+read -rsp "Supabase publishable key: " FIWS_PUBLISHABLE_KEY; echo
+export FIWS_BOOTSTRAP_SECRET FIWS_OWNER_USERNAME FIWS_OWNER_NAME FIWS_OWNER_PASSWORD FIWS_PUBLISHABLE_KEY
+python3 - <<'PY'
+import json, os, urllib.request
+payload = {
+    "action": "bootstrap",
+    "username": os.environ["FIWS_OWNER_USERNAME"],
+    "display_name": os.environ["FIWS_OWNER_NAME"],
+    "password": os.environ["FIWS_OWNER_PASSWORD"],
+}
+request = urllib.request.Request(
+    "https://yipzokjzqltxcufixrsv.supabase.co/functions/v1/fiws-admin",
+    data=json.dumps(payload).encode(),
+    headers={
+        "Origin": "https://p1k5up.github.io",
+        "apikey": os.environ["FIWS_PUBLISHABLE_KEY"],
+        "Content-Type": "application/json",
+        "x-fiws-bootstrap-secret": os.environ["FIWS_BOOTSTRAP_SECRET"],
+    },
+    method="POST",
+)
+with urllib.request.urlopen(request) as response:
+    print(response.read().decode())
+PY
+unset FIWS_BOOTSTRAP_SECRET FIWS_OWNER_PASSWORD FIWS_PUBLISHABLE_KEY
 ```
 Replace the publishable key placeholder with the existing public key from project configuration. If Python is unavailable, construct the JSON request locally without placing the secret in the URL. The bootstrap secret is a one-time capability; rotate or remove it after successful bootstrap.
 
