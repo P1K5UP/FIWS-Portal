@@ -563,7 +563,7 @@ async function adminLoad(){
  R.innerHTML='<div class="panel">Loading shared administration data…</div>';
  let result;try{result=await fiwsAdminApi('applications-list')}catch(error){R.innerHTML='<div class="panel">'+esc(error.message)+'</div>';return}
  adminRows=result.applications||[];
- const tabs=[['apps','Applications ('+adminRows.length+')'],...(adminIdentity.rank!=='moderator'?[['data','Standings data'],['col','Team colours'],['brand','Logos']]:[]),['logbook','Staff logbook'],...(adminIdentity.rank==='owner'?[['admins','Administrators']]:[]),['sec','Account']];
+ const tabs=[['apps','Applications ('+adminRows.length+')'],...(adminIdentity.rank!=='moderator'?[['data','Standings data'],['col','Team colours'],['brand','Logos']]:[]),['logbook','Staff logbook'],...(adminIdentity.rank==='owner'?[['admins','Administrators']]:[]),...(adminIdentity.rank!=='moderator'?[['settings','Settings']]:[]),['sec','Account']];
  R.innerHTML='<div class="admin-shell"><div class="tabs seg admin-toolbar" style="display:flex;flex-wrap:wrap">'+tabs.map(x=>'<button data-at="'+x[0]+'" aria-pressed="'+(adminTab===x[0])+'">'+x[1]+'</button>').join('')+'<button id="admin-out">Sign out</button></div><div id="admin-content" class="admin-content"></div></div>';
  $$('[data-at]').forEach(b=>b.onclick=()=>{adminTab=b.dataset.at;adminLoad()});
  $('#admin-out').onclick=async()=>{try{await fiwsAdminApi('logout')}catch{}adminToken=null;adminIdentity=null;admin()};
@@ -646,6 +646,77 @@ async function adminLoad(){
    const latest=await fetchSharedConfig();Object.assign(paths,latest.logos||{});const old=paths[k];delete paths[k];
    try{if(old)await fiwsAdminApi('asset-delete',{path:old});await saveSharedSetting('logos',paths);await loadSharedData();setLogo();adminLoad()}catch(x){toast(x.message)}
   });
+ }
+
+ if(adminTab==='settings'&&adminIdentity.rank!=='moderator'){
+  P.innerHTML='<div class="panel"><h3>Website settings backup</h3><p class="muted">Export the shared workbook, seasonal team colours and FIWS/FITC logos to one portable JSON file. Import it on another FIWS deployment to transfer those settings. Import replaces the matching shared settings; applications, staff accounts and logbook entries are never included.</p><div class="row" style="margin:.8rem 0;flex-wrap:wrap"><button class="btn sm" id="settings-export">Export settings</button><label class="btn sm ghost" for="settings-import-file" style="cursor:pointer">Choose backup file<input id="settings-import-file" type="file" accept=".json,application/json" hidden></label></div><div id="settings-transfer-status" class="tbl-note" role="status">Exports include the published shared workbook and logos, plus locally saved team-colour overrides where available. Keep backup files private if they contain unpublished competition data.</div><div id="settings-import-preview"></div></div>';
+  const status=$('#settings-transfer-status'),preview=$('#settings-import-preview'),exportButton=$('#settings-export'),fileInput=$('#settings-import-file');
+  const toB64=async blob=>{const bytes=new Uint8Array(await blob.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(binary)};
+  const fromB64=value=>{const binary=atob(value),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return bytes};
+  exportButton.onclick=async()=>{
+   exportButton.disabled=true;status.textContent='Preparing backup…';
+   try{
+    const cfg=await fetchSharedConfig(),bundle={format:'FIWS_SETTINGS_BACKUP',version:1,exported_at:new Date().toISOString(),settings:{team_colors:{...(cfg.team_colors||{}),...(TCOL||{})},logos:{},workbook:null}};
+    for(const k of ['FIWS','FITC']){
+     const path=cfg.logos?.[k];
+     if(path){const {data,error}=await sb.storage.from('fiws-public').download(path);if(error)throw error;bundle.settings.logos[k]={content_type:'image/png',base64:await toB64(data)}}
+    }
+    if(cfg.workbook?.path){
+     const {data,error}=await sb.storage.from('fiws-public').download(cfg.workbook.path);if(error)throw error;
+     bundle.settings.workbook={content_type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',base64:await toB64(data)};
+    }else{
+     const localWorkbook=LS.get('xlsx',null);
+     if(localWorkbook)bundle.settings.workbook={content_type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',base64:localWorkbook};
+    }
+    dl('fiws-settings-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(bundle), 'application/json');
+    status.textContent='Backup exported. It contains '+(bundle.settings.workbook?'a workbook, ':'no workbook, ')+Object.keys(bundle.settings.logos).length+' shared logo(s) and '+Object.keys(bundle.settings.team_colors).length+' colour entries.';
+   }catch(error){status.textContent='Export failed: '+error.message}
+   finally{exportButton.disabled=false}
+  };
+  fileInput.onchange=async()=>{
+   preview.innerHTML='';const file=fileInput.files?.[0];fileInput.value='';if(!file)return;
+   if(file.size>10_000_000){status.textContent='Backup is too large (10 MB maximum).';return}
+   try{
+    const bundle=JSON.parse(await file.text());
+    if(bundle.format!=='FIWS_SETTINGS_BACKUP'||bundle.version!==1||!bundle.settings||typeof bundle.settings!=='object')throw new Error('This is not a supported FIWS settings backup.');
+    const settings=bundle.settings,colors=settings.team_colors||{},logos=settings.logos||{};
+    if(!colors||typeof colors!=='object'||Array.isArray(colors)||Object.entries(colors).some(([k,v])=>!k||k.length>180||typeof v!=='string'||!/^#[0-9a-f]{6}$/i.test(v)))throw new Error('The team-colour data is invalid.');
+    if(!logos||typeof logos!=='object'||Array.isArray(logos))throw new Error('The logo data is invalid.');
+    for(const k of Object.keys(logos))if(!['FIWS','FITC'].includes(k)||logos[k]?.content_type!=='image/png'||typeof logos[k]?.base64!=='string'||logos[k].base64.length>500_000)throw new Error('A logo entry is invalid or exceeds 375 KB.');
+    let workbookBytes=null,parsedWorkbook=null;
+    if(settings.workbook){
+     if(settings.workbook.content_type!=='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'||typeof settings.workbook.base64!=='string'||settings.workbook.base64.length>4_200_000)throw new Error('The workbook is invalid or exceeds the 3 MB limit.');
+     workbookBytes=fromB64(settings.workbook.base64);
+     if(workbookBytes.length<4||workbookBytes[0]!==0x50||workbookBytes[1]!==0x4b)throw new Error('The workbook file is not a valid XLSX archive.');
+     parsedWorkbook=parseWB(XLSX.read(workbookBytes,{type:'array',cellDates:true}));
+     if(!parsedWorkbook.length)throw new Error('The workbook contains no FIWS season blocks.');
+    }
+    const summary='<div class="panel" style="margin-top:.8rem"><b>Backup ready to import</b><ul><li>'+Object.keys(colors).length+' team-colour entries</li><li>'+Object.keys(logos).length+' logo(s)</li><li>'+(workbookBytes?parsedWorkbook.length+' workbook season block(s)':'No workbook; current shared workbook will be retained')+'</li></ul><p class="muted">This replaces the shared colour map and any logo included in the backup. A workbook is replaced only when the backup contains one. Settings not included in the file are left unchanged.</p><button class="btn sm" id="settings-import-confirm">Import and publish</button></div>';
+    preview.innerHTML=summary;
+    $('#settings-import-confirm').onclick=async()=>{
+     const button=$('#settings-import-confirm');button.disabled=true;
+     try{
+      const latest=await fetchSharedConfig();
+      const nextLogos={...(latest.logos||{})};
+      for(const k of Object.keys(logos)){
+       const bytes=fromB64(logos[k].base64);
+       if(bytes.length<8||bytes[0]!==0x89||bytes[1]!==0x50||bytes[2]!==0x4e||bytes[3]!==0x47)throw new Error(k+' logo is not a PNG image.');
+       await adminUploadFile(new Blob([bytes],{type:'image/png'}),'logos/'+k+'.png','image/png');nextLogos[k]='logos/'+k+'.png';
+      }
+      if(workbookBytes){
+       const path='workbooks/current-'+crypto.randomUUID()+'.xlsx';
+       await adminUploadFile(new Blob([workbookBytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),path,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+       await saveSharedSetting('workbook',{path,updated_at:new Date().toISOString()});
+      }
+      await saveSharedSetting('team_colors',colors);
+      if(Object.keys(logos).length)await saveSharedSetting('logos',nextLogos);
+      await loadSharedData();TCOL={};LS.set('tcol',{});render(true);status.textContent='Settings imported and published successfully.';preview.innerHTML='';toast('Website settings imported');
+     }catch(error){status.textContent='Import failed: '+error.message}
+     finally{button.disabled=false}
+    };
+    status.textContent='Backup validated. Review the contents before importing.';
+   }catch(error){status.textContent='Could not read backup: '+error.message}
+  };
  }
  if(adminTab==='logbook'){
   P.innerHTML='<div class="panel" style="margin-bottom:1rem"><h3>Staff logbook</h3><p class="muted">Shared staff memory and handovers. Entries are attributed and retained centrally.</p><form id="logbook-form"><label>Category<select name="category"><option value="general">General</option><option value="handover">Handover</option><option value="driver">Driver</option><option value="team">Team</option><option value="application">Application</option><option value="incident">Incident</option><option value="competition">Competition</option></select></label><label>Title<input name="title" maxlength="160" required></label><label>Note<textarea name="body" maxlength="12000" rows="4" required></textarea></label><label>Related reference (optional)<input name="related_reference" maxlength="120"></label><button class="btn">Save logbook entry</button><span class="er" id="logbook-error" role="alert"></span></form></div><div id="logbook-entries">Loading entries…</div>';
