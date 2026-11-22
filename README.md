@@ -18,12 +18,12 @@ Teams and entries come from the workbook. Colours default to an automatic palett
 
 ## Configure
 - Set the Supabase Site URL and allowed redirect URL to `https://p1k5up.github.io/fiws-portal/` in Authentication → URL Configuration.
-- Enable email magic links and configure custom SMTP before public launch.
-- Provision the first staff account with the trusted `app_metadata.fiws_role=admin` claim. Admin registration alone does not grant admin access.
+- Applicant applications/status currently continue to use Supabase email verification; configure SMTP only if you need reliable applicant verification emails at scale.
+- Administrator login is being moved to a separate username/password + mandatory authenticator MFA system. It does not use email. The initial Owner is provisioned with the one-time server-side bootstrap documented in `docs/ADMIN_SECURITY_DESIGN.md`.
 - Rebuild with `python3 build.py` after any change to `src/`.
 
 ## Security notes
-Supabase Auth verifies applicant and staff email addresses. PostgreSQL Row Level Security scopes applicant reads to their own records and restricts administrative actions to accounts with the trusted `app_metadata.fiws_role=admin` claim. Never put a secret/service-role key in the browser. Application submission uses a Supabase Edge Function with HMACed IP throttling and a per-account database limit. Public assets are kept in a separate public Storage bucket; applicant data is never stored there.
+Supabase Auth currently verifies applicant email addresses only. Custom administrator authentication uses server-side Argon2id password hashes, mandatory TOTP MFA, opaque revocable sessions, one-time recovery codes, and rank checks in the `fiws-admin` Edge Function. Administrator database writes are not authorized by browser claims; the custom admin tables are inaccessible to anon/authenticated clients. Applicant rows remain scoped by PostgreSQL RLS to their owner. Never put a secret/service-role key in the browser. Application submission uses a Supabase Edge Function with HMACed IP throttling and a per-account database limit. Public assets are kept in a separate public Storage bucket; applicant data is never stored there. The custom admin feature branch remains under end-to-end testing and is not production-ready until its secrets are configured and the PR is reviewed.
 
 ## Workbook format
 Each sheet holds season blocks side by side. Row 2 has the season titles, row 5 the section titles (ENTRIES, CALENDAR, STANDINGS (RACE BY RACE), STANDINGS (POINTS)), row 7 the column headers. Standings are cumulative points per round.
