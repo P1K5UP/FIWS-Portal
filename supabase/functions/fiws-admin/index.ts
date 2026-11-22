@@ -284,21 +284,10 @@ Deno.serve(async (req) => {
       if (expected.length < 40 || !same(expected, supplied)) return json({ error: "Owner recovery is unavailable or unauthorized." }, 403);
       const password = String(body.new_password || "");
       if (password.length < 14 || password.length > 128) return json({ error: "Choose a password of at least 14 characters." }, 400);
-      const { data: state } = await db.from("fiws_admin_bootstrap_state").select("owner_recovery_used_at").eq("singleton", true).single();
-      if (state?.owner_recovery_used_at) return json({ error: "The one-time owner recovery secret has already been used." }, 409);
-      const { data: owner } = await db.from("fiws_admin_accounts").select("id,username,admin_rank").eq("admin_rank", "owner").maybeSingle();
-      if (!owner) return json({ error: "No owner account exists." }, 404);
-      const { data: reserved } = await db.from("fiws_admin_bootstrap_state").update({ owner_recovery_used_at: new Date().toISOString() }).eq("singleton", true).is("owner_recovery_used_at", null).select("singleton").maybeSingle();
-      if (!reserved) return json({ error: "Owner recovery has already been consumed." }, 409);
-      await db.from("fiws_admin_accounts").update({
-        password_hash: await hashPassword(password), password_salt: "embedded-in-argon2id-hash",
-        password_changed_at: new Date().toISOString(), totp_secret_ciphertext: null,
-        totp_secret_iv: null, totp_enabled: false, totp_last_step: null,
-        failed_login_count: 0, locked_until: null, disabled: false,
-      }).eq("id", owner.id);
-      await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", owner.id).is("revoked_at", null);
-      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", owner.id);
-      await audit(owner, "auth.owner_emergency_recovery", "admin", owner.id);
+      const passwordHash = await hashPassword(password);
+      const { data: recovered, error } = await db.rpc("fiws_complete_owner_recovery", { p_password_hash: passwordHash });
+      if (error) throw error;
+      if (!recovered) return json({ error: "Owner recovery has already been consumed or no owner account exists." }, 409);
       return json({ success: true, message: "Owner password reset. All sessions and recovery codes were revoked. Sign in and enroll MFA again. Remove the consumed recovery secret from project secrets." });
     }
     if (action === "recover-password") {
@@ -315,22 +304,22 @@ Deno.serve(async (req) => {
       if (recoveryThrottleError) throw recoveryThrottleError;
       const recoveryLimit = Array.isArray(recoveryThrottle) ? recoveryThrottle[0] : recoveryThrottle;
       if (recoveryLimit?.locked_until && new Date(recoveryLimit.locked_until).getTime() > Date.now()) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 429);
-      const { data: account } = await db.from("fiws_admin_accounts").select("id,username,admin_rank,disabled").eq("username", username).maybeSingle();
+      const { data: account, error: accountError } = await db.from("fiws_admin_accounts").select("id,username,disabled").eq("username", username).maybeSingle();
+      if (accountError) throw accountError;
       if (!account || account.disabled) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
-      const { data: recovery } = await db.from("fiws_admin_recovery_codes").select("id").eq("admin_id", account.id).eq("code_hash", await sha(code.match(/.{1,4}/g)!.join("-"))).is("used_at", null).maybeSingle();
+      const { data: recovery, error: recoveryError } = await db.from("fiws_admin_recovery_codes").select("id").eq("admin_id", account.id).eq("code_hash", await sha(code.match(/.{1,4}/g)!.join("-"))).is("used_at", null).maybeSingle();
+      if (recoveryError) throw recoveryError;
       if (!recovery) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
-      const { data: consumed } = await db.from("fiws_admin_recovery_codes").update({ used_at: new Date().toISOString() }).eq("id", recovery.id).is("used_at", null).select("id").maybeSingle();
-      if (!consumed) return json({ error: "Recovery code has already been used." }, 409);
       const passwordHash = await hashPassword(password);
-      await db.from("fiws_admin_accounts").update({
-        password_hash: passwordHash, password_salt: "embedded-in-argon2id-hash",
-        password_changed_at: new Date().toISOString(), totp_secret_ciphertext: null,
-        totp_secret_iv: null, totp_enabled: false, totp_last_step: null, failed_login_count: 0, locked_until: null,
-      }).eq("id", account.id);
-      await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", account.id).is("revoked_at", null);
-      await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", account.id);
-      await db.from("fiws_admin_login_limits").delete().eq("username_key", recoveryUsernameKey).eq("ip_hash", recoveryIpHash);
-      await audit(account, "auth.recovery_password_reset", "admin", account.id);
+      const { data: recovered, error } = await db.rpc("fiws_complete_admin_recovery", {
+        p_admin_id: account.id,
+        p_recovery_code_id: recovery.id,
+        p_password_hash: passwordHash,
+        p_username_key: recoveryUsernameKey,
+        p_ip_hash: recoveryIpHash,
+      });
+      if (error) throw error;
+      if (!recovered) return json({ error: "Recovery code has already been used or the account is unavailable." }, 409);
       return json({ success: true, mfa_enrollment_required: true, message: "Password reset. Sign in and enroll your authenticator app again." });
     }
     if (action === "admin-list") {
