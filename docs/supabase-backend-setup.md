@@ -20,7 +20,7 @@ The following migrations are applied to the `fiws-portal` project and tracked in
 - `20261122162809_fiws_submission_ip_rate_limit.sql`
 - `20261122163037_fiws_ip_limit_deny_policy.sql`
 
-The website template now uses the project's URL and publishable key. These are public client configuration; RLS remains the security boundary. The `submit-application` Edge Function is deployed and applies a network-level HMACed IP rate limit plus the database per-account limit. It uses the Edge Function's secret-key context; no secret key is shipped to the browser.
+The website template now uses the project's URL and publishable key. These are public client configuration; RLS remains the security boundary. The `submit-application` Edge Function is deployed and applies a network-level HMACed IP rate limit plus the database per-account limit. It uses the Edge Function's secret-key context; no secret key is shipped to the browser. Its source is tracked at `supabase/functions/submit-application/index.ts`.
 
 ## Remaining project configuration
 1. In Supabase **Authentication → URL Configuration**, set the Site URL to `https://p1k5up.github.io/fiws-portal/` and add that exact URL as an allowed redirect URL. Also add the preview URL if you use a separate test deployment.
