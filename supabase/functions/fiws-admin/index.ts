@@ -203,7 +203,7 @@ Deno.serve(async (req) => {
       if (throttleError) throw throttleError;
       const throttle = Array.isArray(throttleData) ? throttleData[0] : throttleData;
       if (throttle?.locked_until && new Date(throttle.locked_until).getTime() > Date.now()) return json({ error: "Invalid username or password." }, 429);
-      const { data: account } = await db.from("fiws_admin_accounts").select("*").eq("username", username).maybeSingle();
+      const { data: account, error: accountError } = await db.from("fiws_admin_accounts").select("*").eq("username", username).maybeSingle();\n      if (accountError) throw accountError;
       const eligible = !!account && !account.disabled && (!account.locked_until || new Date(account.locked_until).getTime() < Date.now());
       const candidateHash = account?.password_hash || await getDummyPasswordHash();
       const passwordMatches = await passwordOK(password, candidateHash);
@@ -247,14 +247,14 @@ Deno.serve(async (req) => {
       if (!auth || auth.row.mfa_verified) return json({ error: "Enrollment session required." }, 401);
       const secret = base32(random(20));
       const encrypted = await encryptSecret(secret);
-      await db.from("fiws_admin_accounts").update({ totp_secret_ciphertext: encrypted.ciphertext, totp_secret_iv: encrypted.iv, totp_enabled: false, totp_last_step: null }).eq("id", auth.admin.id);
+      const { error: enrollError } = await db.from("fiws_admin_accounts").update({ totp_secret_ciphertext: encrypted.ciphertext, totp_secret_iv: encrypted.iv, totp_enabled: false, totp_last_step: null }).eq("id", auth.admin.id);\n      if (enrollError) throw enrollError;
       const uri = "otpauth://totp/" + encodeURIComponent("FIWS:" + auth.admin.username) + "?secret=" + secret + "&issuer=FIWS&algorithm=SHA1&digits=6&period=30";
       return json({ secret, otpauth_uri: uri });
     }
     if (action === "mfa-confirm") {
       const auth = await session(req, false);
       if (!auth || auth.row.mfa_verified) return json({ error: "Enrollment session required." }, 401);
-      const { data: account } = await db.from("fiws_admin_accounts").select("*").eq("id", auth.admin.id).single();
+      const { data: account, error: accountError } = await db.from("fiws_admin_accounts").select("*").eq("id", auth.admin.id).single();\n      if (accountError) throw accountError;
       if (!account?.totp_secret_ciphertext) return json({ error: "Start authenticator enrollment first." }, 409);
       const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
       const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
@@ -401,7 +401,7 @@ Deno.serve(async (req) => {
     if (action === "mfa-rotate-recovery") {
       const auth = await session(req);
       if (!auth) return json({ error: "Authentication required." }, 401);
-      const { data: account } = await db.from("fiws_admin_accounts").select("totp_secret_ciphertext,totp_secret_iv").eq("id", auth.admin.id).single();
+      const { data: account, error: accountError } = await db.from("fiws_admin_accounts").select("totp_secret_ciphertext,totp_secret_iv").eq("id", auth.admin.id).single();\n      if (accountError) throw accountError;
       if (!account?.totp_secret_ciphertext) return json({ error: "MFA is not configured." }, 409);
       const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
       const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
