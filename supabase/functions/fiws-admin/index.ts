@@ -5,7 +5,7 @@ import { argon2id, argon2Verify } from "npm:hash-wasm@4.13.0";
 const SITE_ORIGIN = "https://p1k5up.github.io";
 const cors = {
   "Access-Control-Allow-Origin": SITE_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-fiws-session, x-fiws-bootstrap-secret",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-fiws-session, x-fiws-bootstrap-secret, x-fiws-owner-recovery-secret",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
 };
@@ -85,11 +85,12 @@ async function matchingTotpStep(secret: string, code: string) {
   return null;
 }
 async function audit(admin: any, action: string, targetType?: string, targetId?: string, details = {}) {
-  await db.from("fiws_admin_audit_log").insert({
+  const { error } = await db.from("fiws_admin_audit_log").insert({
     actor_admin_id: admin?.id || null, actor_username: admin?.username || "bootstrap",
     actor_rank: admin?.admin_rank || "owner", action, target_type: targetType || null,
     target_id: targetId || null, details,
   });
+  if (error) throw error;
 }
 async function newSession(adminId: string, verified: boolean, minutes: number) {
   const token = b64(random(32));
