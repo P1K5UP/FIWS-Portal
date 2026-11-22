@@ -303,6 +303,33 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
  .home-championship #tw .sc{gap:.5rem;padding:.7rem .65rem}
 }
 
+
+/* Phone usability refinements */
+.rules-grid{display:grid;gap:.8rem;max-width:900px;margin:0 auto}.rule-intro{border-top:4px solid var(--sky);padding:1.25rem}.rule-intro h2{margin:.65rem 0;font-size:1.8rem}.rule-intro p{max-width:68ch}.rule-pills{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.9rem}.rule-pills span{border:1px solid var(--line);border-radius:999px;padding:.25rem .7rem;font-size:.85rem;color:var(--mute)}.rule-section{padding:0;overflow:hidden}.rule-section summary{list-style:none;display:flex;align-items:center;gap:.85rem;padding:1rem;cursor:pointer;min-height:68px}.rule-section summary::-webkit-details-marker{display:none}.rule-section summary>span:nth-child(2){display:grid;gap:.18rem;min-width:0}.rule-section summary b{font:700 1.28rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.02em}.rule-section summary small{color:var(--mute);font-size:.86rem}.rule-no{flex:0 0 40px;height:40px;display:grid;place-items:center;background:var(--soft);border-left:3px solid var(--sky);font:700 1.2rem 'Barlow Condensed'}.rule-section summary:after{content:'+';margin-left:auto;font:600 1.5rem 'Barlow Condensed';color:var(--acc)}.rule-section[open] summary:after{content:'−'}.rule-body{padding:0 1.1rem 1.1rem 4.1rem}.rule-body h3{margin:1rem 0 .35rem}.rule-body ul{padding-left:1.15rem;margin:.4rem 0 .8rem}.rule-body li{margin:.38rem 0}.rule-body p{margin:.5rem 0}.rule-footer{border-left:4px solid var(--sky);max-width:900px;margin:.3rem auto 0}.rule-footer p{margin:.35rem 0 0}
+.tower.scrubbing .tr{transition:none!important}.tower.scrubbing .pt{transition:none!important}
+@media(max-width:700px){
+ .pick{gap:.45rem;align-items:flex-start}
+ .pick .seg:first-child{width:max-content;max-width:100%;flex:0 1 auto}
+ .pick .seg:last-child{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));overflow:visible;flex-wrap:wrap}
+ .pick .seg button{min-width:0;max-width:100%;white-space:normal;line-height:1.15;padding:.5rem .65rem}
+ .pick .seg em{display:block;margin:.12rem 0 0;font-size:.7rem}
+ .ft{padding-bottom:calc(6rem + env(safe-area-inset-bottom,0px))}
+ .ft .in{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
+ .admin-toolbar{position:static;top:auto;backdrop-filter:none}
+ .admin-shell,#admin-content,#adm{min-width:0;width:100%}
+ #admin-content{padding-bottom:1rem}
+ #admin-content .panel,#admin-content [data-app]{max-width:100%;min-width:0}
+ #admin-content [data-app]:hover,.admin-content>.panel:hover,.admin-card:hover{transform:none}
+ .admin-login-card,.admin-card,.admin-content>.panel,#adm>.panel,#admin-content [data-app]{animation:none!important}
+ .rule-section summary{padding:.85rem;gap:.65rem}
+ .rule-section summary b{font-size:1.15rem}
+ .rule-section summary small{font-size:.78rem}
+ .rule-no{flex-basis:34px;height:36px}
+ .rule-body{padding:0 .9rem 1rem 1rem}
+ .rule-body li{padding-left:.05rem}
+ .rule-intro{padding:1rem}
+}
+@media(max-width:380px){.pick .seg:last-child{grid-template-columns:repeat(2,minmax(0,1fr))}.rule-section summary small{max-width:24ch}}
 </style></head><body>
 <button class="skip btn" id="skip">Skip to content</button>
 <header class="top"><div class="bar"><a class="brand" href="#home" aria-label="FIWS home"><span id="logo"></span><b>FIWS</b></a>
@@ -394,10 +421,10 @@ function tower(el,s,kind,limit){
  let shown=list.map(()=>0),tm,rankByIndex=null;const scoreFrames=list.map(()=>0);
  const set=r=>{const key=d=>d.vals[r]??0;const order=list.map((d,i)=>i).sort((a,b)=>key(list[b])-key(list[a])||(r?(list[b].vals[r-1]??0)-(list[a].vals[r-1]??0):0)||list[a].name.localeCompare(list[b].name));
   order.forEach((idx,p)=>{const row=rows[idx],d=list[idx],v=key(d),dv=r>0?v-(d.vals[r-1]??0):0,prior=rankByIndex?rankByIndex[idx]:p;row.dataset.move=!rankByIndex?'flat':p<prior?'up':p>prior?'down':'flat';row.style.transform=`translateY(${p*H}px)`;row.style.opacity=p<n?1:0;row.style.pointerEvents=p<n?'auto':'none';row.dataset.p=p;$('.pos',row).textContent=p+1;$('.dl',row).textContent=dv>0?'+'+dv:dv<0?String(dv):'';
-   const pt=$('.pt',row);if(scoreFrames[idx])cancelAnimationFrame(scoreFrames[idx]);const from=Number(pt.textContent)||shown[idx],t0=performance.now(),duration=RM?0:420;const f=t=>{const k=duration?Math.min(1,(t-t0)/duration):1,eased=1-Math.pow(1-k,3);pt.textContent=+(from+(v-from)*eased).toFixed(1);if(k<1)scoreFrames[idx]=requestAnimationFrame(f);else{shown[idx]=v;scoreFrames[idx]=0}};scoreFrames[idx]=requestAnimationFrame(f)});rankByIndex=order.reduce((a,idx,p)=>(a[idx]=p,a),[]);
+   const pt=$('.pt',row);if(scoreFrames[idx])cancelAnimationFrame(scoreFrames[idx]);if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v;scoreFrames[idx]=0}else{const from=Number(pt.textContent)||shown[idx],t0=performance.now(),duration=RM?0:420;const f=t=>{const k=duration?Math.min(1,(t-t0)/duration):1,eased=1-Math.pow(1-k,3);pt.textContent=+(from+(v-from)*eased).toFixed(1);if(k<1)scoreFrames[idx]=requestAnimationFrame(f);else{shown[idx]=v;scoreFrames[idx]=0}};scoreFrames[idx]=requestAnimationFrame(f)}});rankByIndex=order.reduce((a,idx,p)=>(a[idx]=p,a),[]);
   $('.lb',el).textContent=s.codes[r]||'';$('.rl',el).textContent=rLabel(s,r).split(' · ')[0]};
  const rng=$('input',el),b=$('button',el);
- rng.oninput=()=>{clearInterval(tm);set(+rng.value);$('.lb',el).textContent=rLabel(s,+rng.value)};
+ rng.addEventListener('pointerdown',()=>el.classList.add('scrubbing'));rng.addEventListener('keydown',()=>el.classList.add('scrubbing'));rng.addEventListener('change',()=>el.classList.remove('scrubbing'));rng.oninput=()=>{clearInterval(tm);el.classList.add('scrubbing');set(+rng.value);$('.lb',el).textContent=rLabel(s,+rng.value)};
  b.onclick=()=>{clearInterval(tm);let r=0;rng.value=0;set(0);tm=setInterval(()=>{r++;if(r>max){clearInterval(tm);return}rng.value=r;set(r);$('.lb',el).textContent=rLabel(s,r)},RM?300:1100)};
  cl.push(()=>{clearInterval(tm);scoreFrames.forEach(id=>id&&cancelAnimationFrame(id))});set(max);$('.lb',el).textContent=rLabel(s,max);
 }
@@ -437,11 +464,54 @@ V.calendar=()=>{const s=seas();if(!s)return{html:empty('No data','')};const t=ne
 V.entries=()=>{const s=seas();if(!s)return{html:empty('No data','')};
  return{html:`<h1>Entries</h1>${pick()}<div class="sec" style="margin-top:1rem"><h2>Drivers</h2>${s.drivers.length?`<div class="tw"><table><thead><tr><th>Driver</th><th>Nat.</th><th>No.</th><th>Team</th>${s.drivers.some(d=>d.Car)?'<th>Car</th>':''}<th>Races</th></tr></thead><tbody>${s.drivers.map(d=>`<tr><td><b>${esc(d.Driver)}</b></td><td>${esc(CC[d.Nationality]||d.Nationality||'')}</td><td>${esc(d.Number||'')}</td><td><i style="display:inline-block;width:8px;height:14px;background:${tcol(info(s,d.Driver).team||d.Driver,s.key)};margin-right:.5rem;vertical-align:-2px"></i>${esc(d.Team||'')}</td>${s.drivers.some(x=>x.Car)?`<td>${esc(d.Car||'')}</td>`:''}<td>${esc(d.Races||'')}</td></tr>`).join('')}</tbody></table></div>`:empty('No entries','')}</div>
  <div class="sec"><h2>Teams</h2><div class="g3">${s.teams.map(t=>`<div class="panel" style="border-top:5px solid ${tcol(t.Team,s.key)}"><h3>${esc(t.Team)}</h3><p class="muted" style="margin:.4rem 0 0">${esc(t['Entry One']||'')}${t['Entry Two']?'<br>'+esc(t['Entry Two']):''}<br>${esc(t.Nationality||'')}${t.Car?' · '+esc(t.Car):''}</p></div>`).join('')||empty('No teams','')}</div></div>`,after:()=>{}}};
-V.rules=()=>({html:`<h1>Rules & stewarding</h1><div class="panel pr" style="margin-top:1.2rem"><p class="muted">Summary of how races are run and judged. League staff publish the full sporting regulations to registered drivers.</p>
-<h3>Driving standards</h3><ul><li>Leave a car's width where you can. Avoid late moves in braking zones and on straights.</li><li>Do not rejoin the track in a way that endangers others, and keep within track limits unless the event notes say otherwise.</li><li>Lapped cars yield on blue flag. Under caution, hold position and the posted caution speed.</li><li>Be reachable: respond to steward and admin calls in the league Discord before and during events.</li></ul>
-<h3>Stewards</h3><ul><li>Incidents are reviewed from the race replay. Drivers may submit a report with the lap and a short description.</li><li>Stewards decide on racing incident, warning, time penalty, position loss or disqualification.</li><li>Decisions are published with the results. Appeals must be filed within the window set by the series.</li></ul>
-<h3>Penalties</h3><ul><li><b>Warning:</b> minor, no effect on result. Repeated warnings escalate.</li><li><b>Time penalty:</b> added to race time, scaled to the advantage gained.</li><li><b>Position loss / drive-through:</b> for clear avoidable contact or unsafe rejoin.</li><li><b>Disqualification:</b> for serious or repeated offences, or unsporting conduct.</li></ul>
-<h3>Cars</h3><p>FIWS uses RSS Supreme formula cars on Assetto Corsa. Touring car rounds use the car listed for each entry on the Entries page.</p></div>`,after:()=>{}});
+V.rules=()=>({html:`<h1>Rules & driving standards</h1>
+<p class="muted" style="max-width:70ch;margin:.65rem 0 1.2rem">A clear guide to racing fairly in FIWS and FITC. These rules apply to every driver. Event-specific instructions from the race director or stewards take priority where stated.</p>
+<div class="rules-grid">
+<section class="panel rule-intro"><span class="chip nx">The essentials</span><h2>Race hard. Race fair.</h2><p>Respect other drivers, follow race control instructions, stay on track and never put another competitor at risk. Deliberate contact, road rage and exploiting game glitches are not acceptable.</p><div class="rule-pills"><span>Be predictable</span><span>Leave racing room</span><span>Respect the stewards</span></div></section>
+<details class="panel rule-section" open><summary><span class="rule-no">01</span><span><b>Before the race & the start</b><small>Formation lap, rolling starts and pitlane</small></span></summary><div class="rule-body"><ul>
+<li>Every driver must take part in the formation lap. Do not overtake during the formation lap or while under caution.</li>
+<li>After the formation lap, form up two-by-two behind the leaders, in qualifying order. Follow the cars ahead closely and hold your position.</li>
+<li>The pole-sitter controls the rolling start. Do not accelerate or overtake until the field begins accelerating.</li>
+<li>Before the restart, the leader must bring the field below <b>120 km/h (75 mph) in FIWS</b> or <b>80 km/h (50 mph) in FITC</b>.</li>
+<li>Only the leader and the car alongside need to be in the restart zone. The zone runs from the final-corner exit to the start/finish line.</li>
+<li>If the formation, speed or start procedure is not followed, the start is aborted and attempted again on the first lap until successful. The pitlane stays closed until the race has started.</li>
+</ul></div></details>
+<details class="panel rule-section"><summary><span class="rule-no">02</span><span><b>Driving standards & racecraft</b><small>Impeding, overtaking, defending and racing room</small></span></summary><div class="rule-body">
+<h3>Respect other drivers</h3><ul><li>Road rage, deliberate wrecking and intentionally cutting the course are prohibited.</li><li>Leave at least one car's width when a rival is alongside. Do not force another car off the track.</li><li>Do not move under braking. Be predictable, especially when defending or rejoining.</li><li>The current FIWS directive allows <b>one change of direction</b> when defending. A second or reactive move is illegal blocking and may be penalised.</li></ul>
+<h3>Overtaking</h3><ul><li>On ovals, the “ahead at the apex” rule applies: if you are ahead at the apex, the corner is yours. Any move by the car behind is at their own risk.</li><li>On road courses, overtakes must be made safely. Do not dive into gaps that are not there.</li><li>Do not use the ahead-at-apex rule to squeeze or push another driver beyond track limits. Forcing a car off track is a serious offence.</li></ul>
+<h3>Impeding</h3><p>Do not block or interfere with another driver's lap. This includes sitting on their racing line, attempting to pass them, defending against them or making contact while they are on a lap.</p><p>If asked to move aside, do so promptly and predictably: on a straight, move well clear of the racing line and slow significantly; in a corner, move safely off the line (usually to the outside) and slow almost to a stop. Dangerous moves or refusing to move may be penalised.</p>
+</div></details>
+<details class="panel rule-section"><summary><span class="rule-no">03</span><span><b>Track limits, pitstops & reversing</b><small>Stay on the circuit and make a legal stop</small></summary><div class="rule-body"><ul>
+<li>On road courses, the track ends at the end of the kerb. If more than two wheels go beyond it and you gain an advantage, a penalty will be issued.</li>
+<li>On ovals, the track limit is normally the bottom white or yellow line. Any event-specific exceptions will be explained before the race. Stewards or race control will clarify grey areas; if unsure, do not push it.</li>
+<li>Cutting the pitlane is strictly prohibited.</li>
+<li>Every driver must complete one mandatory pitstop in each race. <b>Tyres only</b> are required.</li>
+<li>A pitstop will not count if you speed on entry, fail to complete the full pitlane distance, enter incorrectly or crash in the pitlane.</li>
+<li>Reversing on track is allowed only to correct an overshot pitbox, escape a run-off area or free yourself from a barrier. Never reverse to gain an advantage.</li>
+<li>Celebrations are allowed after you finish, provided you stay clear of drivers still racing.</li>
+</ul></div></details>
+<details class="panel rule-section"><summary><span class="rule-no">04</span><span><b>Cautions & race restarts</b><small>What to do when an incident brings out a caution</small></summary><div class="rule-body"><ul>
+<li>Slow to the caution speed announced for that track. Do not overtake cars ahead unless a car has a serious problem and is clearly letting you pass.</li>
+<li>The pitlane is open during a caution. You may pass cars on track when entering the pitlane, but must obey caution speed.</li>
+<li>If you crash or have a problem, report it in voice chat. Follow caution procedure; a present steward has the final say on confirming a caution. Calling or exploiting a caution for personal gain may bring serious penalties.</li>
+<li>Field order is based on the order drivers leave the incident. Drivers involved in or responsible for the caution rejoin wherever they end up when returning to the track.</li>
+<li>Lapped cars may safely unlap themselves, but may do so no more than twice per caution. If they have not reached the back of the field by the end of the caution, the leaders may restart.</li>
+<li>A mandatory mid-race caution applies to every driver. Slow to caution speed and follow the same rules. The pitlane closes one lap before it.</li>
+</ul>
+<h3>Repeated incidents</h3><ul><li>If the field cannot complete three consecutive restarts because a caution is called three times in the first two laps, the race switches permanently to a single-file restart.</li><li>If 12 crash-caused cautions occur, the race is red-flagged. The result is taken from before the caution and half points are awarded.</li></ul></div></details>
+<details class="panel rule-section"><summary><span class="rule-no">05</span><span><b>Race participation & communication</b><small>Attendance, voice chat and race distance</small></summary><div class="rule-body"><ul>
+<li>Every driver must be in voice chat and able to speak during events.</li>
+<li>Complete at least <b>80% of the race distance</b> to avoid being classified as a DNF.</li>
+<li>Reverse Gear Glitch abuse is strictly prohibited in FITC.</li>
+</ul></div></details>
+<details class="panel rule-section"><summary><span class="rule-no">06</span><span><b>Stewarding & penalties</b><small>How incidents are reviewed and sanctions applied</small></summary><div class="rule-body"><p>Stewards may review reported incidents after a race. Penalties are based on severity and may escalate for repeat offences, regardless of driver seniority.</p><ul>
+<li><b>Time penalty:</b> 0.5–5 seconds, depending on severity.</li><li><b>Drive-through penalty.</b></li><li><b>Stop-and-go:</b> 5 or 10 seconds.</li><li><b>Penalty points.</b></li><li><b>Championship-points deduction:</b> taken from race results only.</li><li><b>Driver Rating reduction:</b> 1–5 points.</li>
+</ul><p>Drive-through and stop-and-go penalties must be served under green-flag conditions. Serious or repeated breaches may also lead to qualifying bans, grid demotions, race suspensions or permanent expulsion.</p>
+<h3>Penalty points</h3><ul><li>Penalty points may be awarded after a race for reported incidents.</li><li>At <b>12 penalty points</b>, a driver receives a one-race ban and their penalty-point total resets.</li><li>Penalty points are cleared at the end of each season.</li></ul>
+<h3>Driver Rating (DR)</h3><ul><li>Every driver starts Formula Imperial with <b>200 DR</b>.</li><li>Complete a race and receive <b>+5 DR</b>.</li><li>If found guilty of an incident, lose <b>0.5–5 DR</b>, depending on severity.</li></ul></div></details>
+<details class="panel rule-section"><summary><span class="rule-no">07</span><span><b>Season 2 points & playoffs</b><small>How championship points and the title are decided</small></span></summary><div class="rule-body"><h3>Points</h3><ul><li>Points are awarded using the official Season 2 points table: race-finish points and separate first-stage points are listed by finishing position.</li><li>The first stage runs from Lap 1 to the mandatory caution. Stage points are awarded at the stage flag, and penalties do not change those stage results.</li></ul><h3>Playoffs</h3><ul><li>The regular season ends after <b>Round 18</b>. The top four drivers in the standings qualify for the playoffs.</li><li>Each playoff driver starts the playoff phase on <b>400 points</b>, with <b>+2 points per win</b> and <b>+0.5 points per stage</b>.</li><li>The playoffs cover the final five rounds. The championship goes to the driver with the best four results across those five rounds.</li></ul><p class="tbl-note">The official points table and event-specific instructions remain the source of exact scoring values.</p></div></details>
+<div class="panel rule-footer"><b>Questions or unsure about a situation?</b><p class="muted">Ask the race director or a steward before the session. Follow event briefings and official steward instructions. These standards apply to all drivers.</p></div>
+</div>`,after:()=>{}});
 /* application form definitions */
 const OPTS={series:['FIWS','FITC','Both'],ctl:['Controller','Wheel','Keyboard and Mouse','Other'],voice:['I can talk and listen to voice chat',"I can't talk but can listen to voice chat",'I cannot talk or listen to voice chat'],exp:['Newcomer','Lightly Experienced','Moderately Experienced','Highly Experienced','Pro Sim-Racer'],pace:['Newcomer (5-20s Off Pace)','Lightly Experienced (3-4s Off Pace)','Moderately Experienced (2-1s Off Pace)','Highly Experienced (On/1s Ahead of Pace)','Pro Sim-Racer (1s+ Ahead of Pace)']};
 const FIELDS=[
