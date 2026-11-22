@@ -300,6 +300,15 @@ Deno.serve(async (req) => {
       const code = String(body.recovery_code || "").replace(/[^a-f0-9]/gi, "").toUpperCase();
       const password = String(body.new_password || "");
       if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || code.length !== 32 || password.length < 14 || password.length > 128) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
+      const recoveryPepper = Deno.env.get("FIWS_RATE_LIMIT_PEPPER") || "";
+      if (recoveryPepper.length < 32) return json({ error: "Recovery service is not configured." }, 503);
+      const recoveryIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() || "unknown";
+      const recoveryIpHash = await hmac(recoveryIp, recoveryPepper);
+      const recoveryUsernameKey = await hmac(username, recoveryPepper);
+      const { data: recoveryThrottle, error: recoveryThrottleError } = await db.rpc("fiws_consume_admin_login_attempt", { p_username_key: recoveryUsernameKey, p_ip_hash: recoveryIpHash });
+      if (recoveryThrottleError) throw recoveryThrottleError;
+      const recoveryLimit = Array.isArray(recoveryThrottle) ? recoveryThrottle[0] : recoveryThrottle;
+      if (recoveryLimit?.locked_until && new Date(recoveryLimit.locked_until).getTime() > Date.now()) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 429);
       const { data: account } = await db.from("fiws_admin_accounts").select("id,username,admin_rank,disabled").eq("username", username).maybeSingle();
       if (!account || account.disabled) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
       const { data: recovery } = await db.from("fiws_admin_recovery_codes").select("id").eq("admin_id", account.id).eq("code_hash", await sha(code.match(/.{1,4}/g)!.join("-"))).is("used_at", null).maybeSingle();
