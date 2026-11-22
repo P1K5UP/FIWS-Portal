@@ -219,9 +219,17 @@ Deno.serve(async (req) => {
       if (account.totp_enabled) {
         const secret = await decryptSecret(account.totp_secret_ciphertext, account.totp_secret_iv);
         const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
-        if (matchedStep === null) return json({ mfa_required: true, error: "Enter a valid authenticator code." }, 401);
+        if (matchedStep === null) {
+          const failures = (account.failed_login_count || 0) + 1;
+          await db.from("fiws_admin_accounts").update({ failed_login_count: failures, locked_until: failures >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(failures - 5, 4)) * 60000).toISOString() : null }).eq("id", account.id);
+          return json({ mfa_required: true, error: "Enter a valid authenticator code." }, 401);
+        }
         const { data: stepUpdated } = await db.from("fiws_admin_accounts").update({ totp_last_step: matchedStep }).eq("id", account.id).or(`totp_last_step.is.null,totp_last_step.lt.${matchedStep}`).select("id").maybeSingle();
-        if (!stepUpdated) return json({ mfa_required: true, error: "That authenticator code has already been used. Wait for the next code." }, 401);
+        if (!stepUpdated) {
+          const failures = (account.failed_login_count || 0) + 1;
+          await db.from("fiws_admin_accounts").update({ failed_login_count: failures, locked_until: failures >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(failures - 5, 4)) * 60000).toISOString() : null }).eq("id", account.id);
+          return json({ mfa_required: true, error: "That authenticator code has already been used. Wait for the next code." }, 401);
+        }
         const token = await newSession(account.id, true, 8 * 60);
         await db.from("fiws_admin_accounts").update({ failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id);
         await db.from("fiws_admin_login_limits").update({ attempts: 0, locked_until: null, window_started_at: new Date().toISOString() }).eq("username_key", key).eq("ip_hash", ipHash);
@@ -314,6 +322,30 @@ Deno.serve(async (req) => {
       if (error) return json({ error: "Could not create administrator. The username may already be taken." }, 409);
       await audit(auth.admin, "admin.create", "admin", data.id, { rank });
       return json({ success: true, admin: data, note: "The new administrator must enroll authenticator MFA at first sign-in." }, 201);
+    }
+    if (action === "admin-change-rank") {
+      const auth = await session(req);
+      if (!auth || auth.admin.admin_rank !== "owner") return json({ error: "Owner permission required." }, 403);
+      const id = String(body.id || ""), rank = String(body.rank || "");
+      if (!id || id === auth.admin.id || !["administrator", "moderator"].includes(rank)) return json({ error: "Invalid rank change." }, 400);
+      const { data: target } = await db.from("fiws_admin_accounts").select("id,username,admin_rank").eq("id", id).maybeSingle();
+      if (!target || target.admin_rank === "owner") return json({ error: "Owner rank cannot be reassigned here." }, 403);
+      const { error } = await db.from("fiws_admin_accounts").update({ admin_rank: rank, updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) return json({ error: "Could not change administrator rank." }, 500);
+      await audit(auth.admin, "admin.rank_change", "admin", id, { from: target.admin_rank, to: rank });
+      return json({ success: true });
+    }
+    if (action === "password-change") {
+      const auth = await session(req);
+      if (!auth) return json({ error: "Authentication required." }, 401);
+      const current = String(body.current_password || ""), next = String(body.new_password || "");
+      if (next.length < 14 || next.length > 128 || next === current) return json({ error: "Choose a different password of at least 14 characters." }, 400);
+      const { data: account } = await db.from("fiws_admin_accounts").select("password_hash").eq("id", auth.admin.id).single();
+      if (!account || !await passwordOK(current, account.password_hash)) return json({ error: "Current password is incorrect." }, 401);
+      await db.from("fiws_admin_accounts").update({ password_hash: await hashPassword(next), password_salt: "embedded-in-argon2id-hash", password_changed_at: new Date().toISOString() }).eq("id", auth.admin.id);
+      await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", auth.admin.id).neq("id", auth.row.id).is("revoked_at", null);
+      await audit(auth.admin, "auth.password_changed", "admin", auth.admin.id);
+      return json({ success: true, note: "Other sessions have been revoked." });
     }
     if (action === "admin-disable") {
       const auth = await session(req);
