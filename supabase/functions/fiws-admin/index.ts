@@ -12,6 +12,10 @@ const cors = {
 const url = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+async function mustSucceed(operation: PromiseLike<{ error: { message?: string } | null }>) {
+  const { error } = await operation;
+  if (error) throw error;
+}
 const enc = new TextEncoder();
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" },
@@ -111,7 +115,7 @@ async function session(req: Request, requireMfa = true) {
   if (error || !data || !data.mfa_verified && requireMfa) return null;
   const admin = Array.isArray(data.fiws_admin_accounts) ? data.fiws_admin_accounts[0] : data.fiws_admin_accounts;
   if (!admin || admin.disabled) return null;
-  await db.from("fiws_admin_sessions").update({ last_seen_at: new Date().toISOString() }).eq("id", data.id);
+  await mustSucceed(db.from("fiws_admin_sessions").update({ last_seen_at: new Date().toISOString() }).eq("id", data.id));
   return { token, row: data, admin };
 }
 function allowedRank(rank: string, min: string) {
@@ -224,19 +228,19 @@ Deno.serve(async (req) => {
         const matchedStep = await matchingTotpStep(secret, String(body.otp || ""));
         if (matchedStep === null) {
           const failures = (account.failed_login_count || 0) + 1;
-          const { error: lockError } = await db.from("fiws_admin_accounts").update({ failed_login_count: failures, locked_until: failures >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(failures - 5, 4)) * 60000).toISOString() : null }).eq("id", account.id);
+          const { error: lockError } = await mustSucceed(db.from("fiws_admin_accounts").update({ failed_login_count: failures, locked_until: failures >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(failures - 5, 4)) * 60000).toISOString() : null }).eq("id", account.id));
           if (lockError) throw lockError;
           return json({ mfa_required: true, error: "Enter a valid authenticator code." }, 401);
         }
-        const { data: stepUpdated } = await db.from("fiws_admin_accounts").update({ totp_last_step: matchedStep }).eq("id", account.id).or(`totp_last_step.is.null,totp_last_step.lt.${matchedStep}`).select("id").maybeSingle();
+        const { data: stepUpdated, error: stepError } = await db.from("fiws_admin_accounts").update({ totp_last_step: matchedStep }).eq("id", account.id).or(`totp_last_step.is.null,totp_last_step.lt.${matchedStep}`).select("id").maybeSingle();\n        if (stepError) throw stepError;
         if (!stepUpdated) {
           const failures = (account.failed_login_count || 0) + 1;
           await db.from("fiws_admin_accounts").update({ failed_login_count: failures, locked_until: failures >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(failures - 5, 4)) * 60000).toISOString() : null }).eq("id", account.id);
           return json({ mfa_required: true, error: "That authenticator code has already been used. Wait for the next code." }, 401);
         }
         const token = await newSession(account.id, true, 8 * 60);
-        await db.from("fiws_admin_accounts").update({ failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id);
-        await db.from("fiws_admin_login_limits").delete().eq("username_key", key).eq("ip_hash", ipHash);
+        await mustSucceed(db.from("fiws_admin_accounts").update({ failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id));
+        await mustSucceed(db.from("fiws_admin_login_limits").delete().eq("username_key", key).eq("ip_hash", ipHash));
         await audit(account, "auth.login", "admin", account.id);
         return json({ success: true, session: token, admin: { username: account.username, display_name: account.display_name, rank: account.admin_rank } });
       }
@@ -277,7 +281,7 @@ Deno.serve(async (req) => {
     }
     if (action === "logout") {
       const auth = await session(req, false);
-      if (auth) await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("id", auth.row.id);
+      if (auth) await mustSucceed(db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("id", auth.row.id));
       return json({ success: true });
     }
     if (action === "owner-recover") {
