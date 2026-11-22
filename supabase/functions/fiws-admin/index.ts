@@ -239,7 +239,7 @@ Deno.serve(async (req) => {
       if (!auth || auth.row.mfa_verified) return json({ error: "Enrollment session required." }, 401);
       const secret = base32(random(20));
       const encrypted = await encryptSecret(secret);
-      await db.from("fiws_admin_accounts").update({ totp_secret_ciphertext: encrypted.ciphertext, totp_secret_iv: encrypted.iv, totp_enabled: false }).eq("id", auth.admin.id);
+      await db.from("fiws_admin_accounts").update({ totp_secret_ciphertext: encrypted.ciphertext, totp_secret_iv: encrypted.iv, totp_enabled: false, totp_last_step: null }).eq("id", auth.admin.id);
       const uri = "otpauth://totp/" + encodeURIComponent("FIWS:" + auth.admin.username) + "?secret=" + secret + "&issuer=FIWS&algorithm=SHA1&digits=6&period=30";
       return json({ secret, otpauth_uri: uri });
     }
@@ -258,7 +258,7 @@ Deno.serve(async (req) => {
       await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", account.id);
       const { error } = await db.from("fiws_admin_recovery_codes").insert(rows);
       if (error) return json({ error: "Could not create recovery codes." }, 500);
-      await db.from("fiws_admin_accounts").update({ totp_enabled: true, last_login_at: new Date().toISOString() }).eq("id", account.id);
+      await db.from("fiws_admin_accounts").update({ totp_enabled: true, failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id);
       await db.from("fiws_admin_sessions").update({ mfa_verified: true, expires_at: new Date(Date.now() + 8 * 3600000).toISOString() }).eq("id", auth.row.id);
       await audit(account, "auth.mfa_enabled", "admin", account.id);
       return json({ success: true, recovery_codes: codes, admin: { username: account.username, display_name: account.display_name, rank: account.admin_rank } });
@@ -319,10 +319,11 @@ Deno.serve(async (req) => {
       await db.from("fiws_admin_accounts").update({
         password_hash: passwordHash, password_salt: "embedded-in-argon2id-hash",
         password_changed_at: new Date().toISOString(), totp_secret_ciphertext: null,
-        totp_secret_iv: null, totp_enabled: false, failed_login_count: 0, locked_until: null,
+        totp_secret_iv: null, totp_enabled: false, totp_last_step: null, failed_login_count: 0, locked_until: null,
       }).eq("id", account.id);
       await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", account.id).is("revoked_at", null);
       await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", account.id);
+      await db.from("fiws_admin_login_limits").delete().eq("username_key", recoveryUsernameKey).eq("ip_hash", recoveryIpHash);
       await audit(account, "auth.recovery_password_reset", "admin", account.id);
       return json({ success: true, mfa_enrollment_required: true, message: "Password reset. Sign in and enroll your authenticator app again." });
     }
@@ -396,7 +397,7 @@ Deno.serve(async (req) => {
       await db.from("fiws_admin_accounts").update({
         password_hash: await hashPassword(password), password_salt: "embedded-in-argon2id-hash",
         password_changed_at: new Date().toISOString(), totp_secret_ciphertext: null,
-        totp_secret_iv: null, totp_enabled: false, updated_at: new Date().toISOString(),
+        totp_secret_iv: null, totp_enabled: false, totp_last_step: null, updated_at: new Date().toISOString(),
       }).eq("id", id);
       await db.from("fiws_admin_sessions").update({ revoked_at: new Date().toISOString() }).eq("admin_id", id).is("revoked_at", null);
       await db.from("fiws_admin_recovery_codes").delete().eq("admin_id", id);
