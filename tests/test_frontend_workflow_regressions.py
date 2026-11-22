@@ -94,5 +94,10 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertNotIn("Staff keep applications only as long as needed to run the season", privacy)
 
 
+    def test_resetting_application_to_pending_clears_decision_timestamp(self):
+        function = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
+        self.assertIn('decided_at: status === "pending" ? null : new Date().toISOString()', function)
+
+
 if __name__ == "__main__":
     unittest.main()
