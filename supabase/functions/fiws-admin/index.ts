@@ -279,7 +279,7 @@ Deno.serve(async (req) => {
       if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || code.length !== 32 || password.length < 14 || password.length > 128) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
       const { data: account } = await db.from("fiws_admin_accounts").select("id,username,admin_rank,disabled").eq("username", username).maybeSingle();
       if (!account || account.disabled) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
-      const { data: recovery } = await db.from("fiws_admin_recovery_codes").select("id").eq("admin_id", account.id).eq("code_hash", await sha(code.match(/.{1,5}/g)!.join("-"))).is("used_at", null).maybeSingle();
+      const { data: recovery } = await db.from("fiws_admin_recovery_codes").select("id").eq("admin_id", account.id).eq("code_hash", await sha(code.match(/.{1,4}/g)!.join("-"))).is("used_at", null).maybeSingle();
       if (!recovery) return json({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
       const { data: consumed } = await db.from("fiws_admin_recovery_codes").update({ used_at: new Date().toISOString() }).eq("id", recovery.id).is("used_at", null).select("id").maybeSingle();
       if (!consumed) return json({ error: "Recovery code has already been used." }, 409);
