@@ -545,8 +545,7 @@ async function adminLoad(){
     $('#publish-workbook').onclick=async()=>{
      const btn=$('#publish-workbook');btn.disabled=true;
      try{
-      const {error:uploadError}=await sb.storage.from('fiws-public').upload('workbooks/current.xlsx',file,{upsert:true,contentType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      if(uploadError)throw uploadError;
+      await adminUploadFile(file,'workbooks/current.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       await saveSharedSetting('workbook',{path:'workbooks/current.xlsx',updated_at:new Date().toISOString()});
       await loadSharedData();cur.key=defKey(cur.series);toast('Shared standings workbook published');render(true);adminTab='data';admin();
      }catch(x){toast(x.message||'Workbook upload failed')}finally{btn.disabled=false}
@@ -582,7 +581,7 @@ async function adminLoad(){
   $('[data-logo-remove]',P).forEach(b=>b.onclick=async()=>{
    const k=b.dataset.logoRemove,paths={...Object.fromEntries(Object.entries(REMOTE_LOGOS).map(([key])=>[key,null]))};
    const {data}=await sb.from('site_settings').select('setting_value').eq('setting_key','logos').maybeSingle();Object.assign(paths,data?.setting_value||{});const old=paths[k];delete paths[k];
-   try{if(old)await sb.storage.from('fiws-public').remove([old]);await saveSharedSetting('logos',paths);await loadSharedData();setLogo();adminLoad()}catch(x){toast(x.message)}
+   try{if(old)await fiwsAdminApi('asset-delete',{path:old});await saveSharedSetting('logos',paths);await loadSharedData();setLogo();adminLoad()}catch(x){toast(x.message)}
   });
  }
  if(adminTab==='logbook'){
