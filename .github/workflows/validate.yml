@@ -1,0 +1,122 @@
+name: Validate FIWS portal
+on:
+  pull_request:
+  push:
+    branches: [main, feat/shared-supabase-backend]
+concurrency:
+  group: fiws-validate-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build self-contained site
+        run: python3 build.py
+      - name: Validate generated site metadata and assets
+        run: |
+          python3 - <<'PY'
+          import json
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          root = Path(".")
+          manifest = json.loads((root / "manifest.webmanifest").read_text(encoding="utf-8"))
+          required = ("name", "short_name", "start_url", "scope", "display", "icons")
+          missing = [key for key in required if not manifest.get(key)]
+          if missing:
+              raise SystemExit(f"Manifest is missing required fields: {missing}")
+          for icon in manifest["icons"]:
+              icon_path = root / icon["src"]
+              if not icon_path.is_file():
+                  raise SystemExit(f"Manifest icon does not exist: {icon_path}")
+          sitemap = ET.parse(root / "sitemap.xml")
+          ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+          urls = [node.text for node in sitemap.findall(".//sm:loc", ns)]
+          if not urls or any(not value or not value.startswith("https://") for value in urls):
+              raise SystemExit("Sitemap must contain at least one absolute HTTPS URL")
+          robots = (root / "robots.txt").read_text(encoding="utf-8")
+          if f"Sitemap: {urls[0].rstrip('/')}/sitemap.xml" not in robots:
+              raise SystemExit("robots.txt sitemap URL does not match the generated site URL")
+          html = (root / "index.html").read_text(encoding="utf-8")
+          for required_asset in ("manifest.webmanifest", "assets/og-image.png", "assets/apple-touch-icon.png"):
+              if required_asset not in html:
+                  raise SystemExit(f"Generated HTML does not reference {required_asset}")
+          PY
+      - name: Check generated site is synchronized
+        if: github.event_name == 'pull_request'
+        run: git diff --exit-code -- index.html robots.txt sitemap.xml
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Check FIWS administrator Edge Function
+        run: deno check --no-lock supabase/functions/fiws-admin/index.ts
+      - name: Check application submission Edge Function
+        run: deno check --no-lock supabase/functions/submit-application/index.ts
+      - name: Run administrator recovery regression tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Check template and generated JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          sources = [Path("src/index.template.html"), Path("index.html")]
+          scripts = []
+          for source in sources:
+              matches = re.findall(r"<script>(.*?)</script>", source.read_text(encoding="utf-8"), flags=re.S)
+              if len(matches) != 1:
+                  raise SystemExit(f"{source}: expected one inline application script, found {len(matches)}")
+              scripts.append(matches[0])
+          if scripts[0] != scripts[1]:
+              raise SystemExit("Generated index.html inline JavaScript is out of sync with the source template")
+          Path("/tmp/fiws-inline.js").write_text(scripts[0], encoding="utf-8")
+          PY
+          node --check /tmp/fiws-inline.js
+      - name: Package isolated preview
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p preview
+          cp index.html manifest.webmanifest preview/
+          cp robots.txt sitemap.xml preview/
+          cp -R assets data preview/
+          touch preview/.nojekyll
+      - name: Upload isolated preview
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fiws-preview-pr-${{ github.event.number }}
+          path: preview/
+          if-no-files-found: error
+          retention-days: 7
+
+  commit_generated_site:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Build generated GitHub Pages files
+        run: python3 build.py
+      - name: Commit generated GitHub Pages files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Build generated FIWS Pages site"
+          branch: ${{ github.ref_name }}
+          file_pattern: index.html robots.txt sitemap.xml

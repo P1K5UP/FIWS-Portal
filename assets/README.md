@@ -1,3 +1,3 @@
-- `fiws-logo.png` and `fitc-logo.png`: your series logos (optional). The header shows the one for the selected series and falls back to the built-in mark. They can also be uploaded in Admin → Logo.
+- `fiws-logo.png` and `fitc-logo.png`: your series logos (optional). The header shows the one for the selected series and falls back to the built-in mark. They can also be uploaded in Admin → Logos.
 - `og-image.png` (1200×630): the link-preview image used by Discord, Slack, X, WhatsApp and others. Replace it with your own artwork if you like, keeping the size.
 - `favicon-32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`: browser tab, iOS home screen and installable-app icons.
