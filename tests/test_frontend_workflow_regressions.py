@@ -61,5 +61,29 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn(r"/^logos\/(FIWS|FITC)\.png$/", function)
 
 
+    def test_public_status_response_excludes_contact_email_and_full_application(self):
+        function = (ROOT / "supabase/functions/submit-application/index.ts").read_text(encoding="utf-8")
+        status = function.split('if(body?.action==="status")', 1)[1].split('return json({error:"Unknown application action."', 1)[0]
+        self.assertIn("application_data:{name:d.name||\"\",type:d.type||\"\",series:d.series||\"\"}", status)
+        self.assertNotIn("email:d.email", status)
+        self.assertNotIn("application_data:data.application_data", status)
+
+    def test_application_reference_cookie_requires_consent_and_is_secure_on_https(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        cookie = page.split("function saveReferenceCookie", 1)[1].split("function getReferenceCookie", 1)[0]
+        self.assertIn("if(!LS.get('consent',null))return false", cookie)
+        self.assertIn("SameSite=Strict", cookie)
+        self.assertIn("location.protocol==='https:'?'; Secure':''", cookie)
+        clear = page.split("function clearReferenceCookie", 1)[1].split("\n", 1)[0]
+        self.assertIn("current!==normRef(code)", clear)
+        self.assertIn("Max-Age=0", clear)
+
+    def test_decided_application_cleanup_is_scheduled_for_24_hours(self):
+        migration = (ROOT / "supabase/migrations/20261122210551_fiws_auto_delete_decided_applications_after_24h.sql").read_text(encoding="utf-8")
+        self.assertIn("*/5 * * * *", migration)
+        self.assertIn("status in ('accepted', 'rejected')", migration)
+        self.assertIn("decided_at <= now() - interval '24 hours'", migration)
+
+
 if __name__ == "__main__":
     unittest.main()
