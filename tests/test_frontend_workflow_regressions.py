@@ -142,13 +142,16 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         ):
             self.assertIn(phrase, rules)
 
-    def test_phone_navigation_is_a_bottom_app_dock_with_icon_labels(self):
+    def test_phone_navigation_is_an_icon_only_bottom_dock_and_footer_is_reachable(self):
         for relative in ("src/index.template.html", "index.html"):
             page = (ROOT / relative).read_text(encoding="utf-8")
             self.assertIn(".top{position:fixed;top:auto;bottom:0", page)
-            self.assertIn(".nav-ico{display:block;width:19px;height:19px", page)
-            self.assertIn(".nav-label{display:block;font:600 .61rem", page)
-            self.assertIn("main{padding-bottom:calc(6.8rem + env(safe-area-inset-bottom,0px))}", page)
+            self.assertIn(".nav-ico{display:block;width:26px;height:26px", page)
+            self.assertIn(".brand{display:flex;flex:0 0 32px;min-width:32px", page)
+            self.assertIn(".brand svg,.brand img,.brand canvas{height:28px;width:auto;max-width:32px", page)
+            self.assertIn(".nav-label{display:none}", page)
+            self.assertIn(".ft{padding-bottom:calc(5.8rem + env(safe-area-inset-bottom,0px))}", page)
+            self.assertIn("main{padding-bottom:calc(6.8rem + env(safe-area-inset-bottom,0px));scroll-margin-bottom:6.8rem}", page)
             self.assertIn("const NAV_ICONS=", page)
 
     def test_leaderboard_round_titles_are_shortened_only_on_phones(self):
