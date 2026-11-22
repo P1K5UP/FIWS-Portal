@@ -462,7 +462,7 @@ Deno.serve(async (req) => {
       const auth = await session(req);
       if (!auth || !allowedRank(auth.admin.admin_rank, "administrator")) return json({ error: "Administrator permission required." }, 403);
       const key = String(body.key || ""), value = body.value;
-      if (!/^[a-z0-9_-]{1,80}$/.test(key) || value === undefined) return json({ error: "Invalid setting." }, 400);
+      if (!["workbook", "team_colors", "logos"].includes(key) || value === undefined) return json({ error: "This setting is not writable through the administrator API." }, 400);
       const { error } = await db.from("site_settings").upsert({
         setting_key: key, setting_value: value, updated_at: new Date().toISOString(), updated_by: null,
       }, { onConflict: "setting_key" });
