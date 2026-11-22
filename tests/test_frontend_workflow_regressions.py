@@ -40,7 +40,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         function = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
         self.assertIn("const path='logos/'+k+'.png'", page)
-        self.assertIn(r"/^logos\\/(FIWS|FITC)\\.png$/", function)
+        self.assertIn(r"/^logos\/(FIWS|FITC)\.png$/", function)
 
 
 if __name__ == "__main__":
