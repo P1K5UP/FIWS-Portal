@@ -167,6 +167,41 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("const standingsSeason=k==='drv'?{...s,drv:allSeasonDrivers(s)}:s", page)
         self.assertIn("tower($('#tw'),standingsSeason,k,l.length)", page)
 
+    def test_leaderboard_cancelled_rounds_use_compact_red_marker(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("function paintLeaderboardRound(el,s,r)", page)
+        self.assertIn("mark.textContent='(C)'", page)
+        self.assertIn(".cancel-mark{display:inline-block;color:#ef9292", page)
+        self.assertIn("leaderboardRoundLabel(s,r)", page)
+
+    def test_fitc_live_dot_accepts_live_status_variants(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("/^(ONGOING|LIVE|ACTIVE)$/i.test(String(s.status||''))", page)
+        self.assertIn(":root[data-series=FITC] .live{background:var(--sky)", page)
+
+    def test_home_discord_fallback_is_join_link_and_unneeded_tagline_removed(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertNotIn("If the panel does not appear", page)
+        self.assertIn("Join the server", page)
+        self.assertIn("https://discord.com/servers/1430272514591817861", page)
+        self.assertNotIn("Live server preview loads automatically", page)
+        self.assertIn("The FIWS paddock.", page)
+
+    def test_standings_dynamic_entries_are_not_hard_coded_and_zero_point_rows_remain_visible(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("entry.Driver??entry['Driver Name']??entry.Name", page)
+        self.assertIn("if(!l.length||(k==='con'&&s.done<0))", page)
+        self.assertIn("s.done>=0?(d.vals[s.done]??0):0", page)
+        for name in ("Yoshinaran", "29deCesaris", "Mariusz", "Formula B", "Protomango", "Jetto", "Yishmate", "P1K5UP", "BlackDragon", "Endo", "Putra", "Pmoneyspread"):
+            self.assertNotIn(name, page)
+
+    def test_homepage_ctas_have_distinct_but_coordinated_interactions(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(".home-intro .btn:first-child::after", page)
+        self.assertIn(".home-intro .btn.ghost::after", page)
+        self.assertIn(".home-info .btn:not(.ghost)", page)
+        self.assertIn(".home-info .btn:hover,.home-intro .btn:hover", page)
+
     def test_leaderboard_rank_swaps_animate_during_slider_scrubbing(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("transition:transform .5s cubic-bezier(.22,.75,.25,1)", page)
