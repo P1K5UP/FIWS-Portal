@@ -1,0 +1,306 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<title>FIWS – Formula Imperial Worldwide Series</title>
+<meta name="description" content="Official portal of the Formula Imperial Worldwide Series: standings, results, calendar, entries, rules and driver applications.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#EAF3FA;--panel:#fff;--ink:#0B2239;--mute:#52697F;--line:#CBDDEC;--sky:#00AEEF;--deep:#0A5BA8;--gr:#2B3138;--ok:#12805C;--bad:#C93B3B;--warn:#9A6200;--soft:#F3F9FD;--acc:#0A5BA8;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#09141E;--panel:#0F1F2E;--ink:#E7F2FB;--mute:#8CA5BA;--line:#203648;--sky:#2BBCF5;--gr:#050B11;--ok:#3CC796;--bad:#F07878;--warn:#E2A93B;--soft:#0C1926;--acc:#2BBCF5;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#09141E;--panel:#0F1F2E;--ink:#E7F2FB;--mute:#8CA5BA;--line:#203648;--sky:#2BBCF5;--gr:#050B11;--ok:#3CC796;--bad:#F07878;--warn:#E2A93B;--soft:#0C1926;--acc:#2BBCF5;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 Barlow,system-ui,sans-serif;background-image:linear-gradient(115deg,transparent 0 62%,color-mix(in srgb,var(--sky) 7%,transparent) 62% 63.2%,transparent 63.2% 66%,color-mix(in srgb,var(--sky) 5%,transparent) 66% 67%,transparent 67%);background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--panel);z-index:30}
+h1,h2,h3,.disp{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:1;margin:0}
+h1{font-size:clamp(2.6rem,7vw,5.2rem)}h2{font-size:clamp(1.9rem,4vw,2.8rem)}h3{font-size:1.35rem}
+a{color:var(--acc)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--panel);border-bottom:3px solid var(--sky)}
+.bar{max-width:1180px;margin:auto;padding:.55rem 1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:.7rem;text-decoration:none;color:var(--ink)}.brand svg,.brand img{height:34px;width:auto}
+.brand b{font:700 1.25rem/1 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em}
+.nav{display:flex;gap:.1rem;overflow-x:auto;flex:1;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
+.nav a{color:var(--ink)!important;text-decoration:none;padding:.45rem .8rem;font:600 1.05rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em;position:relative;white-space:nowrap}
+.nav a::after{content:"";position:absolute;left:.8rem;right:.8rem;bottom:2px;height:3px;background:var(--sky);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.nav a:hover::after,.nav a[aria-current=page]::after{transform:scaleX(1)}
+.ib{border:1px solid var(--line);background:none;color:var(--ink);border-radius:6px;width:36px;height:36px;cursor:pointer;font-size:1rem;transition:background .2s}.ib:hover{background:var(--soft)}
+main{max-width:1180px;margin:auto;padding:1.5rem 1rem 3rem;outline:none}
+:focus-visible{outline:3px solid var(--sky);outline-offset:2px;border-radius:3px}
+.skip{position:absolute;left:-999px}.skip:focus{left:1rem;top:1rem;z-index:50;background:var(--panel);padding:.5rem 1rem}
+.btn{display:inline-flex;align-items:center;gap:.5rem;border:0;border-radius:4px;padding:.7rem 1.2rem;font:700 1.1rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.05em;cursor:pointer;text-decoration:none;background:var(--sky);color:#04223A;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%);padding-right:1.6rem;transition:filter .2s,transform .2s}
+.btn:hover{filter:brightness(1.08);transform:translateX(2px)}.btn.alt{background:var(--gr);color:#fff}.btn.ghost{background:var(--panel);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}.btn.bad{background:var(--bad);color:#fff}.btn.sm{padding:.4rem .9rem .4rem .9rem;font-size:.95rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1.2rem}
+.gr{background:var(--gr);color:#fff;border-radius:6px}
+.muted{color:var(--mute)}.sec{margin-top:2.6rem}.sec>h2{margin-bottom:1rem;display:flex;align-items:center;gap:.7rem}.sec>h2::before{content:"";width:28px;height:8px;background:var(--sky)}
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:2rem;align-items:center;padding:1.5rem 0}
+.hero p{max-width:46ch;font-size:1.12rem;color:var(--mute);margin:1.1rem 0 1.6rem}
+.hero h1 span{display:block;color:var(--acc)}
+.row{display:flex;gap:.8rem;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}.seg button{border:0;background:none;color:var(--ink);padding:.45rem .9rem;font:600 1rem 'Barlow Condensed';letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}.seg button[aria-pressed=true]{background:var(--gr);color:#fff}.seg em{font:500 .8rem Barlow;font-style:normal;margin-left:.45rem;opacity:.75;text-transform:none}
+.pick{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.tower{background:var(--gr);color:#fff;border-radius:6px;overflow:hidden;box-shadow:0 18px 40px -24px #0B2239}
+.th{display:flex;justify-content:space-between;align-items:center;padding:.6rem .9rem;border-bottom:3px solid var(--sky);font:600 1rem 'Barlow Condensed';letter-spacing:.05em;text-transform:uppercase;gap:1rem}
+.th small{font:500 .8rem Barlow;opacity:.7;text-transform:none;letter-spacing:0}
+.live[hidden]{display:none}.live{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--sky);margin-right:.5rem;animation:pl 1.8s infinite}@keyframes pl{50%{opacity:.25}}
+.tb{position:relative}.tr{position:absolute;left:0;right:0;height:44px;display:grid;grid-template-columns:44px 6px 1fr auto 70px;align-items:center;gap:.7rem;padding-right:.9rem;border-bottom:1px solid #ffffff14;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s}
+.pos{background:#0A5BA8;height:100%;display:grid;place-items:center;font:700 1.35rem 'Barlow Condensed'}.tr[data-p="0"] .pos{background:var(--sky);color:#04223A}
+.tc{height:60%;width:6px;border-radius:1px}.who{min-width:0;line-height:1.1}.who strong{font:600 1.15rem 'Barlow Condensed';letter-spacing:.03em;text-transform:uppercase;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.who small{opacity:.65;font-size:.78rem}
+.dl{font:600 .9rem 'Barlow Condensed';color:var(--sky);min-width:2.2rem;text-align:right}.pt{font:700 1.3rem 'Barlow Condensed';text-align:right;font-variant-numeric:tabular-nums}
+.sc{display:flex;gap:.8rem;align-items:center;padding:.7rem .9rem;background:#00000030}.sc input{flex:1;accent-color:var(--sky)}.sc .btn{padding:.3rem .8rem .3rem .8rem}.sc span{font-size:.85rem;opacity:.85;min-width:11ch}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.res{padding:0;overflow:hidden}.res .hd{padding:1rem 1.1rem;border-bottom:3px solid var(--sky)}.res .hd small{opacity:.7;display:block;margin-top:.3rem}
+.pd{display:grid;grid-template-columns:40px 1fr;align-items:stretch;border-top:1px solid #ffffff18}.pd b{display:grid;place-items:center;background:#0A5BA8;font:700 1.2rem 'Barlow Condensed'}.pd span{padding:.55rem .9rem;font:600 1.15rem 'Barlow Condensed';letter-spacing:.05em;text-transform:uppercase}.pd:nth-child(2) span{font-size:1.5rem}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{padding:.55rem .8rem;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line)}th{font:600 .95rem 'Barlow Condensed';letter-spacing:.05em;text-transform:uppercase;background:var(--soft);position:sticky;top:0}tr{transition:background .15s}tbody tr:hover{background:var(--soft)}td.n{text-align:right}
+.chip{display:inline-block;padding:.1rem .55rem;border-radius:3px;font:600 .85rem 'Barlow Condensed';letter-spacing:.05em;text-transform:uppercase;background:var(--soft);border:1px solid var(--line)}.chip.ok{color:var(--ok);border-color:currentColor}.chip.bad{color:var(--bad);border-color:currentColor}.chip.warn{color:var(--warn);border-color:currentColor}.chip.nx{background:var(--sky);color:#04223A;border-color:var(--sky)}
+.cal{display:grid;grid-template-columns:72px 1fr auto;gap:1rem;align-items:center;padding:.8rem 1rem;background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:6px;margin-bottom:.6rem;transition:transform .2s,border-color .2s}.cal:hover{transform:translateX(4px);border-left-color:var(--sky)}.cal.nx{border-left-color:var(--sky);background:var(--soft)}.cal.x{opacity:.6}
+.dt{text-align:center;font:700 1.9rem/1 'Barlow Condensed'}.dt small{display:block;font-size:.95rem;color:var(--mute);text-transform:uppercase}.cal h3{font-size:1.3rem}
+.hm td{text-align:center;padding:.4rem .5rem;min-width:46px}
+form{display:grid;gap:1rem}.f2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}label{font-weight:600;font-size:.95rem;display:grid;gap:.3rem}
+input,select,textarea{font:inherit;padding:.6rem .7rem;border:1.5px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink);width:100%;transition:border-color .2s,box-shadow .2s}input:focus,select:focus,textarea:focus{border-color:var(--sky);box-shadow:0 0 0 3px color-mix(in srgb,var(--sky) 30%,transparent);outline:0}
+input[type=checkbox]{width:auto;accent-color:var(--sky)}.ck{display:flex;gap:.6rem;align-items:flex-start;font-weight:400}.er{color:var(--bad);font-size:.85rem;min-height:1em}.hp{position:absolute;left:-9999px}
+.steps{display:flex;margin:1.5rem 0}.steps div{flex:1;text-align:center;position:relative;font:600 1rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.05em;color:var(--mute)}.steps div::before{content:"";display:block;width:22px;height:22px;border-radius:50%;background:var(--line);margin:0 auto .4rem;position:relative;z-index:1;transition:background .5s}.steps div::after{content:"";position:absolute;top:10px;left:50%;width:100%;height:3px;background:var(--line)}.steps div:last-child::after{display:none}.steps .on{color:var(--ink)}.steps .on::before{background:var(--sky)}.steps .on.ok::before{background:var(--ok)}.steps .on.no::before{background:var(--bad)}
+.seg{flex-wrap:wrap}.th small{text-align:right}.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}
+.ft{background:var(--gr);color:#C9DAE8;margin-top:3rem}.ft .in{max-width:1180px;margin:auto;padding:1.6rem 1rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:.9rem}.ft a{color:#fff!important}
+.cb{position:fixed;left:1rem;right:1rem;bottom:calc(1rem + env(safe-area-inset-bottom,0px));max-width:760px;margin:auto;z-index:40;padding:1rem 1.2rem;box-shadow:0 20px 50px -10px #0008;border-top:4px solid var(--sky);animation:up .4s}@keyframes up{from{transform:translateY(30px);opacity:0}}
+.pr{max-width:74ch}.pr h3{margin:1.6rem 0 .4rem}.pr li{margin:.3rem 0}
+.tbl-note{font-size:.85rem;color:var(--mute);margin-top:.5rem}
+.toast{position:fixed;top:5rem;right:1rem;background:var(--gr);color:#fff;padding:.7rem 1rem;border-left:4px solid var(--sky);z-index:50;animation:up .3s}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.2s}
+[hidden]{display:none!important}.dz>*{pointer-events:none}.dz{display:grid;place-items:center;gap:.2rem;text-align:center;padding:2rem 1rem;border:2px dashed var(--line);border-radius:8px;background:var(--soft);cursor:pointer;transition:border-color .2s,background .2s,transform .2s}.dz.on,.dz:hover{border-color:var(--sky);background:color-mix(in srgb,var(--sky) 12%,var(--soft))}.dz.on{transform:scale(1.01)}.dz b{font:700 1.4rem 'Barlow Condensed';text-transform:uppercase}.dz span{color:var(--mute);font-size:.9rem}.pw{height:5px;border-radius:3px;background:var(--line);overflow:hidden}.pw i{display:block;height:100%;width:0;background:var(--bad);transition:width .3s,background .3s}
+@media(max-width:820px){.th{flex-wrap:wrap}.hero{grid-template-columns:1fr}.f2{grid-template-columns:1fr}.cal{grid-template-columns:56px 1fr}.cal>:last-child{grid-column:1/-1}.tr{grid-template-columns:38px 5px 1fr auto 56px;gap:.5rem}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<button class="skip btn" id="skip">Skip to content</button>
+<header class="top"><div class="bar"><a class="brand" href="#home" aria-label="FIWS home"><span id="logo"></span><b>FIWS</b></a>
+<nav class="nav" id="nav" aria-label="Main"></nav><button class="ib" id="theme" aria-label="Toggle light and dark theme">◐</button></div></header>
+<main id="main" tabindex="-1"></main>
+<footer class="ft"><div class="in"><span>© Formula Imperial Worldwide Series. Unofficial league data is shown as provided by league staff.</span><span><a href="#privacy">Privacy</a> &nbsp; <a href="#terms">Terms</a> &nbsp; <a href="#cookies">Cookies</a> &nbsp; <a href="#admin">Admin</a> &nbsp; <a href="#" id="cset">Cookie settings</a></span></div></footer>
+<div id="cbw"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(()=>{'use strict';
+const LEAGUE_EMAIL=''; // set to the league inbox so applicants can send their application by email
+const B64='__B64__';
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+/*PARSE*/
+function parseWB(wb){
+ const res=[];const num=v=>typeof v==='number'&&isFinite(v)?v:(typeof v==='string'&&v.trim()!==''&&isFinite(+v)?+v:null);
+ const iso=v=>v instanceof Date?new Date(v.getTime()+432e5).toISOString().slice(0,10):(v==null?'':String(v).trim());
+ const tc=s=>s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+ for(const sn of wb.SheetNames){
+  const g=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:null});
+  const cell=(r,c)=>{const v=(g[r]||[])[c];return v===undefined?null:v};
+  const blank=v=>v==null||(typeof v==='string'&&!v.trim());
+  const W=Math.max(1,...g.map(r=>r.length));
+  const seasons=[],secs=[];
+  (g[1]||[]).forEach((v,c)=>{if(typeof v==='string'&&v.trim())seasons.push({c,t:v.trim()})});
+  (g[4]||[]).forEach((v,c)=>{if(typeof v==='string'&&v.trim())secs.push({c,n:v.trim().toUpperCase()})});
+  const S={};
+  secs.forEach((s,i)=>{s.end=i+1<secs.length?secs[i+1].c:W;
+   const se=[...seasons].reverse().find(x=>x.c<=s.c);if(!se)return;
+   const m=se.t.match(/SEASON\s+(\S+)\s*(?:\((\w+)\))?/i);
+   const o=S[se.c]||(S[se.c]={key:sn+':'+se.c,sheet:sn,series:tc(se.t.replace(/\s*SEASON.*$/i,'')),num:m?m[1].toUpperCase():String(se.c),status:m&&m[2]?m[2].toUpperCase():'',sec:{}});
+   o.sec[s.n]=s});
+  const table=(c,end,hr)=>{const H=[];for(let k=c;k<end;k++){const h=cell(hr,k);H.push(typeof h==='string'&&h.trim()?h.trim():null)}
+   const rows=[];let r=hr+1;while(r<g.length&&!blank(cell(r,c))){const o={_r:r};H.forEach((h,i)=>{if(h)o[h]=cell(r,c+i)});rows.push(o);r++}
+   return{rows,next:r}};
+  Object.values(S).forEach(o=>{
+   const E=o.sec['ENTRIES'],C=o.sec['CALENDAR'],R=o.sec['STANDINGS (RACE BY RACE)'],P=o.sec['STANDINGS (POINTS)'];
+   Object.assign(o,{drivers:[],teams:[],cal:[],res:[],codes:[],drv:[],con:[],done:-1});delete o.sec.__;
+   if(E){const t=table(E.c,E.end,6);o.drivers=t.rows;let r=t.next;while(r<t.next+12&&cell(r,E.c)!=='Team')r++;if(cell(r,E.c)==='Team')o.teams=table(E.c,E.end,r).rows}
+   if(C){o.cal=table(C.c,C.end,6).rows.map((x,i)=>{const n=cell(x._r,C.c-1);return{n:typeof n==='number'?n:i,name:String(x.Rounds??''),circuit:x.Circuit||'',laps:x['Total Laps']??'',caution:x['Caution Speed']||'',date:iso(x.Date),notes:x.Notes||''}})}
+   if(R){o.res=table(R.c,R.end,6).rows.map(x=>({pole:x['Driver on Pole'],stage:x['Stage Winner'],win:x['Winning Driver'],p2:x['2nd Place Driver'],p3:x['3rd Place Driver'],team:x['Winning Team'],cautions:x.Cautions}))}
+   if(P){for(let k=P.c+1;k<P.end&&typeof cell(6,k)==='string'&&cell(6,k).trim();k++)o.codes.push(cell(6,k).trim());
+    const rowsOf=r0=>{const a=[];let r=r0;while(r<g.length&&!blank(cell(r,P.c))&&cell(r,P.c)!=='Constructors'&&cell(r,P.c)!=='Key'){a.push({name:String(cell(r,P.c)).trim(),vals:o.codes.map((_,i)=>num(cell(r,P.c+1+i)))});r++}return{a,r}};
+    const d=rowsOf(7);o.drv=d.a;let r=d.r;while(r<d.r+8&&cell(r,P.c)!=='Constructors')r++;if(cell(r,P.c)==='Constructors')o.con=rowsOf(r+1).a;
+    o.drv.forEach(d=>d.vals.forEach((v,i)=>{if(v!=null&&i>o.done)o.done=i}))}
+   delete o.sec;if(o.cal.length||o.drv.length||o.drivers.length)res.push(o)});
+ }
+ return res}
+/*ENDPARSE*/
+/* storage + consent */
+const LS={get(k,d){try{const v=localStorage.getItem('fiws.'+k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem('fiws.'+k,JSON.stringify(v));return true}catch{return false}},del(k){try{localStorage.removeItem('fiws.'+k)}catch{}}};
+const clean=(s,m=200)=>String(s??'').normalize('NFKC').replace(/[\u0000-\u001F\u007F<>]/g,' ').replace(/\s+/g,' ').trim().slice(0,m);
+const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),3200)};
+/* data */
+let D=[],srcNote='bundled workbook';
+function load(){let b=LS.get('xlsx',null);srcNote=b?'uploaded workbook':'bundled workbook';
+ try{D=parseWB(XLSX.read(b||B64,{type:'base64',cellDates:true}))}catch(e){console.error(e);D=[];if(b){LS.del('xlsx');return load()}}}
+const cur={series:'FIWS',key:null};
+const series=()=>[...new Set(D.map(s=>s.sheet))];
+const defKey=sh=>{const l=D.filter(s=>s.sheet===sh);return(l.find(s=>s.status==='ONGOING')||[...l].reverse().find(s=>s.done>=0)||l[0]||{}).key};
+const seas=()=>D.find(s=>s.key===cur.key)||D.find(s=>s.sheet===cur.series)||D[0];
+const stl={FINISHED:'Complete',ONGOING:'Live',FUTURE:'Upcoming'};
+const PAL=['#00AEEF','#E5484D','#F5A524','#2FB67C','#7B61FF','#E056A0','#8A9BA8','#0A5BA8'];
+const TEAM_COLORS={}; // permanent overrides, e.g. {'Suaber':'#E5484D'}
+let TCOL=LS.get('tcol',{})||{};const tcol=n=>TCOL[n]||TEAM_COLORS[n]||PAL[[...String(n)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%PAL.length];
+const CC={Egypt:'EGY','United Kingdom':'GBR',Singapore:'SGP',Australia:'AUS',Germany:'GER',Romania:'ROU','Hong Kong':'HKG',Indonesia:'IDN',Switzerland:'SUI',International:'INT'};
+const info=(s,n)=>{const e=s.drivers.find(d=>d.Driver===n);if(!e)return{team:'',num:'',nat:''};const t=String(e.Team||'').split(',').pop().replace(/\(.*?\)/g,'').trim();return{team:/^(N\/A|TBD)$/i.test(t)?'':t,num:e.Number||'',nat:CC[e.Nationality]||''}};
+const valid=v=>v!=null&&String(v).trim()!==''&&!/^N\/A/i.test(String(v));
+const fd=iso=>/^\d{4}-/.test(iso)?new Date(iso+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}):iso||'TBD';
+const rLabel=(s,i)=>{const c=s.cal[i];return(c?'R'+c.n+' · '+c.name:'Round '+i)+(c&&/CANCEL/i.test(c.date)?' (cancelled)':'')};
+const latest=s=>{for(let i=Math.min(s.done<0?s.res.length-1:s.done,s.res.length-1);i>=0;i--)if(valid(s.res[i].win))return i;return -1};
+const cl=[];const cleanup=()=>{while(cl.length)cl.pop()()};
+/* timing tower */
+function tower(el,s,kind,limit){
+ const list=kind==='con'?s.con:s.drv,n=Math.min(limit,list.length),H=44,max=Math.max(0,s.done);
+ el.innerHTML=`<div class="th"><span><i class="live" ${s.status==='ONGOING'?'':'hidden'}></i>${kind==='con'?'Constructors':'Drivers'} · Season ${esc(s.num)}</span><small class="lb"></small></div><div class="tb" style="height:${n*H}px"></div><div class="sc"><button class="btn sm" aria-label="Replay season">Replay</button><input type="range" min="0" max="${max}" value="${max}" aria-label="Round"><span class="rl"></span></div>`;
+ const tb=$('.tb',el),rows=list.map(d=>{const i=info(s,d.name),r=document.createElement('div');r.className='tr';r.innerHTML=`<b class="pos"></b><i class="tc" style="background:${tcol(kind==='con'?d.name:i.team||d.name)}"></i><span class="who"><strong>${esc(d.name)}</strong><small>${kind==='con'?'':esc([i.num,i.nat,i.team].filter(Boolean).join(' · '))}</small></span><span class="dl"></span><span class="pt"></span>`;tb.append(r);return r});
+ let shown=list.map(()=>0),tm;
+ const set=r=>{const key=d=>d.vals[r]??0;const order=list.map((d,i)=>i).sort((a,b)=>key(list[b])-key(list[a])||(r?(list[b].vals[r-1]??0)-(list[a].vals[r-1]??0):0)||list[a].name.localeCompare(list[b].name));
+  order.forEach((idx,p)=>{const row=rows[idx],d=list[idx],v=key(d),dv=r>0?v-(d.vals[r-1]??0):0;row.style.transform=`translateY(${p*H}px)`;row.style.opacity=p<n?1:0;row.style.pointerEvents=p<n?'auto':'none';row.dataset.p=p;$('.pos',row).textContent=p+1;$('.dl',row).textContent=dv>0?'+'+dv:dv<0?String(dv):'';
+   const from=shown[idx],t0=performance.now(),pt=$('.pt',row);const f=t=>{const k=RM?1:Math.min(1,(t-t0)/500);pt.textContent=+(from+(v-from)*k).toFixed(1);if(k<1)requestAnimationFrame(f);else shown[idx]=v};requestAnimationFrame(f)});
+  $('.lb',el).textContent=s.codes[r]||'';$('.rl',el).textContent=rLabel(s,r).split(' · ')[0]};
+ const rng=$('input',el),b=$('button',el);
+ rng.oninput=()=>{clearInterval(tm);set(+rng.value);$('.lb',el).textContent=rLabel(s,+rng.value)};
+ b.onclick=()=>{clearInterval(tm);let r=0;rng.value=0;set(0);tm=setInterval(()=>{r++;if(r>max){clearInterval(tm);return}rng.value=r;set(r);$('.lb',el).textContent=rLabel(s,r)},RM?300:1100)};
+ cl.push(()=>clearInterval(tm));set(max);$('.lb',el).textContent=rLabel(s,max);
+}
+/* views */
+const pick=()=>`<div class="pick"><div class="seg" role="group" aria-label="Series">${series().map(x=>`<button data-ser="${esc(x)}" aria-pressed="${x===cur.series}">${esc(x)}</button>`).join('')}</div><div class="seg" role="group" aria-label="Season">${D.filter(x=>x.sheet===cur.series).map(x=>`<button data-sea="${esc(x.key)}" aria-pressed="${x.key===cur.key}">Season ${esc(x.num)}<em>${esc(stl[x.status]||'')}</em></button>`).join('')}</div></div>`;
+const bindPick=()=>{$$('[data-ser]').forEach(b=>b.onclick=()=>{cur.series=b.dataset.ser;cur.key=defKey(cur.series);savePref();render(true)});$$('[data-sea]').forEach(b=>b.onclick=()=>{cur.key=b.dataset.sea;savePref();render(true)})};
+const savePref=()=>{if((LS.get('consent',{})||{}).pref)LS.set('pref',{series:cur.series,key:cur.key})};
+const empty=(t,h)=>`<div class="panel"><h3>${t}</h3><p class="muted">${h}</p></div>`;
+const V={};
+V.home=()=>{const s=seas(),li=s?latest(s):-1,nx=s&&s.cal.find(c=>/^\d{4}/.test(c.date)&&c.date>=new Date().toISOString().slice(0,10));
+ const days=nx?Math.round((new Date(nx.date+'T12:00:00Z')-Date.now())/864e5):0;
+ return{html:`${pick()}<section class="hero"><div><h1>Formula Imperial<span>Worldwide Series</span></h1><p>Competitive sim racing on Assetto Corsa: formula cars, ovals and road courses, with stewarded races and published driving standards.</p><div class="row"><a class="btn" href="#standings">Standings</a><a class="btn ghost" href="#apply">Apply to race</a></div></div><div id="tw"></div></section>
+ <section class="g3 sec" style="margin-top:1rem"><div class="gr res"><div class="hd"><h3>Latest result</h3><small>${li>=0?esc(rLabel(s,li)):'No race completed yet'}</small></div>${li>=0?[['1',s.res[li].win],['2',s.res[li].p2],['3',s.res[li].p3]].map(([p,n])=>`<div class="pd"><b>${p}</b><span>${esc(valid(n)?n:'—')}</span></div>`).join(''):''}</div>
+ <div class="panel"><h3>Next round</h3>${nx?`<p class="disp" style="font-size:1.9rem;margin:.6rem 0 .2rem">${esc(nx.name)}</p><p class="muted">${esc(nx.circuit)}<br>${esc(fd(nx.date))}${days>=0?` · ${days===0?'today':'in '+days+' day'+(days===1?'':'s')}`:''}</p>`:'<p class="muted">No upcoming dated round in this season.</p>'}<a href="#calendar">Full calendar</a></div>
+ <div class="panel"><h3>Race with us</h3><p class="muted">Drivers and stewards are welcome. Applications are reviewed by league staff and you can follow the decision on the status page.</p><div class="row"><a class="btn sm" href="#apply">Apply</a><a class="btn sm ghost" href="#status">Check status</a></div></div></section>`,
+ after:()=>{if(s&&s.drv.length)tower($('#tw'),s,'drv',8);else $('#tw').innerHTML=empty('Standings','Standings appear after the first round.')}}};
+V.standings=()=>{const s=seas();if(!s)return{html:empty('No data','Load a workbook in Admin.')};
+ return{html:`<h1>Standings</h1>${pick()}<div class="seg" role="group" aria-label="Table"><button data-k="drv" aria-pressed="true">Drivers</button><button data-k="con" aria-pressed="false">Constructors</button></div><div id="tw" style="margin-top:1rem"></div><div class="sec"><h2>Points per round</h2><div id="hm"></div></div>`,
+ after:()=>{let k='drv';const draw=()=>{cleanup();const l=s[k];if(!l.length||s.done<0){$('#tw').innerHTML=empty('No standings yet','Points appear after the first completed round.');$('#hm').innerHTML='';return}
+  tower($('#tw'),s,k,l.length);const o=[...l].sort((a,b)=>(b.vals[s.done]??0)-(a.vals[s.done]??0)),M=Math.max(1,...l.flatMap(d=>d.vals.map((v,i)=>i?(v??0)-(d.vals[i-1]??0):0)));
+  $('#hm').innerHTML=`<div class="tw"><table class="hm"><thead><tr><th>${k==='drv'?'Driver':'Team'}</th>${s.codes.slice(0,s.done+1).map(c=>`<th>${esc(c)}</th>`).join('')}<th>Total</th></tr></thead><tbody>${o.map(d=>`<tr><td><b>${esc(d.name)}</b></td>${d.vals.slice(0,s.done+1).map((v,i)=>{const dv=(v??0)-(i?d.vals[i-1]??0:0);return`<td style="${dv>0?`background:color-mix(in srgb,var(--sky) ${Math.round(dv/M*55)}%,transparent)`:''}${dv<0?';color:var(--bad)':''}">${dv||'·'}</td>`}).join('')}<td class="n"><b>${d.vals[s.done]??0}</b></td></tr>`).join('')}</tbody></table></div><p class="tbl-note">Points per round are derived from the cumulative standings in the league workbook. Source: ${esc(srcNote)}.</p>`};
+  $$('[data-k]').forEach(b=>b.onclick=()=>{k=b.dataset.k;$$('[data-k]').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()});draw()}}};
+V.results=()=>{const s=seas();if(!s)return{html:empty('No data','')};
+ const rows=s.res.map((r,i)=>({r,i})).filter(x=>valid(x.r.win)||(s.cal[x.i]&&/CANCEL/i.test(s.cal[x.i].date)));
+ return{html:`<h1>Results</h1>${pick()}${rows.length?`<div class="tw"><table><thead><tr><th>Round</th><th>Event</th><th>Pole</th><th>Winner</th><th>2nd</th><th>3rd</th><th>Winning team</th><th>Cautions</th></tr></thead><tbody>${rows.map(({r,i})=>{const c=s.cal[i]||{},x=/CANCEL/i.test(c.date||'');return`<tr${x?' style="opacity:.55"':''}><td>${esc(c.n??i)}</td><td>${esc(c.name||r.name||'')}${x?' <span class="chip bad">Cancelled</span>':''}</td>${x?'<td colspan="6"></td>':[r.pole,r.win,r.p2,r.p3,r.team,r.cautions].map((v,j)=>`<td${j===1?' style="font-weight:700"':''}>${esc(valid(v)?v:'—')}</td>`).join('')}</tr>`}).join('')}</tbody></table></div>`:empty('No results yet','Results are listed as rounds are completed.')}`,after:()=>{}}};
+V.calendar=()=>{const s=seas();if(!s)return{html:empty('No data','')};const t=new Date().toISOString().slice(0,10),nx=s.cal.findIndex(c=>/^\d{4}/.test(c.date)&&c.date>=t);
+ return{html:`<h1>Calendar</h1>${pick()}${s.cal.length?s.cal.map((c,i)=>{const x=/CANCEL/i.test(c.date),d=/^\d{4}/.test(c.date),done=d&&c.date<t,dt=d?new Date(c.date+'T12:00:00Z'):null;
+  return`<div class="cal${i===nx?' nx':''}${x?' x':''}"><div class="dt">${dt?dt.getUTCDate()+'<small>'+dt.toLocaleDateString('en-GB',{month:'short',timeZone:'UTC'})+'</small>':'<small>'+esc(x?'Off':'TBD')+'</small>'}</div><div><h3>R${esc(c.n)} · ${esc(c.name)}</h3><span class="muted">${esc(c.circuit)}${c.notes?' · '+esc(c.notes):''}${c.laps!==''?' · '+esc(c.laps)+' laps':''}${c.caution?' · caution '+esc(c.caution):''}</span></div><div>${x?'<span class="chip bad">Cancelled</span>':i===nx?'<span class="chip nx">Next</span>':done?'<span class="chip ok">Completed</span>':'<span class="chip">'+(d?'Scheduled':'TBD')+'</span>'}</div></div>`}).join(''):empty('No calendar','This season has no calendar yet.')}`,after:()=>{}}};
+V.entries=()=>{const s=seas();if(!s)return{html:empty('No data','')};
+ return{html:`<h1>Entries</h1>${pick()}<div class="sec" style="margin-top:1rem"><h2>Drivers</h2>${s.drivers.length?`<div class="tw"><table><thead><tr><th>Driver</th><th>Nat.</th><th>No.</th><th>Team</th>${s.drivers.some(d=>d.Car)?'<th>Car</th>':''}<th>Races</th></tr></thead><tbody>${s.drivers.map(d=>`<tr><td><b>${esc(d.Driver)}</b></td><td>${esc(CC[d.Nationality]||d.Nationality||'')}</td><td>${esc(d.Number||'')}</td><td><i style="display:inline-block;width:8px;height:14px;background:${tcol(info(s,d.Driver).team||d.Driver)};margin-right:.5rem;vertical-align:-2px"></i>${esc(d.Team||'')}</td>${s.drivers.some(x=>x.Car)?`<td>${esc(d.Car||'')}</td>`:''}<td>${esc(d.Races||'')}</td></tr>`).join('')}</tbody></table></div>`:empty('No entries','')}</div>
+ <div class="sec"><h2>Teams</h2><div class="g3">${s.teams.map(t=>`<div class="panel" style="border-top:5px solid ${tcol(t.Team)}"><h3>${esc(t.Team)}</h3><p class="muted" style="margin:.4rem 0 0">${esc(t['Entry One']||'')}${t['Entry Two']?'<br>'+esc(t['Entry Two']):''}<br>${esc(t.Nationality||'')}${t.Car?' · '+esc(t.Car):''}</p></div>`).join('')||empty('No teams','')}</div></div>`,after:()=>{}}};
+V.rules=()=>({html:`<h1>Rules & stewarding</h1><div class="panel pr" style="margin-top:1.2rem"><p class="muted">Summary of how races are run and judged. League staff publish the full sporting regulations to registered drivers.</p>
+<h3>Driving standards</h3><ul><li>Leave a car's width where you can. Avoid late moves in braking zones and on straights.</li><li>Do not rejoin the track in a way that endangers others, and keep within track limits unless the event notes say otherwise.</li><li>Lapped cars yield on blue flag. Under caution, hold position and the posted caution speed.</li><li>Be reachable: respond to steward and admin calls in the league Discord before and during events.</li></ul>
+<h3>Stewards</h3><ul><li>Incidents are reviewed from the race replay. Drivers may submit a report with the lap and a short description.</li><li>Stewards decide on racing incident, warning, time penalty, position loss or disqualification.</li><li>Decisions are published with the results. Appeals must be filed within the window set by the series.</li></ul>
+<h3>Penalties</h3><ul><li><b>Warning:</b> minor, no effect on result. Repeated warnings escalate.</li><li><b>Time penalty:</b> added to race time, scaled to the advantage gained.</li><li><b>Position loss / drive-through:</b> for clear avoidable contact or unsafe rejoin.</li><li><b>Disqualification:</b> for serious or repeated offences, or unsporting conduct.</li></ul>
+<h3>Cars</h3><p>FIWS uses RSS Supreme formula cars on Assetto Corsa. Touring car rounds use the car listed for each entry on the Entries page.</p></div>`,after:()=>{}});
+/* applications */
+const apps=()=>LS.get('apps',[]),saveApps=a=>LS.set('apps',a);
+const ref=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',b=crypto.getRandomValues(new Uint8Array(8));return'FIWS-'+[...b].map(x=>A[x%A.length]).join('')};
+V.apply=()=>({html:`<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply as a driver or as a steward. Staff review every application; you will get a reference code to follow it on the status page.</p><div class="panel" style="margin-top:1rem;max-width:760px" id="box"><form id="af" novalidate>
+<div class="f2"><label>I am applying as<select name="type"><option value="Driver">Driver</option><option value="Steward">Steward</option></select></label><label>Series<select name="series">${series().map(x=>`<option>${esc(x)}</option>`).join('')}</select></label></div>
+<div class="f2"><label>Driver name or alias<input name="name" maxlength="40" autocomplete="nickname" required><span class="er" data-e="name"></span></label><label>Email<input name="email" type="email" maxlength="120" autocomplete="email" required><span class="er" data-e="email"></span></label></div>
+<div class="f2"><label>Country<input name="country" maxlength="40" autocomplete="country-name" required><span class="er" data-e="country"></span></label><label id="fnum">Preferred car number (0–999)<input name="number" inputmode="numeric" maxlength="3"><span class="er" data-e="number"></span></label></div>
+<label id="fteam">Team preference (optional)<input name="team" maxlength="40"></label>
+<label id="fexp"><span>Sim racing experience and typical pace</span><textarea name="exp" rows="3" maxlength="600" required></textarea><span class="er" data-e="exp"></span></label>
+<label>Why do you want to race in FIWS?<textarea name="why" rows="3" maxlength="600" required></textarea><span class="er" data-e="why"></span></label>
+<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+<label class="ck"><input type="checkbox" name="rules"><span>I have read the <a href="#rules">rules and driving standards</a> and will follow steward decisions.</span></label><span class="er" data-e="rules"></span>
+<label class="ck"><input type="checkbox" name="priv"><span>I agree to the processing of this application as described in the <a href="#privacy">privacy notice</a>.</span></label><span class="er" data-e="priv"></span>
+<label class="ck"><input type="checkbox" name="mail"><span>League staff may email me about my application status (optional).</span></label>
+<button class="btn" type="submit">Submit application</button></form></div>`,after:()=>{
+ const f=$('#af');const tg=()=>{const s=f.type.value==='Steward';$('#fnum').hidden=s;$('#fteam').hidden=s;$('#fexp span').textContent=s?'Stewarding, moderating or race-control experience':'Sim racing experience and typical pace'};f.type.onchange=tg;tg();f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),E={};
+  if(d.website)return;const st=d.type==='Steward',v={type:st?'Steward':'Driver',series:clean(d.series,30),name:clean(d.name,40),email:clean(d.email,120).toLowerCase(),country:clean(d.country,40),number:st?'':clean(d.number,3),team:st?'':clean(d.team,40),exp:clean(d.exp,600),why:clean(d.why,600)};
+  if(v.name.length<2)E.name='Enter at least 2 characters.';if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email))E.email='Enter a valid email address.';if(v.country.length<2)E.country='Enter your country.';
+  if(v.number&&!/^\d{1,3}$/.test(v.number))E.number='Use digits only, 0 to 999.';if(v.exp.length<10)E.exp='Add a few words (10+ characters).';if(v.why.length<10)E.why='Add a few words (10+ characters).';
+  if(!d.rules)E.rules='You must accept the rules to apply.';if(!d.priv)E.priv='Consent is required to process your application.';
+  $$('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');if(Object.keys(E).length){const k=Object.keys(E)[0];(f.elements[k]||f).focus();return}
+  if(Date.now()-LS.get('last',0)<30000){toast('Please wait a moment before submitting again.');return}
+  const a=apps();if(a.some(x=>x.email===v.email&&x.status==='pending'&&x.series===v.series)){toast('You already have a pending application for this series.');return}
+  const rec={...v,ref:ref(),mail:!!d.mail,status:'pending',note:'',created:new Date().toISOString()};a.push(rec);
+  if(!saveApps(a)){toast('Could not save: browser storage is unavailable.');return}LS.set('last',Date.now());LS.set('myref',rec.ref);
+  const body=encodeURIComponent(`FIWS application ${rec.ref}\nType: ${v.type}\nSeries: ${v.series}\nName: ${v.name}\nEmail: ${v.email}\nCountry: ${v.country}\nNumber: ${v.number||'-'}\nTeam: ${v.team||'-'}\nExperience: ${v.exp}\nMotivation: ${v.why}`);
+  $('#box').innerHTML=`<h2>Application received</h2><p>Your reference code:</p><p class="disp" style="font-size:2.4rem;color:var(--acc)">${esc(rec.ref)}</p><p class="muted">Keep this code with the email you used. Follow the decision on the status page.</p><div class="row"><a class="btn" href="#status">Check status</a>${LEAGUE_EMAIL?`<a class="btn ghost" href="mailto:${esc(LEAGUE_EMAIL)}?subject=${encodeURIComponent('FIWS application '+rec.ref)}&body=${body}">Email to league staff</a>`:''}</div>${LEAGUE_EMAIL?'':'<p class="tbl-note">This site has no server: the application is stored in this browser. League staff review it in Admin on the same device or import it from an exported file.</p>'}`}}});
+V.status=()=>({html:`<h1>Application status</h1><div class="panel" style="margin-top:1rem;max-width:620px"><form id="sf" novalidate><div class="f2"><label>Reference code<input name="ref" maxlength="16" value="${esc(LS.get('myref',''))}" autocomplete="off"></label><label>Email<input name="email" type="email" maxlength="120"></label></div><button class="btn" type="submit">Check status</button></form></div><div id="sr" aria-live="polite" style="margin-top:1.2rem;max-width:620px"></div>`,after:()=>{
+ $('#sf').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target)),r=clean(d.ref,16).toUpperCase(),m=clean(d.email,120).toLowerCase(),a=apps().find(x=>x.ref===r&&x.email===m);
+  $('#sr').innerHTML=a?`<div class="panel"><h3>${esc(a.name)} · ${esc(a.series)} ${esc(a.type.toLowerCase())}</h3><div class="steps"><div class="on">Received</div><div class="${a.status==='pending'?'on':'on'}">In review</div><div class="${a.status==='pending'?'':'on '+(a.status==='accepted'?'ok':'no')}">${a.status==='accepted'?'Accepted':a.status==='rejected'?'Rejected':'Decision'}</div></div><p>${a.status==='pending'?'Staff have not decided yet.':a.status==='accepted'?'Welcome to the grid. Staff will contact you with entry details.':'Your application was not accepted this time.'}</p>${a.note?`<p class="muted">Staff note: ${esc(a.note)}</p>`:''}<p class="tbl-note">Submitted ${esc(new Date(a.created).toLocaleDateString('en-GB'))}</p></div>`:`<div class="panel"><p>No application matches that code and email on this device. Check both and try again, or contact league staff.</p></div>`}}});
+/* admin */
+const b64=u=>btoa(String.fromCharCode(...u)),IT=600000,IDLE=12e5;
+async function pw(p,salt,it=IT){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);return b64(new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:it,hash:'SHA-256'},k,256)))}
+const eq=(a,b)=>{let d=a.length^b.length;for(let i=0;i<Math.max(a.length,b.length);i++)d|=(a.charCodeAt(i)||0)^(b.charCodeAt(i)||0);return d===0};
+const COMMON=/(password|passw0rd|12345|qwerty|letmein|admin|fiws|formula|racing|iloveyou)/i;
+const pwIssue=p=>{if(p.length<12)return'Use at least 12 characters.';if(COMMON.test(p))return'Avoid common words such as "password", "admin" or "fiws".';const k=[/[a-z]/,/[A-Z]/,/\d/,/[^A-Za-z0-9]/].filter(r=>r.test(p)).length;if(p.length<16&&k<3)return'Use 16+ characters (a passphrase works well), or mix upper case, lower case, digits and symbols.';if(new Set(p).size<6)return'Too repetitive.';return''};
+const pwScore=p=>Math.min(4,(p.length>=12)+(p.length>=16)+([/[a-z]/,/[A-Z]/,/\d/,/[^A-Za-z0-9]/].filter(r=>r.test(p)).length>=3)+!pwIssue(p));
+const authed=()=>{const t=+sessionStorage.getItem('fiws.adm');return t>0&&Date.now()-t<IDLE};
+const touch=()=>sessionStorage.setItem('fiws.adm',String(Date.now()));
+async function verify(p){const c=LS.get('cred',null);if(!c||!p)return false;const ok=eq(await pw(p,Uint8Array.from(atob(c.s),x=>x.charCodeAt(0)),c.i||150000),c.h);return ok}
+async function setCred(p){const salt=crypto.getRandomValues(new Uint8Array(16));return LS.set('cred',{s:b64(salt),h:await pw(p,salt),i:IT})}
+const wait=()=>{const k=LS.get('lk',{n:0,u:0});return Math.max(0,Math.ceil((k.u-Date.now())/1000))};
+const failed=()=>{const k=LS.get('lk',{n:0,u:0});k.n++;if(k.n>=3)k.u=Date.now()+Math.min(9e5,5e3*2**(k.n-3));LS.set('lk',k)};
+const pwField=(n,l,ac)=>`<label>${l}<input type="password" name="${n}" autocomplete="${ac}" maxlength="128" required></label>`;
+let tab='apps',filt='all',onDrop=null;
+const csvc=v=>{let s=String(v??'');if(/^[=+\-@\t\r]/.test(s))s="'"+s;return'"'+s.replace(/"/g,'""')+'"'};
+const dl=(n,t,m)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),999)};
+V.admin=()=>({html:'<h1>Admin</h1><div id="adm" style="margin-top:1rem"></div>',after:()=>admin()});
+function admin(){onDrop=null;const R=$('#adm'),auth=authed(),cred=LS.get('cred',null);
+ if(auth){touch();const iv=setInterval(()=>{if(!authed()){clearInterval(iv);admin();toast('Signed out after 20 minutes of inactivity.')}},15000);cl.push(()=>clearInterval(iv));const t=()=>authed()&&touch();R.addEventListener('click',t);R.addEventListener('keydown',t)}
+ if(!auth){sessionStorage.removeItem('fiws.adm');
+  R.innerHTML=`<div class="panel" style="max-width:480px"><h3>${cred?'Sign in':'Create admin account'}</h3><form id="lf" novalidate>${pwField('p',cred?'Passcode':'New passcode (12+ characters)',cred?'current-password':'new-password')}${cred?'':pwField('q','Repeat passcode','new-password')+'<div class="pw" aria-hidden="true"><i id="pb"></i></div>'}<span class="er" id="le" role="alert"></span><button class="btn" type="submit">${cred?'Sign in':'Create admin account'}</button></form><p class="tbl-note">${cred?'Repeated failed attempts lock sign-in for longer each time. Sessions end after 20 minutes of inactivity.':'The passcode is hashed with PBKDF2 (600,000 rounds) and never stored in plain text. There is no recovery: if it is lost, erase this site\'s data in your browser to start over.'} This protects the panel on this device only; the site has no server.</p></div>`;
+  if(!cred){const pb=$('#pb');$('#lf').p.oninput=e=>{const s=pwScore(e.target.value);pb.style.width=s*25+'%';pb.style.background=s<3?'var(--bad)':s<4?'var(--warn)':'var(--ok)'}}
+  $('#lf').onsubmit=async e=>{e.preventDefault();const f=e.target,p=f.p.value,er=$('#le'),btn=$('button',f);er.textContent='';
+   const w=wait();if(w){er.textContent=`Too many failed attempts. Try again in ${w>60?Math.ceil(w/60)+' minutes':w+' seconds'}.`;return}
+   btn.disabled=true;try{
+    if(!cred){if(LS.get('cred',null)){er.textContent='An account already exists on this device.';return}const i=pwIssue(p);if(i){er.textContent=i;return}if(p!==f.q.value){er.textContent='The passcodes do not match.';return}if(!await setCred(p)){er.textContent='Could not save: browser storage is unavailable.';return}touch();return admin()}
+    if(await verify(p)){LS.del('lk');if((cred.i||0)<IT)await setCred(p);touch();admin()}else{failed();await new Promise(r=>setTimeout(r,600));const w=wait();er.textContent=w?`Incorrect passcode. Sign-in is locked for ${w>60?Math.ceil(w/60)+' minutes':w+' seconds'}.`:'Incorrect passcode.'}
+   }finally{btn.disabled=false}};return}
+ const A=apps();R.innerHTML=`<div class="tabs seg" style="display:flex">${[['apps','Applications ('+A.length+')'],['data','Standings data'],['col','Team colours'],['brand','Logo'],['sec','Security']].map(([k,l])=>`<button data-t="${k}" aria-pressed="${tab===k}">${l}</button>`).join('')}<button id="out">Sign out</button></div><div id="tp"></div>`;
+ $$('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;admin()});$('#out').onclick=()=>{sessionStorage.removeItem('fiws.adm');cleanup();admin()};const P=$('#tp');
+ if(tab==='apps'){const L=A.filter(x=>filt==='all'||x.status===filt).reverse();
+  P.innerHTML=`<div class="row" style="margin-bottom:1rem">${['all','pending','accepted','rejected'].map(f=>`<button class="btn sm ${filt===f?'alt':'ghost'}" data-f="${f}">${f}${f==='all'?'':' ('+A.filter(x=>x.status===f).length+')'}</button>`).join('')}<button class="btn sm ghost" id="ej">Export JSON</button><button class="btn sm ghost" id="ec">Export CSV</button><label class="btn sm ghost" style="cursor:pointer">Import JSON<input type="file" id="ij" accept=".json" hidden></label></div>${L.length?L.map(a=>`<div class="panel" style="margin-bottom:.8rem" data-r="${esc(a.ref)}"><div class="row" style="justify-content:space-between"><h3>${esc(a.name)} <span class="muted" style="font:500 1rem Barlow;text-transform:none">${esc(a.type)} · ${esc(a.series)}</span></h3><span class="chip ${a.status==='accepted'?'ok':a.status==='rejected'?'bad':'warn'}">${esc(a.status)}</span></div><p class="muted" style="margin:.4rem 0">${esc(a.ref)} · ${esc(a.email)} · ${esc(a.country)}${a.number?' · #'+esc(a.number):''}${a.team?' · '+esc(a.team):''}<br>${esc(new Date(a.created).toLocaleString('en-GB'))}${a.mail?'':' · no email consent'}</p><p><b>Experience:</b> ${esc(a.exp)}<br><b>Motivation:</b> ${esc(a.why)}</p><label>Note shown to applicant<input data-n maxlength="200" value="${esc(a.note)}"></label><div class="row" style="margin-top:.7rem"><button class="btn sm" data-s="accepted">Accept</button><button class="btn sm bad" data-s="rejected">Reject</button><button class="btn sm ghost" data-s="pending">Reset</button>${a.status!=='pending'&&a.mail?`<a class="btn sm alt" href="mailto:${esc(a.email)}?subject=${encodeURIComponent('Your FIWS application '+a.ref)}&body=${encodeURIComponent(`Hi ${a.name},\n\nYour FIWS application (${a.ref}) has been ${a.status}.${a.note?'\n\n'+a.note:''}\n\nFIWS staff`)}">Email decision</a>`:''}<button class="btn sm ghost" data-d>Delete</button></div></div>`).join(''):empty('No applications','Submitted applications appear here.')}`;
+  $$('[data-f]').forEach(b=>b.onclick=()=>{filt=b.dataset.f;admin()});
+  $$('[data-r]').forEach(c=>{const r=c.dataset.r,up=fn=>{const l=apps(),a=l.find(x=>x.ref===r);if(a){fn(a);saveApps(l)}};
+   $$('[data-s]',c).forEach(b=>b.onclick=()=>{up(a=>{a.status=b.dataset.s;a.note=clean($('[data-n]',c).value,200);a.decided=new Date().toISOString()});toast('Application '+b.dataset.s);admin()});
+   $('[data-d]',c).onclick=()=>{if(confirm('Delete this application permanently?')){saveApps(apps().filter(x=>x.ref!==r));admin()}}});
+  $('#ej').onclick=()=>dl('fiws-applications.json',JSON.stringify(A,null,1),'application/json');
+  $('#ec').onclick=()=>dl('fiws-applications.csv',['ref','status','type','series','name','email','country','number','team','created'].join(',')+'\n'+A.map(a=>['ref','status','type','series','name','email','country','number','team','created'].map(k=>csvc(a[k])).join(',')).join('\n'),'text/csv');
+  $('#ij').onchange=async e=>{try{const f=e.target.files[0];if(f.size>1e6)throw 0;const j=JSON.parse(await f.text());if(!Array.isArray(j)||j.length>500)throw 0;const l=apps();let n=0;j.forEach(x=>{if(x&&/^FIWS-[A-Z0-9]{8}$/.test(x.ref)&&!l.some(y=>y.ref===x.ref)){l.push({ref:x.ref,type:x.type==='Steward'?'Steward':'Driver',series:clean(x.series,30),name:clean(x.name,40),email:clean(x.email,120).toLowerCase(),country:clean(x.country,40),number:clean(x.number,3),team:clean(x.team,40),exp:clean(x.exp,600),why:clean(x.why,600),mail:!!x.mail,status:['accepted','rejected'].includes(x.status)?x.status:'pending',note:clean(x.note,200),created:isNaN(Date.parse(x.created))?new Date().toISOString():x.created});n++}});saveApps(l);toast(n+' imported');admin()}catch{toast('That file is not a valid applications export.')}}}
+ if(tab==='data'){P.innerHTML=`<div class="panel"><h3>Sync standings from workbook</h3><p class="muted">Currently showing the ${esc(srcNote)}. Upload the latest .xlsx to replace it; every sheet is parsed by its season blocks (entries, calendar, race-by-race and cumulative points).</p><label class="dz" id="dz" tabindex="0"><b>Drop the .xlsx workbook here</b><span>or click to choose a file (up to 3 MB)</span><input type="file" id="xf" accept=".xlsx" hidden></label><div id="xp" style="margin-top:1rem"></div><p class="tbl-note">Parsed: ${D.map(s=>`${esc(s.sheet)} S${esc(s.num)} (${s.drv.length} drivers, ${s.cal.length} rounds, ${s.done+1} scored)`).join('; ')||'nothing'}.</p>${srcNote==='uploaded workbook'?'<button class="btn sm ghost" id="rs">Revert to bundled workbook</button>':''}</div>`;
+  const handleFile=async f=>{const X=$('#xp');if(!f)return;if(!/\.xlsx$/i.test(f.name)){X.textContent='Only .xlsx files are accepted.';return}if(f.size>3e6){X.textContent='File is larger than 3 MB.';return}
+   try{const u=new Uint8Array(await f.arrayBuffer());if(u[0]!==0x50||u[1]!==0x4B)throw new Error('this is not a valid .xlsx file.');let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));const b=btoa(s),p=parseWB(XLSX.read(b,{type:'base64',cellDates:true}));if(!p.length)throw new Error('no FIWS season blocks found in this workbook.');
+    X.innerHTML=`<p><b>${esc(f.name)}: ${p.length} season blocks found.</b> ${p.map(x=>esc(x.sheet+' S'+x.num+': '+x.drv.length+' drivers, '+x.cal.length+' rounds, '+(x.done+1)+' scored')).join(' · ')}</p><button class="btn sm" id="pu">Publish to site</button>`;
+    $('#pu').onclick=()=>{if(LS.set('xlsx',b)){load();cur.key=defKey(cur.series);toast('Standings updated');admin()}else toast('Browser storage is full; workbook not saved.')}}catch(x){X.textContent='Could not read workbook: '+x.message}};
+  const dz=$('#dz');$('#xf').onchange=e=>{handleFile(e.target.files[0]);e.target.value=''};dz.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#xf').click()}};onDrop=handleFile;
+  const rs=$('#rs');if(rs)rs.onclick=()=>{LS.del('xlsx');load();cur.key=defKey(cur.series);admin()}}
+ if(tab==='col'){const names=[...new Set(D.flatMap(s=>[...s.teams.map(x=>x.Team),...s.con.map(x=>x.name)]))].filter(Boolean).sort();
+  P.innerHTML=`<div class="panel"><h3>Team colours</h3><p class="muted">Teams come from the workbook, so new teams appear here automatically with a default colour. Pick a colour to override it on this device.</p>${names.map((n,i)=>`<div class="row" style="align-items:center;margin:.5rem 0"><input type="color" data-c="${i}" value="${tcol(n)}" style="width:52px;height:38px;padding:2px" aria-label="Colour for ${esc(n)}"><b>${esc(n)}</b><button class="btn sm ghost" data-x="${i}">Reset</button></div>`).join('')||'<p>No teams found.</p>'}<p class="tbl-note">To make colours permanent for every visitor, paste this into <code>TEAM_COLORS</code> in the code and rebuild:<br><code id="cj"></code></p></div>`;
+  const cj=()=>{$('#cj').textContent=JSON.stringify(TCOL)};cj();
+  $$('[data-c]',P).forEach(i=>i.oninput=()=>{TCOL[names[+i.dataset.c]]=i.value;LS.set('tcol',TCOL);cj()});
+  $$('[data-x]',P).forEach(b=>b.onclick=()=>{delete TCOL[names[+b.dataset.x]];LS.set('tcol',TCOL);admin()})}
+ if(tab==='brand'){P.innerHTML=`<div class="panel"><h3>Logo</h3><p class="muted">The site looks for the logo at <code>assets/fiws-logo.png</code> next to this page. When hosting the page yourself, drop the file there. Otherwise upload it below (PNG, SVG or JPG, up to 300 KB) and it is stored in this browser.</p><label>Logo file<input type="file" id="lg" accept="image/png,image/svg+xml,image/jpeg"></label><div class="row" style="margin-top:1rem"><button class="btn sm ghost" id="lr">Remove uploaded logo</button></div></div>`;
+  $('#lg').onchange=e=>{const f=e.target.files[0];if(!f)return;if(f.size>3e5){toast('Logo is larger than 300 KB.');return}const fr=new FileReader();fr.onload=()=>{if(LS.set('logo',fr.result)){setLogo();toast('Logo updated')}else toast('Could not store logo.')};fr.readAsDataURL(f)};$('#lr').onclick=()=>{LS.del('logo');setLogo()}}
+ if(tab==='sec'){P.innerHTML=`<div class="panel" style="max-width:480px"><h3>Change passcode</h3><form id="pf" novalidate>${pwField('o','Current passcode','current-password')}${pwField('p','New passcode (12+ characters)','new-password')}${pwField('q','Repeat new passcode','new-password')}<span class="er" id="pe" role="alert"></span><button class="btn sm" type="submit">Change passcode</button></form><hr style="border:0;border-top:1px solid var(--line);margin:1.4rem 0"><h3>Erase site data</h3><p class="muted">Deletes applications, uploaded workbook, logo and the admin account stored on this device.</p><form id="wf" novalidate>${pwField('o','Confirm with passcode','current-password')}<span class="er" id="we" role="alert"></span><button class="btn sm bad" type="submit">Erase everything</button></form></div>`;
+  $('#pf').onsubmit=async e=>{e.preventDefault();const f=e.target,er=$('#pe'),w=wait();if(w){er.textContent='Too many failed attempts. Try again later.';return}if(!await verify(f.o.value)){failed();er.textContent='Current passcode is incorrect.';return}LS.del('lk');const i=pwIssue(f.p.value);if(i){er.textContent=i;return}if(f.p.value!==f.q.value){er.textContent='The new passcodes do not match.';return}await setCred(f.p.value);f.reset();er.textContent='';toast('Passcode changed')};
+  $('#wf').onsubmit=async e=>{e.preventDefault();const f=e.target,er=$('#we'),w=wait();if(w){er.textContent='Too many failed attempts. Try again later.';return}if(!await verify(f.o.value)){failed();er.textContent='Passcode is incorrect.';return}if(confirm('Erase all data stored by this site on this device? This cannot be undone.')){Object.keys(localStorage).filter(k=>k.startsWith('fiws.')).forEach(k=>localStorage.removeItem(k));sessionStorage.removeItem('fiws.adm');load();cur.key=defKey(cur.series);render()}}}}
+/* legal */
+const legal={privacy:['Privacy notice',`<p>This notice explains what the FIWS website does with personal data.</p><h3>What we collect</h3><ul><li><b>Applications:</b> the name, email, country, car number, team, racing experience and motivation you type into the form, plus a reference code and timestamp.</li><li><b>Preferences:</b> your last selected series and season, only if you accept preference storage.</li></ul><h3>Why and on what basis</h3><p>Application data is used only to assess and answer your application (legitimate interest and steps you request before joining). Emails about your decision are sent only if you tick the optional email box (consent). You can withdraw consent at any time by contacting league staff.</p><h3>Where it is stored</h3><p>This site has no tracking, analytics or advertising. Data you submit is stored in your browser's local storage on this device. If you email your application to league staff, they receive it through your email provider. Fonts are loaded from Google Fonts and the spreadsheet reader from cdnjs, so those providers receive your IP address when pages load.</p><h3>Retention and your rights</h3><p>Staff keep applications only as long as needed to run the season, then delete them. You may ask to access, correct or erase your data by contacting league staff. Clearing site data in your browser removes what this device holds.</p><h3>Security</h3><p>Input is length-limited and cleaned, output is escaped, and the admin panel is passcode-protected. No browser-only site can guarantee server-grade protection, so avoid including sensitive personal details in free-text fields.</p>`],
+terms:['Terms of use',`<p>By using this site and applying to race you agree to these terms.</p><ul><li>League standings and results are published by league staff and may be corrected after steward decisions.</li><li>Applying does not guarantee an entry. Staff may accept or reject any application.</li><li>Entrants must follow the <a href="#rules">rules and driving standards</a> and steward rulings, and behave respectfully towards other drivers and staff.</li><li>Cars, brands, track names and logos belong to their owners and appear for identification. FIWS is an independent community league.</li><li>The site is provided as is, without warranty. Do not attempt to interfere with its operation or other users' data.</li></ul>`],
+cookies:['Cookies & storage',`<p>FIWS sets no cookies. It uses your browser's local storage instead, in two groups:</p><ul><li><b>Necessary:</b> your consent choice, applications you submit and your latest reference code, admin sign-in state and any data or logo uploaded by staff. The site cannot work without these.</li><li><b>Preferences (optional):</b> your selected series and season. Stored only if you accept.</li></ul><p>There are no analytics, advertising or tracking technologies. Change your choice at any time:</p><button class="btn sm" id="cs">Open cookie settings</button>`]};
+Object.keys(legal).forEach(k=>V[k]=()=>({html:`<h1>${legal[k][0]}</h1><div class="panel pr" style="margin-top:1.2rem">${legal[k][1]}<p class="tbl-note">Last updated 22 November 2026.</p></div>`,after:()=>{const b=$('#cs');if(b)b.onclick=cbar}}));
+/* shell */
+const NAV=[['home','Home'],['standings','Standings'],['results','Results'],['calendar','Calendar'],['entries','Entries'],['rules','Rules'],['apply','Apply'],['status','Status']];
+$('#nav').innerHTML=NAV.map(([k,l])=>`<a href="#${k}">${l}</a>`).join('');
+const mark=`<svg viewBox="0 0 54 48" role="img" aria-label="FIWS logo"><rect width="36" height="8" fill="#00AEEF"/><rect x="42" width="12" height="8" fill="#00AEEF"/><rect y="16" width="12" height="32" fill="currentColor"/><rect x="12" y="16" width="22" height="12" fill="currentColor"/><rect x="42" y="16" width="12" height="32" fill="currentColor"/></svg>`;
+function setLogo(){const L=$('#logo');L.innerHTML=mark;const im=new Image();im.alt='FIWS logo';im.onload=()=>{L.innerHTML='';L.append(im)};im.src=LS.get('logo',null)||'assets/fiws-logo.png'}
+function cbar(){$('#cbw').innerHTML=`<div class="cb panel" role="dialog" aria-label="Storage consent"><b>Your storage choice.</b> This site sets no cookies and has no tracking. It can remember your series and season on this device.<div class="row" style="margin-top:.7rem"><button class="btn sm" id="c1">Accept preferences</button><button class="btn sm ghost" id="c2">Necessary only</button><a href="#cookies">Details</a></div></div>`;const s=p=>{LS.set('consent',{pref:p,t:Date.now()});if(!p)LS.del('pref');$('#cbw').innerHTML='';if(p)savePref()};$('#c1').onclick=()=>s(true);$('#c2').onclick=()=>s(false)}
+let first=true;
+function render(soft){cleanup();const h=(location.hash||'#home').slice(1),k=V[h]?h:'home',v=V[k](),run=()=>{$('#main').innerHTML=v.html;v.after&&v.after();bindPick();$$('#nav a').forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+k)||a.removeAttribute('aria-current'));$$('#nav a').forEach(a=>{if(a.hasAttribute('aria-current'))a.setAttribute('aria-current','page')});document.title=(k==='home'?'':(legal[k]?legal[k][0]:NAV.find(n=>n[0]===k)?.[1]||'Admin')+' – ')+'FIWS – Formula Imperial Worldwide Series';if(!soft&&!first){$('#main').focus({preventScroll:true});scrollTo(0,0)}first=false};
+ !RM&&document.startViewTransition?document.startViewTransition(run):run()}
+$('#skip').onclick=()=>$('#main').focus();$('#cset').onclick=e=>{e.preventDefault();cbar()};
+$('#theme').onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark'};
+addEventListener('hashchange',()=>render());
+const hasF=e=>e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files'),zone=on=>{const z=$('#dz');z&&z.classList.toggle('on',on)};
+addEventListener('dragover',e=>{if(!hasF(e))return;e.preventDefault();e.dataTransfer.dropEffect='copy';if(onDrop)zone(true)});
+addEventListener('dragleave',e=>{if(!e.relatedTarget)zone(false)});
+addEventListener('drop',e=>{if(!hasF(e))return;e.preventDefault();zone(false);const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(onDrop&&f)onDrop(f)});
+load();const pf=LS.get('pref',null);cur.series=pf&&D.some(s=>s.sheet===pf.series)?pf.series:(series().includes('FIWS')?'FIWS':series()[0]);cur.key=pf&&D.some(s=>s.key===pf.key)?pf.key:defKey(cur.series);
+setLogo();if(!LS.get('consent',null))cbar();render();
+})();
+</script></body></html>
