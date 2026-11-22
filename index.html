@@ -331,7 +331,10 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
 @media(max-width:700px){
  .top{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:40;border-bottom:0;border-top:1px solid var(--line);background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -10px 32px -24px #0009;padding-bottom:env(safe-area-inset-bottom,0px)}
  .bar{max-width:none;padding:.42rem .45rem .38rem;gap:.35rem;min-height:62px}
- .brand{display:none}
+ .brand{display:flex;flex:0 0 32px;min-width:32px;justify-content:center;gap:0;overflow:hidden}
+ .brand svg,.brand img,.brand canvas{height:28px;width:auto;max-width:32px;object-fit:contain}
+ .brand b{display:none}
+ #logo{display:flex;align-items:center;justify-content:center;width:32px;height:32px;overflow:hidden}
  .nav{flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;gap:.12rem;scrollbar-width:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
  .nav::-webkit-scrollbar{display:none}
  .nav a{flex:1 0 48px;min-width:48px;min-height:52px;padding:.3rem .2rem;border-radius:10px;display:flex;justify-content:center;align-items:center;scroll-snap-align:center;color:var(--mute)!important}
