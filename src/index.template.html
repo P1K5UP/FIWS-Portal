@@ -435,8 +435,8 @@ async function persistApplication(draft){
  const user=data.user;if(!user||!user.email_confirmed_at)throw new Error('Verify your email before submitting.');
  const payload={...draft.data,type:draft.type,mail:!!draft.mail,email:user.email};
  const code=ref();
- const {data,error}=await sb.functions.invoke('submit-application',{body:{applicant_id:user.id,reference_code:code,application_data:payload}});
- if(error)throw error;if(data?.error)throw new Error(data.error);
+ const {data:submitData,error:submitError}=await sb.functions.invoke('submit-application',{body:{applicant_id:user.id,reference_code:code,application_data:payload}});
+ if(submitError)throw submitError;if(submitData?.error)throw new Error(submitData.error);
  sessionStorage.removeItem(pendingDraftKey);
  LS.set('myref',code);
  return {code:code,payload:payload};
