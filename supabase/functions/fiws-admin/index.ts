@@ -342,6 +342,75 @@ Deno.serve(async (req) => {
       await audit(auth.admin, "auth.recovery_codes_rotated", "admin", auth.admin.id);
       return json({ success: true, recovery_codes: codes });
     }
+    if (action === "applications-list") {
+      const auth = await session(req);
+      if (!auth || !allowedRank(auth.admin.admin_rank, "moderator")) return json({ error: "Insufficient permissions." }, 403);
+      const { data, error } = await db.from("applications").select("id,reference_code,application_data,status,staff_note,created_at,decided_at").order("created_at", { ascending: false }).limit(500);
+      if (error) return json({ error: "Could not load applications." }, 500);
+      return json({ applications: data || [] });
+    }
+    if (action === "application-update") {
+      const auth = await session(req);
+      if (!auth || !allowedRank(auth.admin.admin_rank, "moderator")) return json({ error: "Insufficient permissions." }, 403);
+      const id = String(body.id || ""), status = String(body.status || "");
+      const note = String(body.staff_note || "");
+      if (!id || !["pending", "accepted", "rejected"].includes(status) || note.length > 1000) return json({ error: "Invalid application update." }, 400);
+      const { error } = await db.from("applications").update({
+        status, staff_note: note || null, decided_at: status === "pending" ? null : new Date().toISOString(),
+        decided_by: null,
+      }).eq("id", id);
+      if (error) return json({ error: "Could not update the application." }, 500);
+      await audit(auth.admin, "application.update", "application", id, { status });
+      return json({ success: true });
+    }
+    if (action === "application-delete") {
+      const auth = await session(req);
+      if (!auth || !allowedRank(auth.admin.admin_rank, "administrator")) return json({ error: "Administrator permission required." }, 403);
+      const id = String(body.id || "");
+      if (!id) return json({ error: "Application id is required." }, 400);
+      const { error } = await db.from("applications").delete().eq("id", id);
+      if (error) return json({ error: "Could not delete the application." }, 500);
+      await audit(auth.admin, "application.delete", "application", id);
+      return json({ success: true });
+    }
+    if (action === "setting-write") {
+      const auth = await session(req);
+      if (!auth || !allowedRank(auth.admin.admin_rank, "administrator")) return json({ error: "Administrator permission required." }, 403);
+      const key = String(body.key || ""), value = body.value;
+      if (!/^[a-z0-9_-]{1,80}$/.test(key) || value === undefined) return json({ error: "Invalid setting." }, 400);
+      const { error } = await db.from("site_settings").upsert({
+        setting_key: key, setting_value: value, updated_at: new Date().toISOString(), updated_by: null,
+      }, { onConflict: "setting_key" });
+      if (error) return json({ error: "Could not save the shared setting." }, 500);
+      await audit(auth.admin, "setting.update", "setting", key);
+      return json({ success: true });
+    }
+    if (action === "asset-upload") {
+      const auth = await session(req);
+      if (!auth || !allowedRank(auth.admin.admin_rank, "administrator")) return json({ error: "Administrator permission required." }, 403);
+      const path = String(body.path || "");
+      const mime = String(body.content_type || "");
+      const allowed = path === "workbooks/current.xlsx" && mime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        || /^logos\/(FIWS|FITC)\.png$/.test(path) && mime === "image/png";
+      if (!allowed || typeof body.base64 !== "string" || body.base64.length > 8_000_000) return json({ error: "Invalid asset upload." }, 400);
+      let bytes: Uint8Array;
+      try { bytes = unb64(body.base64); } catch { return json({ error: "Invalid asset encoding." }, 400); }
+      if (!bytes.length || bytes.length > 6_000_000) return json({ error: "Asset exceeds the 6 MB upload limit." }, 413);
+      const { error } = await db.storage.from("fiws-public").upload(path, bytes, { upsert: true, contentType: mime });
+      if (error) return json({ error: "Could not publish the asset." }, 500);
+      await audit(auth.admin, "asset.upload", "asset", path, { bytes: bytes.length, content_type: mime });
+      return json({ success: true, path });
+    }
+    if (action === "asset-delete") {
+      const auth = await session(req);
+      if (!auth || !allowedRank(auth.admin.admin_rank, "administrator")) return json({ error: "Administrator permission required." }, 403);
+      const path = String(body.path || "");
+      if (!/^logos\/(FIWS|FITC)\.png$/.test(path)) return json({ error: "Only a FIWS or FITC logo can be deleted here." }, 400);
+      const { error } = await db.storage.from("fiws-public").remove([path]);
+      if (error) return json({ error: "Could not remove the logo." }, 500);
+      await audit(auth.admin, "asset.delete", "asset", path);
+      return json({ success: true });
+    }
     if (action.startsWith("logbook-")) return await logbookAction(action, req, body);
     return json({ error: "Unknown action." }, 400);
   } catch (error) {
