@@ -7,7 +7,7 @@ revoke all on schema private from public;
 grant usage on schema private to authenticated;
 
 create or replace function private.is_fiws_admin()
-returns boolean language sql stable security definer set search_path = ''
+returns boolean language sql stable security invoker set search_path = ''
 as $$ select coalesce((auth.jwt() -> 'app_metadata' ->> 'fiws_role') = 'admin', false); $$;
 revoke all on function private.is_fiws_admin() from public, anon;
 grant execute on function private.is_fiws_admin() to authenticated;
@@ -45,8 +45,8 @@ create table if not exists public.admin_audit_log (
 );
 create index if not exists admin_audit_log_occurred_idx on public.admin_audit_log (occurred_at desc);
 
-create or replace function public.guard_application_insert()
-returns trigger language plpgsql security definer set search_path = ''
+create or replace function private.guard_application_insert()
+returns trigger language plpgsql security invoker set search_path = ''
 as $$
 declare recent_count integer;
 begin
@@ -68,11 +68,12 @@ begin
  return new;
 end;
 $$;
+revoke all on function private.guard_application_insert() from public, anon, authenticated;
 drop trigger if exists applications_guard_insert on public.applications;
 create trigger applications_guard_insert before insert on public.applications
-for each row execute function public.guard_application_insert();
+for each row execute function private.guard_application_insert();
 
-create or replace function public.audit_admin_change()
+create or replace function private.audit_admin_change()
 returns trigger language plpgsql security definer set search_path = ''
 as $$
 declare target_id text; action_name text;
@@ -91,12 +92,13 @@ begin
  return new;
 end;
 $$;
+revoke all on function private.audit_admin_change() from public, anon, authenticated;
 drop trigger if exists site_settings_audit on public.site_settings;
 create trigger site_settings_audit after insert or update or delete on public.site_settings
-for each row execute function public.audit_admin_change();
+for each row execute function private.audit_admin_change();
 drop trigger if exists applications_audit on public.applications;
 create trigger applications_audit after update or delete on public.applications
-for each row when (private.is_fiws_admin()) execute function public.audit_admin_change();
+for each row when (private.is_fiws_admin()) execute function private.audit_admin_change();
 
 alter table public.site_settings enable row level security;
 alter table public.applications enable row level security;
