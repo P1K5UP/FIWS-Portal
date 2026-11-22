@@ -11,23 +11,33 @@ FIWS remains hosted on GitHub Pages. Supabase provides shared persistence and au
 - Only administrators can review, update, or delete applications and read the audit log.
 - The audit log records action metadata, not application payloads or applicant PII.
 
-## Apply the migration
-1. Create a Supabase project. Keep its URL and publishable key out of the SQL migration.
-2. Enable the authentication method selected by the frontend integration. Anonymous sign-in can support the initial migration, but should be paired with abuse controls.
-3. Run supabase/migrations/202611220001_shared_backend.sql in the Supabase SQL editor, or apply it with the Supabase CLI.
-4. Create the first administrator through a trusted process that writes fiws_role: admin into that user's app_metadata. Do not provide public admin registration.
-5. Configure the frontend with the project URL and publishable key. These are public client configuration; RLS is the security boundary.
-6. Before accepting real applications, add an Edge Function or equivalent server-side submission endpoint with IP-based rate limiting and CAPTCHA/abuse checks. The per-user database limit is defense in depth, not a substitute for IP-based controls.
+## Applied Supabase setup
+The following migrations are applied to the `fiws-portal` project and tracked in `supabase/migrations/` using the exact database migration versions:
+- `20261122162330_fiws_shared_backend.sql`
+- `20261122162341_fiws_policy_performance_hardening.sql`
+- `20261122162550_fiws_public_asset_storage.sql`
+- `20261122162729_fiws_application_identity_and_duplicate_guard.sql`
+- `20261122162809_fiws_submission_ip_rate_limit.sql`
+
+The website template now uses the project's URL and publishable key. These are public client configuration; RLS remains the security boundary. The `submit-application` Edge Function is deployed and applies a network-level HMACed IP rate limit plus the database per-account limit. It uses the Edge Function's secret-key context; no secret key is shipped to the browser.
+
+## Remaining project configuration
+1. In Supabase **Authentication → URL Configuration**, set the Site URL to `https://p1k5up.github.io/fiws-portal/` and add that exact URL as an allowed redirect URL. Also add the preview URL if you use a separate test deployment.
+2. Confirm Email provider / magic-link sign-in is enabled. Supabase's default email sender is rate-limited; configure a custom SMTP provider before opening applications to the public.
+3. Create the first staff account using **Admin → Staff sign-in** on the site and complete its email link. Then set `app_metadata.fiws_role` to `admin` for that exact account using a trusted dashboard/server-side process. Never set the role in user-editable metadata and never expose a secret key.
+4. Test applicant and admin accounts separately before accepting applications. Confirm applicants can only read their own applications and only admins can read the queue, change decisions, upload workbooks, edit team colours, or publish logos.
+5. Confirm the public `fiws-public` bucket contains only public website assets (workbooks and logos), never applicant data.
+6. Add CAPTCHA/anti-bot controls before wide public launch. IP/account limits are defense in depth, not a complete bot defence.
 
 ## Tables
 - site_settings: public shared settings such as team colour overrides, selected logo asset paths, and the published workbook pointer. Only admins can write.
-- applications: applicant-owned submissions. Keep personal fields in application_data; never copy them into public settings, audit logs, or public status JSON. The initial schema intentionally does not provide public lookup by reference code and email; that endpoint needs a separately rate-limited server-side function to avoid reference-code enumeration and PII disclosure.
+- applications: applicant-owned submissions. Keep personal fields in application_data; never copy them into public settings, audit logs, or public status JSON. Applicants now retrieve their applications after signing in with a verified email link. The site does not expose a public reference-code lookup endpoint, avoiding reference-code enumeration and PII disclosure.
 - admin_audit_log: administrator action metadata for traceability. It does not store changed values or applicant payloads.
 
 ## Migration and deployment notes
 - Do not switch the live frontend to Supabase until the project URL, publishable key, auth flow, and storage policies are configured and tested.
-- Existing browser-local applications, workbooks, colours, and logos are not automatically migrated. Export/import them through an authenticated one-time admin migration workflow; do not bulk-upload localStorage contents from arbitrary visitors.
-- Validate and sanitize uploaded logos. Prefer raster images or sanitize SVGs server-side before publishing them. Never inject uploaded SVG markup with innerHTML.
+- Existing browser-local applications, workbooks, colours, and logos are not automatically migrated. Export/import legacy applications only after matching each record to a verified applicant identity; do not assign arbitrary local records to an applicant account. Publish the workbook, team colours and logos from the authenticated Admin panel.
+- Uploaded SVG logos are sanitized against an element/attribute allowlist and rasterized to PNG in the browser before upload. Uploaded logo images are rendered through a canvas pass that changes only neutral near-black/near-white pixels for the active theme; colored pixels and alpha are retained. Never inject uploaded SVG markup with innerHTML.
 - Keep applicant status private. Cross-device status lookup should use a verified email magic link or a rate-limited Edge Function returning only minimum status fields.
 - Define a retention/deletion schedule for application personal data before production use.
 - Test RLS with separate applicant and admin accounts before deployment.
