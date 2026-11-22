@@ -38,18 +38,21 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("saveSharedSetting('workbook',{path:workbookPath", source)
         self.assertIn("const summary=parsed.map", source)
 
-    def test_application_submission_supports_exact_local_and_production_origins(self):
+    def test_applications_use_reference_codes_without_applicant_email_auth(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         function = (ROOT / "supabase/functions/submit-application/index.ts").read_text(encoding="utf-8")
-        self.assertIn('"https://p1k5up.github.io"', function)
-        self.assertIn('"http://localhost:8000"', function)
-        self.assertIn("if (!ALLOWED_ORIGINS.has(origin))", function)
-        self.assertIn("withAllowedOrigin(await authenticatedHandler(req), origin)", function)
-        self.assertNotIn('Access-Control-Allow-Origin": "*"', function)
-
-    def test_application_draft_is_retried_when_auth_session_already_exists(self):
-        source = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("await sb.functions.invoke('submit-application'", source)
-        self.assertIn("await initSupabase();await loadSharedData();await finishPendingApplication()", source)
+        self.assertIn("fiws_application_ref=", page)
+        self.assertIn("SameSite=Strict", page)
+        self.assertIn("applicationApi('submit'", page)
+        self.assertIn("applicationApi('status'", page)
+        self.assertNotIn("signInWithOtp", page)
+        self.assertNotIn("finishPendingApplication", page)
+        self.assertIn("crypto.getRandomValues(new Uint8Array(13))", function)
+        self.assertIn("applicant_id:null", function)
+        self.assertIn('body?.action==="status"', function)
+        self.assertNotIn("auth.getUser", function)
+        self.assertIn("FIWS_RATE_LIMIT_PEPPER", function)
+        self.assertIn("ALLOWED_ORIGINS.has(origin)", function)
 
     def test_logo_storage_path_matches_edge_function_allowlist(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")

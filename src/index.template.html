@@ -129,8 +129,8 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
 (async()=>{'use strict';
 const SUPABASE_URL='https://yipzokjzqltxcufixrsv.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_Ugy5e88mhjKwqOIZ_RR9DA_sMAwNcMF';
-const sb=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let authSession=null,authUser=null,adminToken=null,adminIdentity=null,REMOTE_COLORS={},REMOTE_LOGOS={},REMOTE_APPS=[];
+const sb=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+let adminToken=null,adminIdentity=null,REMOTE_COLORS={},REMOTE_LOGOS={},REMOTE_APPS=[];
 const B64='__B64__';
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -173,6 +173,9 @@ function parseWB(wb){
 /*ENDPARSE*/
 /* storage + consent */
 const LS={get(k,d){try{const v=localStorage.getItem('fiws.'+k);return v==null?d:JSON.parse(v)}catch{return d}},set(k,v){try{localStorage.setItem('fiws.'+k,JSON.stringify(v));return true}catch{return false}},del(k){try{localStorage.removeItem('fiws.'+k)}catch{}}};
+let pendingReferenceCookie=null;
+function saveReferenceCookie(code){pendingReferenceCookie=code;if(!LS.get('consent',null))return false;document.cookie='fiws_application_ref='+encodeURIComponent(code)+'; Max-Age=31536000; Path=/; SameSite=Strict'+(location.protocol==='https:'?'; Secure':'');return document.cookie.split('; ').some(x=>x.startsWith('fiws_application_ref='))}
+function getReferenceCookie(){const item=document.cookie.split('; ').find(x=>x.startsWith('fiws_application_ref='));try{return item?decodeURIComponent(item.slice(item.indexOf('=')+1)):''}catch{return ''}}
 const clean=(s,m=200)=>String(s??'').normalize('NFKC').replace(/[\u0000-\u001F\u007F<>]/g,' ').replace(/\s+/g,' ').trim().slice(0,m);
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),3200)};
 /* data */
@@ -250,9 +253,7 @@ V.rules=()=>({html:`<h1>Rules & stewarding</h1><div class="panel pr" style="marg
 <h3>Stewards</h3><ul><li>Incidents are reviewed from the race replay. Drivers may submit a report with the lap and a short description.</li><li>Stewards decide on racing incident, warning, time penalty, position loss or disqualification.</li><li>Decisions are published with the results. Appeals must be filed within the window set by the series.</li></ul>
 <h3>Penalties</h3><ul><li><b>Warning:</b> minor, no effect on result. Repeated warnings escalate.</li><li><b>Time penalty:</b> added to race time, scaled to the advantage gained.</li><li><b>Position loss / drive-through:</b> for clear avoidable contact or unsafe rejoin.</li><li><b>Disqualification:</b> for serious or repeated offences, or unsporting conduct.</li></ul>
 <h3>Cars</h3><p>FIWS uses RSS Supreme formula cars on Assetto Corsa. Touring car rounds use the car listed for each entry on the Entries page.</p></div>`,after:()=>{}});
-/* applications */
-const apps=()=>LS.get('apps',[]),saveApps=a=>LS.set('apps',a);
-const ref=()=>{const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',b=crypto.getRandomValues(new Uint8Array(8));return'FIWS-'+[...b].map(x=>A[x%A.length]).join('')};
+/* application form definitions */
 const OPTS={series:['FIWS','FITC','Both'],ctl:['Controller','Wheel','Keyboard and Mouse','Other'],voice:['I can talk and listen to voice chat',"I can't talk but can listen to voice chat",'I cannot talk or listen to voice chat'],exp:['Newcomer','Lightly Experienced','Moderately Experienced','Highly Experienced','Pro Sim-Racer'],pace:['Newcomer (5-20s Off Pace)','Lightly Experienced (3-4s Off Pace)','Moderately Experienced (2-1s Off Pace)','Highly Experienced (On/1s Ahead of Pace)','Pro Sim-Racer (1s+ Ahead of Pace)']};
 const FIELDS=[
 {k:'series',l:'Series',t:'sel',o:OPTS.series,r:'DS'},
@@ -288,31 +289,7 @@ const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new T
 const normRec=x=>{if(!x||typeof x!=='object'||!/^FIWS-[A-Z0-9]{8}$/.test(x.ref))return null;const st=x.type==='Steward',o={ref:x.ref,type:st?'Steward':'Driver',mail:!!x.mail,status:['accepted','rejected'].includes(x.status)?x.status:'pending',note:clean(x.note,200),created:isNaN(Date.parse(x.created))?new Date().toISOString():x.created};FIELDS.filter(f=>f.r.includes(st?'S':'D')).forEach(f=>o[f.k]=clean(x[f.k],f.m||60));o.email=(o.email||'').toLowerCase();return o.name&&/@/.test(o.email)?o:null};
 const importTxt=t=>{let j;try{j=JSON.parse(t)}catch{const a=t.indexOf('{'),b=t.lastIndexOf('}');try{j=JSON.parse(t.slice(a,b+1))}catch{return -1}}j=Array.isArray(j)?j:[j];if(j.length>500)return -1;const l=apps();let n=0;j.forEach(x=>{const r=normRec(x);if(r&&!l.some(y=>y.ref===r.ref)){l.push(r);n++}});saveApps(l);return n};
 let aTy='D';
-V.apply=()=>({html:`<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply as a driver or as a steward. Staff review every application; you will get a reference code to follow it on the status page.</p><div class="panel" style="margin-top:1rem;max-width:860px" id="box"><form id="af" novalidate><div class="seg" role="group" aria-label="Applying as"><button type="button" data-ty="D">Driver</button><button type="button" data-ty="S">Steward</button></div><div class="f2" id="fl"></div>
-<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-<label class="ck"><input type="checkbox" name="rules"><span>I have read the <a href="#rules">rules and driving standards</a> and will follow steward decisions.</span></label><span class="er" data-e="rules"></span>
-<label class="ck"><input type="checkbox" name="priv"><span>I agree to the processing of this application as described in the <a href="#privacy">privacy notice</a>.</span></label><span class="er" data-e="priv"></span>
-<label class="ck"><input type="checkbox" name="mail"><span>League staff may email me about my application status (optional).</span></label>
-<button class="btn" type="submit">Submit application</button></form></div>`,after:()=>{
- const f=$('#af'),vals={};const draw=()=>{$$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===aTy));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(aTy)).map(x=>fieldHTML(x,aTy,vals[x.k]||'')).join('')};
- const grab=()=>FIELDS.forEach(x=>{const el=f.elements[x.k];if(el)vals[x.k]=el.value});
- $$('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();aTy=b.dataset.ty;draw()});draw();
- f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f));if(d.website)return;const E={},v={};
-  FIELDS.filter(x=>x.r.includes(aTy)).forEach(x=>{const s=clean(d[x.k],x.m||60);v[x.k]=s;const m=chk(x,s);if(m)E[x.k]=m});
-  if(!d.rules)E.rules='You must accept the rules to apply.';if(!d.priv)E.priv='Consent is required to process your application.';
-  $$('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){const el=f.elements[ks[0]];(el||f).focus();return}
-  if(Date.now()-LS.get('last',0)<30000){toast('Please wait a moment before submitting again.');return}
-  v.email=v.email.toLowerCase();const rec={ref:ref(),type:aTy==='S'?'Steward':'Driver',...v,mail:!!d.mail,status:'pending',note:'',created:new Date().toISOString()},a=apps();
-  if(a.some(x=>x.email===rec.email&&x.status==='pending'&&x.type===rec.type)){toast('You already have a pending application of this type.');return}
-  a.push(rec);if(!saveApps(a)){toast('Could not save: browser storage is unavailable.');return}LS.set('last',Date.now());LS.set('myref',rec.ref);
-  const txt=`FIWS application ${rec.ref} (${rec.type})\n\n${JSON.stringify(rec)}`;
-  $('#box').innerHTML=`<h2>Application received</h2><p>Your reference code:</p><p class="disp" style="font-size:2.4rem;color:var(--acc)">${esc(rec.ref)}</p><p class="muted">Keep this code and the email you used. Staff publish decisions on the status page.</p><div class="row"><a class="btn" href="#status">Check status</a>${LEAGUE_EMAIL?`<a class="btn ghost" href="mailto:${esc(LEAGUE_EMAIL)}?subject=${encodeURIComponent('FIWS application '+rec.ref)}&body=${encodeURIComponent(txt)}">Email to league staff</a>`:''}<button class="btn ghost" id="cp" type="button">Copy application</button></div><p class="tbl-note">${LEAGUE_EMAIL?'Send the email so staff receive your application.':'This site has no server: the application is saved in this browser. Copy it and send it to league staff so they can import it.'}</p>`;
-  $('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(txt);toast('Application copied')}catch{toast('Could not copy automatically.')}}}}});
 const stCard=(title,s,note,when)=>`<div class="panel"><h3>${title}</h3><div class="steps"><div class="on">Received</div><div class="on">In review</div><div class="${s==='pending'?'':'on '+(s==='accepted'?'ok':'no')}">${s==='accepted'?'Accepted':s==='rejected'?'Rejected':'Decision'}</div></div><p>${s==='pending'?'Staff have not decided yet.':s==='accepted'?'Welcome to the grid. Staff will contact you with entry details.':'Your application was not accepted this time.'}</p>${note?`<p class="muted">Staff note: ${esc(note)}</p>`:''}${when?`<p class="tbl-note">${esc(when)}</p>`:''}</div>`;
-V.status=()=>({html:`<h1>Application status</h1><div class="panel" style="margin-top:1rem;max-width:620px"><form id="sf" novalidate><div class="f2"><label>Reference code<input name="ref" maxlength="20" value="${esc(LS.get('myref',''))}" autocomplete="off"></label><label>Email<input name="email" type="email" maxlength="120"></label></div><button class="btn" type="submit">Check status</button></form></div><div id="sr" aria-live="polite" style="margin-top:1.2rem;max-width:620px"></div>`,after:()=>{
- $('#sf').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target)),r=normRef(d.ref),m=clean(d.email,120).toLowerCase(),out=$('#sr'),a=apps().find(x=>x.ref===r&&x.email===m);let rm=null;
-  try{const j=await(await fetch('data/status.json',{cache:'no-store'})).json(),it=j&&j.items&&j.items[await sha(r+'|'+m)];if(it&&['accepted','rejected'].includes(it.s))rm=it}catch{}
-  out.innerHTML=a&&a.status!=='pending'?stCard(esc(a.name)+' · '+esc(a.series)+' '+esc(a.type.toLowerCase()),a.status,a.note,'Submitted '+new Date(a.created).toLocaleDateString('en-GB')):rm?stCard('Application '+esc(r),rm.s,rm.n,rm.t?'Decision published '+rm.t:''):a?stCard(esc(a.name)+' · '+esc(a.series)+' '+esc(a.type.toLowerCase()),'pending','','Submitted '+new Date(a.created).toLocaleDateString('en-GB')):`<div class="panel"><p>No decision found for that code and email yet. Staff publish decisions after review, so check back later. Make sure the code and the email match your application exactly.</p></div>`}}});
 
 /* administrator UI helpers */
 let onDrop=null;
@@ -321,23 +298,7 @@ const dl=(n,t,m)=>{const a=document.createElement('a');a.href=URL.createObjectUR
 V.admin=()=>({html:'<h1>Admin</h1><div id="adm" style="margin-top:1rem"></div>',after:()=>admin()});
 
 /* shared Supabase integration */
-async function initSupabase(){
- if(!sb)throw new Error('Supabase client library did not load.');
- const {data,error}=await sb.auth.getSession();if(error)throw error;
- authSession=data.session;authUser=data.session?.user||null;
- sb.auth.onAuthStateChange((event,session)=>{
-  authSession=session;authUser=session?.user||null;
-  if(event==='SIGNED_IN')setTimeout(async()=>{
-   await finishPendingApplication();
-   if(location.hash==='#status')renderStatus();
-   if(location.hash==='#admin')admin();
-  },0);
-  if(event==='SIGNED_OUT')setTimeout(()=>{
-   if(location.hash==='#status')renderStatus();
-   if(location.hash==='#admin')admin();
-  },0);
- });
-}
+async function initSupabase(){if(!sb)throw new Error('Supabase client library did not load.');}
 async function fetchSharedConfig(){
  const response=await fetch(SUPABASE_URL+'/functions/v1/fiws-admin',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({action:'public-config'})});
  const result=await response.json().catch(()=>({error:'Invalid shared settings response.'}));
@@ -385,99 +346,11 @@ function authErrorDetails(err){
  if(/expired|invalid.*link/i.test(message))parts.push('Request a fresh sign-in email and use only the newest link. Check that the redirect URL is allowlisted in Supabase.');
  return parts.join(' · ');
 }
-function showAuthRedirectError(){
- const p=new URLSearchParams(location.hash.slice(1));
- const code=p.get('error_code')||p.get('error');
- if(!code)return;
- const banner=document.createElement('section');
- banner.className='panel';banner.setAttribute('role','alert');banner.style.cssText='margin:1rem 0;border:1px solid var(--red,#d44);';
- const heading=document.createElement('h2');heading.textContent='Sign-in link error';
- const msg=document.createElement('p');msg.textContent=p.get('error_description')||p.get('error')||'Authentication could not be completed.';
- const meta=document.createElement('p');meta.className='muted';meta.textContent='Error code: '+code+(p.get('sb')?' · Provider: '+p.get('sb'):'');
- const advice=document.createElement('p');advice.textContent=/expired|otp_expired|access_denied/i.test(code)?'The link may have expired or already been used. Request a new link after the email limit resets.':'Return to the page where you requested the link and try again after checking the details above.';
- const close=document.createElement('button');close.className='btn sm ghost';close.type='button';close.textContent='Dismiss';close.onclick=()=>banner.remove();
- banner.append(heading,msg,meta,advice,close);
- const main=document.querySelector('#main');if(main)main.prepend(banner);
-}
-async function emailSignIn(email,target,createUser){
- const redirect=location.origin+location.pathname+target;
- const {error}=await sb.auth.signInWithOtp({email:email,options:{emailRedirectTo:redirect,shouldCreateUser:!!createUser}});
- if(error)throw error;
-}
-const pendingDraftKey='fiws.pendingApplication';
-async function persistApplication(draft){
- const {data,error:userError}=await sb.auth.getUser();if(userError)throw userError;
- const user=data.user;if(!user||!user.email_confirmed_at)throw new Error('Verify your email before submitting.');
- const payload={...draft.data,type:draft.type,mail:!!draft.mail,email:user.email};
- const code=ref();
- const {data:submitData,error:submitError}=await sb.functions.invoke('submit-application',{body:{applicant_id:user.id,reference_code:code,application_data:payload}});
- if(submitError)throw submitError;if(submitData?.error)throw new Error(submitData.error);
- sessionStorage.removeItem(pendingDraftKey);
- LS.set('myref',code);
- return {code:code,payload:payload};
-}
-function applicationReceipt(result){
- const box=$('#box');if(!box)return;
- box.innerHTML='<h2>Application received</h2><p>Your reference code:</p><p class="disp" style="font-size:2.4rem;color:var(--acc)">'+esc(result.code)+'</p><p class="muted">Your application is securely stored. Sign in with the same verified email on any device to check its status.</p><div class="row"><a class="btn" href="#status">Check status</a><button class="btn ghost" id="cp" type="button">Copy reference code</button></div>';
- $('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(result.code);toast('Reference code copied')}catch{toast('Copy unavailable. Your code is '+result.code)}};
-}
-async function finishPendingApplication(){
- const raw=sessionStorage.getItem(pendingDraftKey);if(!raw||!authUser)return;
- let draft;try{draft=JSON.parse(raw)}catch{sessionStorage.removeItem(pendingDraftKey);return}
- if(String(authUser.email||'').toLowerCase()!==String(draft.data?.email||'').toLowerCase())return;
- try{
-  const result=await persistApplication(draft);
-  if(location.hash==='#apply')applicationReceipt(result);else toast('Your application has been submitted.');
- }catch(e){console.error(e);toast(e.message||'Application could not be submitted.');}
-}
-function sendLinkPanel(title,description,hash,createUser){
- const box=$('#main');if(!box)return;
- box.innerHTML='<h1>'+esc(title)+'</h1><div class="panel" style="margin-top:1rem;max-width:560px"><p class="muted">'+esc(description)+'</p><form id="auth-link"><label>Email address<input name="email" type="email" maxlength="120" autocomplete="email" required></label><span class="er" id="auth-error" role="alert"></span><button class="btn" type="submit">Email me a sign-in link</button></form></div>';
- $('#auth-link').onsubmit=async e=>{e.preventDefault();const f=e.target,btn=$('button',f),out=$('#auth-error');btn.disabled=true;out.textContent='';try{await emailSignIn(clean(f.email.value,120).toLowerCase(),hash,createUser);f.innerHTML='<p><b>Check your inbox.</b></p><p class="muted">Open the sign-in link on this device. You will be returned to FIWS automatically.</p>'; }catch(x){out.textContent=authErrorDetails(x)}finally{btn.disabled=false}};
-}
-V.apply=()=>({html:'<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply as a driver or steward. A secure email sign-in verifies your address and lets you check your application from any device.</p><div class="panel" style="margin-top:1rem;max-width:860px" id="box"><form id="af" novalidate><div class="seg" role="group" aria-label="Applying as"><button type="button" data-ty="D">Driver</button><button type="button" data-ty="S">Steward</button></div><div class="f2" id="fl"></div><input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><label class="ck"><input type="checkbox" name="rules"><span>I have read the <a href="#rules">rules and driving standards</a> and will follow steward decisions.</span></label><span class="er" data-e="rules"></span><label class="ck"><input type="checkbox" name="priv"><span>I agree to the processing of this application as described in the <a href="#privacy">privacy notice</a>.</span></label><span class="er" data-e="priv"></span><label class="ck"><input type="checkbox" name="mail"><span>League staff may email me about my application status (optional).</span></label><button class="btn" type="submit">Continue securely</button></form></div>',after:()=>{
- const f=$('#af'),vals={};let type=aTy;
- const draw=()=>{$$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===type));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(type)).map(x=>fieldHTML(x,type,vals[x.k]||'')).join('')};
- const grab=()=>FIELDS.forEach(x=>{const el=f.elements[x.k];if(el)vals[x.k]=el.value});
- $$('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();type=b.dataset.ty;draw()});draw();
- f.onsubmit=async e=>{
-  e.preventDefault();const d=Object.fromEntries(new FormData(f));if(d.website)return;
-  const E={},v={};FIELDS.filter(x=>x.r.includes(type)).forEach(x=>{const z=clean(d[x.k],x.m||60);v[x.k]=z;const m=chk(x,z);if(m)E[x.k]=m});
-  if(!d.rules)E.rules='You must accept the rules to apply.';if(!d.priv)E.priv='Consent is required to process your application.';
-  $$('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){(f.elements[ks[0]]||f).focus();return}
-  if(Date.now()-LS.get('last',0)<30000){toast('Please wait a moment before submitting again.');return}
-  v.email=v.email.toLowerCase();
-  const draft={type:type==='S'?'Steward':'Driver',data:v,mail:!!d.mail};
-  if(authUser&&String(authUser.email||'').toLowerCase()===v.email){
-   const btn=$('button[type=submit]',f);btn.disabled=true;
-   try{const result=await persistApplication(draft);LS.set('last',Date.now());applicationReceipt(result)}
-   catch(x){toast(authErrorDetails(x))}finally{btn.disabled=false}
-   return;
-  }
-  sessionStorage.setItem(pendingDraftKey,JSON.stringify(draft));
-  const btn=$('button[type=submit]',f);btn.disabled=true;
-  try{
-   if(authUser)await sb.auth.signOut();
-   await emailSignIn(v.email,'#apply',true);
-   $('#box').innerHTML='<h2>Verify your email</h2><p>We have sent a secure sign-in link to <b>'+esc(v.email)+'</b>.</p><p class="muted">Open that link on this device. Your application draft is temporarily held until you verify your email, then it will be submitted automatically.</p>';
-  }catch(x){toast(authErrorDetails(x));btn.disabled=false}
- };
-}});
-async function renderStatus(){
- const out=$('#sr');if(!out)return;
- if(!authUser){
-  out.innerHTML='<div class="panel" style="max-width:620px"><p class="muted">Sign in with the email address used for your application. We will send a one-time link to verify it.</p><form id="sf"><label>Email address<input name="email" type="email" maxlength="120" autocomplete="email" required></label><span class="er" id="se" role="alert"></span><button class="btn" type="submit">Email me a sign-in link</button></form></div>';
-  $('#sf').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#se'),btn=$('button',f);btn.disabled=true;try{await emailSignIn(clean(f.email.value,120).toLowerCase(),'#status',false);f.innerHTML='<p><b>Check your inbox.</b></p><p class="muted">Open the sign-in link to view your applications.</p>'}catch(x){err.textContent=authErrorDetails(x)}finally{btn.disabled=false}};
-  return;
- }
- const {data,error}=await sb.from('applications').select('id,reference_code,application_data,status,staff_note,created_at,decided_at').order('created_at',{ascending:false});
- if(error){out.innerHTML='<div class="panel">'+esc(error.message)+'</div>';return}
- const rows=data||[];
- out.innerHTML='<div class="row" style="justify-content:space-between;align-items:center"><p class="muted">Signed in as '+esc(authUser.email||'')+'</p><button class="btn sm ghost" id="status-out">Sign out</button></div>'+
- (rows.length?rows.map(r=>{const a=r.application_data||{};return '<div style="margin-bottom:.8rem">'+stCard(esc(a.name||a.type||'Application')+' · '+esc(a.series||'')+' '+esc(String(a.type||'').toLowerCase()),r.status,r.staff_note,'Reference '+r.reference_code+' · Submitted '+new Date(r.created_at).toLocaleDateString('en-GB'))+'</div>'}).join(''):'<div class="panel"><p>No applications are associated with this verified email address.</p></div>');
- $('#status-out').onclick=async()=>{await sb.auth.signOut()};
-}
-V.status=()=>({html:'<h1>Application status</h1><div id="sr" aria-live="polite" style="margin-top:1.2rem;max-width:620px"></div>',after:()=>renderStatus()});
+async function applicationApi(action,payload={}){const response=await fetch(SUPABASE_URL+'/functions/v1/submit-application',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({action,...payload})});const result=await response.json().catch(()=>({error:'Invalid application service response.'}));if(!response.ok||result.error)throw new Error(result.error||'Application request failed.');return result}
+function applicationReceipt(result){const box=$('#box');if(!box)return;const saved=saveReferenceCookie(result.reference_code);box.innerHTML='<h2>Application received</h2><p>Your application has been securely submitted.</p><p>Your reference code:</p><p class="disp" style="font-size:2.1rem;color:var(--acc);overflow-wrap:anywhere">'+esc(result.reference_code)+'</p><p class="muted">This code is the key to checking your application status. Anyone who has it can view the status and staff note. Keep it safe and do not share it publicly.</p><p class="tbl-note">'+(saved?'We saved the code in an essential cookie on this device.':'Accept “Necessary only” cookies to save this code on this device, or copy it and keep it somewhere safe.')+'</p><div class="row"><a class="btn" href="#status">Check status</a><button class="btn ghost" id="cp" type="button">Copy reference code</button></div>';$('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(result.reference_code);toast('Reference code copied')}catch{toast('Copy unavailable. Please select the code above.')}}}
+V.apply=()=>({html:'<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply as a driver or steward. No account or email verification is required. After submitting, keep your reference code to check your application status.</p><div class="panel" style="margin-top:1rem;max-width:860px" id="box"><form id="af" novalidate><div class="seg" role="group" aria-label="Applying as"><button type="button" data-ty="D">Driver</button><button type="button" data-ty="S">Steward</button></div><div class="f2" id="fl"></div><input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><label class="ck"><input type="checkbox" name="rules"><span>I have read the <a href="#rules">rules and driving standards</a> and will follow steward decisions.</span></label><span class="er" data-e="rules"></span><label class="ck"><input type="checkbox" name="priv"><span>I agree to the processing of this application as described in the <a href="#privacy">privacy notice</a>.</span></label><span class="er" data-e="priv"></span><button class="btn" type="submit">Submit application</button></form></div>',after:()=>{const f=$('#af'),vals={};const draw=()=>{$$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===aTy));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(aTy)).map(x=>fieldHTML(x,aTy,vals[x.k]||'')).join('')};const grab=()=>FIELDS.forEach(x=>{const el=f.elements[x.k];if(el)vals[x.k]=el.value});$$('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();aTy=b.dataset.ty;draw()});draw();f.onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f));if(d.website)return;const E={},v={};FIELDS.filter(x=>x.r.includes(aTy)).forEach(x=>{const z=clean(d[x.k],x.m||60);v[x.k]=z;const m=chk(x,z);if(m)E[x.k]=m});if(!d.rules)E.rules='You must accept the rules to apply.';if(!d.priv)E.priv='Consent is required to process your application.';$$('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){(f.elements[ks[0]]||f).focus();return}if(Date.now()-LS.get('last',0)<30000){toast('Please wait a moment before submitting again.');return}v.email=v.email.toLowerCase();const payload={...v,type:aTy==='S'?'Steward':'Driver'},btn=$('button[type=submit]',f);btn.disabled=true;try{const result=await applicationApi('submit',{application_data:payload});LS.set('last',Date.now());applicationReceipt(result)}catch(x){toast(x.message||'Application could not be submitted.');btn.disabled=false}}}});
+async function renderStatus(){const out=$('#sr');if(!out)return;const savedRef=getReferenceCookie();out.innerHTML='<div class="panel" style="max-width:620px"><form id="sf" novalidate><label>Application reference code<input name="ref" maxlength="40" value="'+esc(savedRef)+'" autocomplete="off" autocapitalize="characters" spellcheck="false" required></label><button class="btn" type="submit">Check status</button></form></div><div id="status-result" aria-live="polite" style="margin-top:1rem;max-width:620px"></div>';const result=$('#status-result'),lookup=async value=>{const code=normRef(value);if(!/^FIWS-[A-F0-9]{26}$/.test(code)){result.innerHTML='<div class="panel"><p>Enter the complete code: FIWS- followed by 26 hexadecimal characters.</p></div>';return}result.innerHTML='<p class="muted">Checking application status…</p>';try{const data=await applicationApi('status',{reference_code:code}),a=data.application,d=a.application_data||{};result.innerHTML=stCard(esc(d.name||'Application')+' · '+esc(d.series||'')+' '+esc(String(d.type||'').toLowerCase()),a.status,a.staff_note,'Reference '+esc(a.reference_code)+' · Submitted '+new Date(a.created_at).toLocaleDateString('en-GB'));saveReferenceCookie(code)}catch(error){result.innerHTML='<div class="panel"><p>'+esc(error.message||'No application was found for that reference code.')+'</p></div>'}};$('#sf').onsubmit=async e=>{e.preventDefault();await lookup(e.target.elements.ref.value)};if(savedRef)await lookup(savedRef)}
+V.status=()=>({html:'<h1>Application status</h1><p class="muted" style="max-width:60ch">Enter the reference code shown after submission. If you accepted essential cookies on this device, your latest code is filled in automatically.</p><div id="sr" aria-live="polite" style="margin-top:1.2rem;max-width:620px"></div>',after:()=>renderStatus()});
 let adminTab='apps',adminRows=[];
 async function admin(){
  const R=$('#adm');if(!R)return;
@@ -678,9 +551,9 @@ function setLogo(){
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!document.documentElement.dataset.theme)setLogo()});
 
 /* legal */
-const legal={privacy:['Privacy notice',`<p>This notice explains what the FIWS website does with personal data.</p><h3>What we collect</h3><ul><li><b>Applications:</b> the details you type into the form (name or alias, email, Steam ID, date of birth, nationality, race and car numbers, control type, voice chat access, experience, pace, past series and motivation), plus a reference code and timestamp. Date of birth is used only to check eligibility: applicants must be 13 or older. Decisions may be published in an anonymised status file (a hashed code, the decision and a note) so you can check your status.</li><li><b>Preferences:</b> your last selected series and season, only if you accept preference storage.</li></ul><h3>Why and on what basis</h3><p>Application data is used only to assess and answer your application (legitimate interest and steps you request before joining). Emails about your decision are sent only if you tick the optional email box (consent). You can withdraw consent at any time by contacting league staff.</p><h3>Where it is stored</h3><p>This site has no tracking, analytics or advertising. Application details are stored in the FIWS Supabase project in the EU West region and are visible only to you and authorised league staff. A temporary application draft is held in this browser while you verify your email. If you email your application to league staff, they receive it through your email provider. Fonts are loaded from Google Fonts and the spreadsheet reader from cdnjs, so those providers receive your IP address when pages load.</p><h3>Retention and your rights</h3><p>Staff keep applications only as long as needed to run the season, then delete them. You may ask to access, correct or erase your data by contacting league staff. Clearing browser data does not delete your server-side application; contact league staff to request access, correction or deletion.</p><h3>Security</h3><p>Input is length-limited and cleaned, output is escaped, and administrator access is enforced by Supabase Auth and database Row Level Security. No browser-only site can guarantee server-grade protection, so avoid including sensitive personal details in free-text fields.</p>`],
+const legal={privacy:['Privacy notice',`<p>This notice explains what the FIWS website does with personal data.</p><h3>What we collect</h3><ul><li><b>Applications:</b> the details you type into the form (name or alias, email, Steam ID, date of birth, nationality, race and car numbers, control type, voice chat access, experience, pace, past series and motivation), plus a reference code and timestamp. Date of birth is used only to check eligibility: applicants must be 13 or older. Decisions may be published in an anonymised status file (a hashed code, the decision and a note) so you can check your status.</li><li><b>Preferences:</b> your last selected series and season, only if you accept preference storage.</li></ul><h3>Why and on what basis</h3><p>Application data is used only to assess and answer your application (legitimate interest and steps you request before joining). Your email address is used only as a contact detail for league staff; the site does not send automated application or status emails.</p><h3>Where it is stored</h3><p>This site has no tracking, analytics or advertising. Application details are stored in the FIWS Supabase project in the EU West region and are visible only to you and authorised league staff. Your email address is collected as a contact detail for league staff; FIWS does not send application or status emails. A reference code is the sole applicant credential for checking status. Anyone with the code can view the status and staff note, so keep it private. Fonts are loaded from Google Fonts and the spreadsheet reader from cdnjs, so those providers receive your IP address when pages load.</p><h3>Retention and your rights</h3><p>Staff keep applications only as long as needed to run the season, then delete them. You may ask to access, correct or erase your data by contacting league staff. Clearing browser data does not delete your server-side application; contact league staff to request access, correction or deletion.</p><h3>Security</h3><p>Input is length-limited and cleaned, output is escaped, and administrator access is enforced by a separate staff login with MFA and database Row Level Security. Applicant status is protected by a high-entropy reference code. No browser-only site can guarantee server-grade protection, so avoid including sensitive personal details in free-text fields.</p>`],
 terms:['Terms of use',`<p>By using this site and applying to race you agree to these terms.</p><ul><li>League standings and results are published by league staff and may be corrected after steward decisions.</li><li>Applying does not guarantee an entry. Staff may accept or reject any application.</li><li>Entrants must follow the <a href="#rules">rules and driving standards</a> and steward rulings, and behave respectfully towards other drivers and staff.</li><li>Cars, brands, track names and logos belong to their owners and appear for identification. FIWS is an independent community league.</li><li>The site is provided as is, without warranty. Do not attempt to interfere with its operation or other users' data.</li></ul>`],
-cookies:['Cookies & storage',`<p>FIWS sets no cookies. It uses your browser's local storage instead, in two groups:</p><ul><li><b>Necessary:</b> your consent choice, Supabase sign-in session, a temporary application draft during email verification, and your selected reference code. The site cannot provide secure application access without these.</li><li><b>Preferences (optional):</b> your last selected season. Only the season you last viewed is remembered, and only if you accept. The site always opens on FIWS.</li></ul><p>There are no analytics, advertising or tracking technologies. Change your choice at any time:</p><button class="btn sm" id="cs">Open cookie settings</button>`]};
+cookies:['Cookies & storage',`<p>FIWS uses one essential first-party cookie and local storage:</p><ul><li><b>Necessary cookie:</b> remembers your latest application reference code on this device so you can return to the status page without typing it again. It is set only after you accept the necessary-cookie choice. The reference code is also shown to you so you can save it yourself.</li><li><b>Preferences (optional):</b> your last selected season is remembered only if you accept preferences. The site always opens on FIWS.</li></ul><p>There are no analytics, advertising or tracking technologies. Change your choice at any time:</p><button class="btn sm" id="cs">Open cookie settings</button>`]};
 Object.keys(legal).forEach(k=>V[k]=()=>({html:`<h1>${legal[k][0]}</h1><div class="panel pr" style="margin-top:1.2rem">${legal[k][1]}<p class="tbl-note">Last updated 22 November 2026.</p></div>`,after:()=>{const b=$('#cs');if(b)b.onclick=cbar}}));
 /* shell */
 const NAV=[['home','Home'],['standings','Standings'],['results','Results'],['calendar','Calendar'],['entries','Entries'],['rules','Rules'],['apply','Apply'],['status','Status']];
@@ -691,7 +564,7 @@ const iconSvg=c=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><r
 function setIcon(){const l=$('link[rel=icon][type="image/svg+xml"]');if(l)l.href='data:image/svg+xml,'+encodeURIComponent(iconSvg(cur.series==='FITC'?'#e2716f':'#00AEEF'))}
 function setLogoLegacy(){const k=cur.series,L=$('#logo'),T=$('.brand b');L.innerHTML=mark;T.hidden=false;T.textContent=k;setIcon();const im=new Image();im.alt=k+' logo';im.onload=()=>{if(cur.series!==k)return;L.innerHTML='';L.append(im);T.hidden=true};im.src=((LS.get('logos',{})||{})[k])||LOGO[k]||LOGO.FIWS}
 let lastS;
-function cbar(){$('#cbw').innerHTML=`<div class="cb panel" role="dialog" aria-label="Storage consent"><b>Your storage choice.</b> This site sets no cookies and has no tracking. It can remember your series and season on this device.<div class="row" style="margin-top:.7rem"><button class="btn sm" id="c1">Accept preferences</button><button class="btn sm ghost" id="c2">Necessary only</button><a href="#cookies">Details</a></div></div>`;const s=p=>{LS.set('consent',{pref:p,t:Date.now()});if(!p)LS.del('pref');$('#cbw').innerHTML='';if(p)savePref()};$('#c1').onclick=()=>s(true);$('#c2').onclick=()=>s(false)}
+function cbar(){$('#cbw').innerHTML=`<div class="cb panel" role="dialog" aria-label="Storage consent"><b>Your storage choice.</b> This site uses an essential cookie to remember your latest application reference code. Optional preferences remember your selected season.<div class="row" style="margin-top:.7rem"><button class="btn sm" id="c1">Accept preferences</button><button class="btn sm ghost" id="c2">Necessary only</button><a href="#cookies">Details</a></div></div>`;const s=p=>{LS.set('consent',{pref:p,t:Date.now()});if(!p)LS.del('pref');if(pendingReferenceCookie)saveReferenceCookie(pendingReferenceCookie);$('#cbw').innerHTML='';if(p)savePref()};$('#c1').onclick=()=>s(true);$('#c2').onclick=()=>s(false)}
 let first=true;
 function render(soft){cleanup();document.documentElement.dataset.series=cur.series;if(lastS!==cur.series){lastS=cur.series;setLogo()}const h=(location.hash||'#home').slice(1),k=V[h]?h:'home',v=V[k](),run=()=>{$('#main').innerHTML=v.html;v.after&&v.after();bindPick();$$('#nav a').forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+k)||a.removeAttribute('aria-current'));$$('#nav a').forEach(a=>{if(a.hasAttribute('aria-current'))a.setAttribute('aria-current','page')});document.title=(k==='home'?'':(legal[k]?legal[k][0]:NAV.find(n=>n[0]===k)?.[1]||'Admin')+' – ')+'FIWS – Formula Imperial Worldwide Series';if(!soft&&!first){$('#main').focus({preventScroll:true});scrollTo(0,0)}first=false};
  !RM&&document.startViewTransition?document.startViewTransition(run):run()}
@@ -703,8 +576,8 @@ addEventListener('dragover',e=>{if(!hasF(e))return;e.preventDefault();e.dataTran
 addEventListener('dragleave',e=>{if(!e.relatedTarget)zone(false)});
 addEventListener('drop',e=>{if(!hasF(e))return;e.preventDefault();zone(false);const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(onDrop&&f)onDrop(f)});
 load();
-try{await initSupabase();await loadSharedData();await finishPendingApplication()}catch(e){console.error('FIWS shared backend:',e);toast('Shared data could not be loaded. Showing the bundled workbook.')} 
+try{await initSupabase();await loadSharedData()}catch(e){console.error('FIWS shared backend:',e);toast('Shared data could not be loaded. Showing the bundled workbook.')} 
 const pf=LS.get('pref',null);cur.series=series().includes('FIWS')?'FIWS':series()[0];cur.key=pf&&D.some(s=>s.key===pf.key&&s.sheet===cur.series)?pf.key:defKey(cur.series);
-if(!LS.get('consent',null))cbar();render();showAuthRedirectError();
+if(!LS.get('consent',null))cbar();render();
 })();
 </script></body></html>
