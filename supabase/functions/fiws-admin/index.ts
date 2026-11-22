@@ -175,6 +175,14 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return reply({ error: "Invalid JSON." }, 400); }
   const action = String(body.action || "");
   try {
+    if (action === "public-config") {
+      const { data, error } = await db.from("site_settings")
+        .select("setting_key,setting_value")
+        .in("setting_key", ["workbook", "team_colors", "logos"]);
+      if (error) throw error;
+      const settings = Object.fromEntries((data || []).map((row: any) => [row.setting_key, row.setting_value]));
+      return reply({ settings });
+    }
     if (action === "bootstrap") {
       const expected = Deno.env.get("FIWS_BOOTSTRAP_SECRET") || "";
       const supplied = req.headers.get("x-fiws-bootstrap-secret") || "";
