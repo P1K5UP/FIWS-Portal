@@ -294,13 +294,13 @@ V.apply=()=>({html:`<h1>Apply</h1><p class="muted" style="max-width:60ch">Apply 
 <label class="ck"><input type="checkbox" name="priv"><span>I agree to the processing of this application as described in the <a href="#privacy">privacy notice</a>.</span></label><span class="er" data-e="priv"></span>
 <label class="ck"><input type="checkbox" name="mail"><span>League staff may email me about my application status (optional).</span></label>
 <button class="btn" type="submit">Submit application</button></form></div>`,after:()=>{
- const f=$('#af'),vals={};const draw=()=>{$$$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===aTy));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(aTy)).map(x=>fieldHTML(x,aTy,vals[x.k]||'')).join('')};
+ const f=$('#af'),vals={};const draw=()=>{$('[data-ty]',f).forEach(b=>b.setAttribute('aria-pressed',b.dataset.ty===aTy));$('#fl').innerHTML=FIELDS.filter(x=>x.r.includes(aTy)).map(x=>fieldHTML(x,aTy,vals[x.k]||'')).join('')};
  const grab=()=>FIELDS.forEach(x=>{const el=f.elements[x.k];if(el)vals[x.k]=el.value});
- $$$('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();aTy=b.dataset.ty;draw()});draw();
+ $('[data-ty]',f).forEach(b=>b.onclick=()=>{grab();aTy=b.dataset.ty;draw()});draw();
  f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f));if(d.website)return;const E={},v={};
   FIELDS.filter(x=>x.r.includes(aTy)).forEach(x=>{const s=clean(d[x.k],x.m||60);v[x.k]=s;const m=chk(x,s);if(m)E[x.k]=m});
   if(!d.rules)E.rules='You must accept the rules to apply.';if(!d.priv)E.priv='Consent is required to process your application.';
-  $$$('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){const el=f.elements[ks[0]];(el||f).focus();return}
+  $('[data-e]',f).forEach(x=>x.textContent=E[x.dataset.e]||'');const ks=Object.keys(E);if(ks.length){const el=f.elements[ks[0]];(el||f).focus();return}
   if(Date.now()-LS.get('last',0)<30000){toast('Please wait a moment before submitting again.');return}
   v.email=v.email.toLowerCase();const rec={ref:ref(),type:aTy==='S'?'Steward':'Driver',...v,mail:!!d.mail,status:'pending',note:'',created:new Date().toISOString()},a=apps();
   if(a.some(x=>x.email===rec.email&&x.status==='pending'&&x.type===rec.type)){toast('You already have a pending application of this type.');return}
