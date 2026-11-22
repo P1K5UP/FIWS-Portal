@@ -415,6 +415,7 @@ const latest=s=>{for(let i=Math.min(s.done<0?s.res.length-1:s.done,s.res.length-
 const cl=[];const cleanup=()=>{while(cl.length)cl.pop()()};
 /* timing tower */
 function tower(el,s,kind,limit){
+ el.classList.add('tower');
  const list=kind==='con'?s.con:s.drv,n=Math.min(limit,list.length),H=44,max=Math.max(0,s.done);
  el.innerHTML=`<div class="th"><span><i class="live" ${s.status==='ONGOING'?'':'hidden'}></i>${kind==='con'?'Constructors':'Drivers'} · Season ${esc(s.num)}</span><small class="lb"></small></div><div class="tb" style="height:${n*H}px"></div><div class="sc"><button class="btn sm" aria-label="Replay season">Replay</button><input type="range" min="0" max="${max}" value="${max}" aria-label="Round"><span class="rl"></span></div>`;
  const tb=$('.tb',el),rows=list.map(d=>{const i=info(s,d.name),r=document.createElement('div');r.className='tr';r.innerHTML=`<b class="pos"></b><i class="tc" style="background:${tcol(kind==='con'?d.name:i.team||d.name,s.key)}"></i><span class="who"><strong>${esc(d.name)}</strong><small>${kind==='con'?'':esc([i.num,i.nat,i.team].filter(Boolean).join(' · '))}</small></span><span class="dl"></span><span class="pt"></span>`;tb.append(r);return r});
