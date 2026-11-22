@@ -172,19 +172,19 @@ Deno.serve(async (req) => {
       const expected = Deno.env.get("FIWS_BOOTSTRAP_SECRET") || "";
       const supplied = req.headers.get("x-fiws-bootstrap-secret") || "";
       if (expected.length < 40 || !same(expected, supplied)) return json({ error: "Bootstrap is unavailable or unauthorized." }, 403);
-      const { data: state } = await db.from("fiws_admin_bootstrap_state").select("completed_at").eq("singleton", true).single();
-      const { count } = await db.from("fiws_admin_accounts").select("id", { count: "exact", head: true });
-      if (state?.completed_at || (count || 0) > 0) return json({ error: "Bootstrap has already been completed." }, 409);
       const username = String(body.username || "").trim().toLowerCase();
       const displayName = String(body.display_name || "").trim();
       const password = String(body.password || "");
       if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || displayName.length < 1 || displayName.length > 80 || password.length < 14 || password.length > 128) return json({ error: "Username, display name or password does not meet the required format." }, 400);
       const passwordHash = await hashPassword(password);
-      const { data: owner, error } = await db.from("fiws_admin_accounts").insert({
-        username, display_name: displayName, admin_rank: "owner", password_hash: passwordHash, password_salt: "embedded-in-argon2id-hash",
-      }).select("id").single();
-      if (error) return json({ error: "Could not create the initial owner account." }, 500);
-      await db.from("fiws_admin_bootstrap_state").update({ completed_at: new Date().toISOString(), completed_by: owner.id }).eq("singleton", true);
+      const { data: ownerId, error: bootstrapError } = await db.rpc("fiws_bootstrap_admin", {
+        p_username: username, p_display_name: displayName, p_password_hash: passwordHash,
+      });
+      if (bootstrapError) {
+        if (/already been completed|already consumed/i.test(bootstrapError.message || "")) return json({ error: "Bootstrap has already been completed." }, 409);
+        throw bootstrapError;
+      }
+      const owner = { id: ownerId };
       const token = await newSession(owner.id, false, 15);
       await audit({ id: owner.id, username, admin_rank: "owner" }, "bootstrap.owner_created", "admin", owner.id);
       return json({ success: true, enrollment_required: true, session: token, username });
