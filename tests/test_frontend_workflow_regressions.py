@@ -422,6 +422,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("Annulled Rounds", page)
         self.assertIn("Points retained", page)
         self.assertIn("isAnnulledRound=c=>/ANN?UL+ED/i", page)
+        self.assertIn("dateCell?.w", page)
+        self.assertIn("dateText+' ANNULED'", page)
 
     def test_nationality_names_are_normalized_to_three_letter_codes(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
