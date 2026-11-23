@@ -472,7 +472,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn(".home-highlights>*{min-height:0}", page)
         self.assertIn(".home-result{height:max-content;min-height:0;align-self:start", page)
         self.assertIn("0 0 0 1px color-mix(in srgb,var(--sky) 13%,transparent)", page)
-        self.assertNotIn("box-shadow:0 12px 28px -22px var(--ink)", page)
+        self.assertGreater(page.rfind("box-shadow:0 10px 22px -18px var(--shadow-color)"), page.find("box-shadow:0 12px 28px -22px var(--ink)"))
 
     def test_entries_page_has_refined_team_cards_and_range_tag_layout(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
