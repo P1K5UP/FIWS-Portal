@@ -89,6 +89,7 @@ jobs:
           cp index.html manifest.webmanifest preview/
           cp robots.txt sitemap.xml preview/
           cp -R assets data preview/
+          cp docs/redesign-preview.md preview/README.md
           touch preview/.nojekyll
       - name: Upload isolated preview
         if: github.event_name == 'pull_request'
