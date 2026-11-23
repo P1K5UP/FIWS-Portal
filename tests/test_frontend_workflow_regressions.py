@@ -78,6 +78,31 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("current!==normRef(code)", clear)
         self.assertIn("Max-Age=0", clear)
 
+
+    def test_public_seasons_hide_future_and_provisional_entries(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("const publicSeasons=()=>D.filter(s=>!isFutureSeason(s))", page)
+        self.assertIn("['FUTURE','UPCOMING','PLANNED','PRIVATE','UNCONFIRMED']", page)
+        self.assertIn("o.entriesVisible=o.status==='FINISHED'||o.entriesConfirmed", page)
+        self.assertIn("Lineups not confirmed", page)
+        self.assertIn("CONFIRMED", page)
+
+    def test_calendar_includes_scheduled_rounds_and_marks_next_race(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        calendar = page.split("V.calendar=()=>", 1)[1].split("V.entries=()=>", 1)[0]
+        self.assertIn("c.date>=t", calendar)
+        self.assertIn("NEXT RACE · ROUND", calendar)
+        self.assertIn("isNext?' next':''", calendar)
+        self.assertIn("visible=s.cal.map", calendar)
+
+    def test_admin_remember_device_has_server_and_client_expiry(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        function = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
+        self.assertIn("Remember this device for 30 days", page)
+        self.assertIn("expires:Date.now()+30*86400000", page)
+        self.assertIn("body.remember_device === true ? 30 * 24 * 60 : 8 * 60", function)
+        self.assertIn("sessionMinutes * 60000", function)
+
     def test_decided_application_cleanup_is_scheduled_for_24_hours(self):
         migration = (ROOT / "supabase/migrations/20261122210551_fiws_auto_delete_decided_applications_after_24h.sql").read_text(encoding="utf-8")
         self.assertIn("*/5 * * * *", migration)
