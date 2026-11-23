@@ -284,6 +284,8 @@ Deno.serve(async (req) => {
       });
       if (confirmError) throw confirmError;
       if (!confirmed) return reply({ error: "That authenticator code has already been used or the enrollment session expired." }, 409);
+      const sessionMinutes = body.remember_device === true ? 30 * 24 * 60 : 8 * 60;
+      await mustSucceed(db.from("fiws_admin_sessions").update({ expires_at: new Date(Date.now() + sessionMinutes * 60000).toISOString() }).eq("id", auth.row.id));
       return reply({ success: true, recovery_codes: codes, admin: { username: account.username, display_name: account.display_name, rank: account.admin_rank } });
     }
     if (action === "session") {
