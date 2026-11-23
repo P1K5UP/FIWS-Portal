@@ -8,7 +8,7 @@ SOURCES = (ROOT / "src/index.template.html", ROOT / "index.html")
 
 
 def extract_css(source: str, path: Path) -> str:
-    blocks = re.findall(r"<style\\b[^>]*>(.*?)</style>", source, flags=re.I | re.S)
+    blocks = re.findall(r"<style\b[^>]*>(.*?)</style>", source, flags=re.I | re.S)
     if len(blocks) != 1:
         raise AssertionError(f"{path}: expected exactly one style block, found {len(blocks)}")
     return blocks[0]
@@ -32,7 +32,7 @@ def brace_balance(css: str) -> int:
         elif quote:
             if escaped:
                 escaped = False
-            elif char == "\\\\":
+            elif char == "\\":
                 escaped = True
             elif char == quote:
                 quote = None
@@ -67,7 +67,7 @@ class FrontendCssIntegrityTests(unittest.TestCase):
         for path in SOURCES:
             with self.subTest(path=path.name):
                 css = extract_css(path.read_text(encoding="utf-8"), path)
-                match = re.search(r"\\.tr\\s*\\{([^{}]*)\\}\\s*\\.pos\\s*\\{", css)
+                match = re.search(r"\.tr\s*\{([^{}]*)\}\s*\.pos\s*\{", css)
                 self.assertIsNotNone(match, f"{path}: .tr rule must close before .pos")
                 self.assertIn("transition:", match.group(1))
                 self.assertIn("transform", match.group(1))
