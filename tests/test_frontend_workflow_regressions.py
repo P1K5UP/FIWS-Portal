@@ -194,6 +194,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("playoffsActive?b.total-a.total:b.regularPoints-a.regularPoints", page)
             self.assertIn("Wins (+2)", page)
             self.assertIn("Stages (+0.5)", page)
+            self.assertIn("data.playoffsActive?'Playoff total':'Projected total'", page)
             self.assertIn("playoffStandingsMarkup(s,true)", page)
             self.assertIn('id="playoff-standings"', page)
             self.assertNotIn("Any reward designated as white", page)
