@@ -400,6 +400,7 @@ body.more-open{overflow:hidden}
 :root[data-series=FITC] .live{background:var(--sky);box-shadow:0 0 0 2px color-mix(in srgb,var(--sky) 22%,transparent)}
 @media(max-width:700px){.home-intro .row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}.home-intro .btn{justify-content:center;min-width:0;padding:.72rem .65rem;font-size:1rem}.discord-join{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.home-intro .btn,.home-info .btn,.discord-join,.home-intro .btn::after,.mobile-brand,.mobile-more-panel{transition:none!important;animation:none!important}}
+.fiws-secret-confetti{position:fixed;inset:0;width:100%;height:100%;z-index:9999;pointer-events:none;display:block}
 </style></head><body>
 <button class="skip btn" id="skip">Skip to content</button>
 <a class="mobile-brand" href="#home" aria-label="FIWS home"><span id="mobile-logo"></span></a>
@@ -960,6 +961,45 @@ function setLogo(){
  img.onerror=()=>{L.innerHTML=mark;T.hidden=false;syncMobileLogo()};img.src=src;
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!document.documentElement.dataset.theme)setLogo()});
+
+// Undocumented logo easter egg: ten quick taps on either logo.
+(()=>{
+ const targets=[$('#logo'),$('#mobile-logo')].filter(Boolean);
+ let taps=0,lastTap=0;
+ targets.forEach(target=>target.addEventListener('click',()=>{
+  const now=Date.now();taps=now-lastTap<3200?taps+1:1;lastTap=now;
+  if(taps>=10){taps=0;launchSecretConfetti()}
+ }));
+ function launchSecretConfetti(){
+  const canvas=document.createElement('canvas');canvas.className='fiws-secret-confetti';canvas.setAttribute('aria-hidden','true');
+  document.body.appendChild(canvas);
+  const ctx=canvas.getContext('2d');if(!ctx){canvas.remove();return}
+  const dpr=Math.min(window.devicePixelRatio||1,2),w=window.innerWidth,h=window.innerHeight;
+  canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const colors=['#00AEEF','#E53945'],count=reduced?30:86;
+  const pieces=Array.from({length:count},()=>({
+   x:w*(.12+Math.random()*.76),y:-20-Math.random()*h*.35,
+   vx:reduced?0:(Math.random()-.5)*5,vy:reduced?0:2+Math.random()*5,
+   spin:Math.random()*Math.PI,turn:reduced?0:(Math.random()-.5)*.22,
+   size:4+Math.random()*6,color:colors[Math.floor(Math.random()*colors.length)],
+   circle:Math.random()>.55
+  }));
+  const start=performance.now(),duration=reduced?700:1450;
+  function frame(now){
+   const progress=Math.min(1,(now-start)/duration);ctx.clearRect(0,0,w,h);
+   pieces.forEach(p=>{
+    if(!reduced){p.x+=p.vx;p.y+=p.vy;p.vy+=.075;p.spin+=p.turn}
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.spin);ctx.globalAlpha=1-progress*.9;ctx.fillStyle=p.color;
+    if(p.circle){ctx.beginPath();ctx.arc(0,0,p.size*.48,0,Math.PI*2);ctx.fill()}
+    else ctx.fillRect(-p.size*.5,-p.size*.7,p.size,p.size*1.4);
+    ctx.restore();
+   });
+   if(progress<1)requestAnimationFrame(frame);else canvas.remove();
+  }
+  requestAnimationFrame(frame);
+ }
+})();
 
 /* legal */
 const legal={privacy:['Privacy notice',`<p>This notice explains what the FIWS website does with personal data.</p><h3>What we collect</h3><ul><li><b>Applications:</b> the details you type into the form (name or alias, email, Steam ID, date of birth, nationality, race and car numbers, control type, voice chat access, experience, pace, past series and motivation), plus a reference code and timestamp. Date of birth is used only to check eligibility: applicants must be 13 or older. A high-entropy reference code is generated for each application and is required to check its status.</li><li><b>Preferences:</b> your last selected series and season, only if you accept preference storage.</li></ul><h3>Why and on what basis</h3><p>Application data is used only to assess and answer your application (legitimate interest and steps you request before joining). Your email address is used only as a contact detail for league staff; the site does not send automated application or status emails.</p><h3>Where it is stored</h3><p>This site has no tracking, analytics or advertising. Application details are stored in the FIWS Supabase project in the EU West region and are visible to authorised league staff. The status endpoint returns only the applicant name, application type, series, decision and staff note to someone who enters the correct high-entropy reference code; it does not return the contact email or full application. Keep your code private. Your email address is used only as a contact detail for league staff; FIWS does not send application or status emails. Fonts are loaded from Google Fonts and the spreadsheet reader from cdnjs, so those providers receive your IP address when pages load.</p><h3>Retention and your rights</h3><p>Pending applications remain stored until staff make a decision or delete them. Accepted and rejected applications are automatically deleted 24 hours after the decision (the cleanup runs every five minutes, so deletion may occur up to five minutes later). You may ask to access, correct or erase your data earlier by contacting league staff. Clearing browser data does not delete your server-side application.</p><h3>Security</h3><p>Application input is validated and length-limited, output is escaped, and direct browser access to application records is blocked. Submissions and status checks are handled by a server-side function with network rate limiting. Administrator access uses a separate staff login with Argon2id password hashing, mandatory authenticator-app MFA, revocable sessions and server-side permission checks. Your reference code is the credential for status lookup, so do not share it publicly. Avoid including unnecessary sensitive personal details in free-text fields.</p>`],
