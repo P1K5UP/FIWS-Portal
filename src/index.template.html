@@ -889,7 +889,7 @@ V.entries=()=>{
  }
 };
 function initRuleAccordion(){
- $('.rule-section').forEach(section=>{
+ $$('.rule-section').forEach(section=>{
   const summary=$('summary',section),body=$('.rule-body',section);
   if(!summary||!body)return;
   summary.addEventListener('click',event=>{
@@ -908,7 +908,7 @@ function initRuleAccordion(){
     });
    }else{
     section.classList.add('is-closing');
-    body.style.height=body.scrollHeight+'px';body.style.opacity='1';body.style.transform='translateY(0)';body.style.paddingBottom='1.1rem';
+    body.style.height=body.scrollHeight+'px';body.style.opacity='1';body.style.transform='translateY(0)';
     void body.offsetHeight;
     requestAnimationFrame(()=>{
      body.style.height='0px';body.style.opacity='0';body.style.transform='translateY(-7px)';
