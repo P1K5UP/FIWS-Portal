@@ -172,7 +172,13 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             "one mandatory pitstop",
             "12 penalty points",
             "Round 18",
-            "best four results",
+            "top four drivers qualify",
+            "500 points",
+            "Points",
+            "Specials",
+            "R19 to R23",
+            "highest accumulated points",
+            "white / non-championship",
             "Reverse Gear Glitch abuse",
         ):
             self.assertIn(phrase, rules)
