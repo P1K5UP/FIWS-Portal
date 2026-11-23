@@ -189,11 +189,28 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("paintLeaderboardRound(el,s,round)", page)
         self.assertIn("paintLeaderboardRound(el,s,max)", page)
         self.assertIn("grand prix", page)
-        self.assertIn("return 'R'+c.n+' • '+code", page)
+        self.assertIn("return 'R'+c.n+' - '+code", page)
         self.assertIn("function leaderboardPhoneText(s)", page)
         self.assertIn(r"/\p{Extended_Pictographic}/gu", page)
         self.assertIn("esc(leaderboardPhoneText(d.name))", page)
         self.assertIn("leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · '))", page)
+
+    def test_former_grid_status_starts_after_workbook_exit_round(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("function entryGridExitRound(s,name)", page)
+        self.assertIn(r"/\bR\s*(\d+)\s*[-–—]\s*(\d*)/gi", page)
+        self.assertIn("return Number(currentRound)>entryExit", page)
+        self.assertIn("row.classList.toggle('former-grid',former)", page)
+        self.assertIn("formerTag.textContent=formerGridExitLabel(s,d.name)", page)
+        self.assertIn("Left after R", page)
+        self.assertIn(".tr.former-grid .dl,.tr.former-grid .pt{color:var(--mute)}", page)
+
+    def test_mobile_interface_uses_no_arrow_glyphs_or_text_chevrons(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(r"\u2190-\u21FF", page)
+        self.assertIn(".home-intro .btn::after{content:none!important}", page)
+        self.assertIn('<svg class="chev" viewBox="0 0 16 16"', page)
+        self.assertNotIn('>◐</button>', page)
 
     def test_standings_includes_all_entry_drivers_even_without_points_rows(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
@@ -219,7 +236,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertNotIn("If the panel does not appear", page)
         self.assertIn("Join the server", page)
-        self.assertIn("https://discord.com/servers/1430272514591817861", page)
+        self.assertIn("https://discord.gg/9uUdUCVnNN", page)
+        self.assertNotIn("https://discord.com/servers/1430272514591817861", page)
         self.assertNotIn("Live server preview loads automatically", page)
         self.assertIn("The FIWS paddock.", page)
 
