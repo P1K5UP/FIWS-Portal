@@ -203,7 +203,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("row.classList.toggle('former-grid',former)", page)
         self.assertIn("formerTag.textContent=formerGridExitLabel(s,d.name)", page)
         self.assertIn("Left after R", page)
-        self.assertIn(".tr.former-grid .pt{color:var(--mute)}", page)
+        self.assertIn(".tr.former-grid .dl,.tr.former-grid .pt{color:var(--mute)}", page)
 
     def test_mobile_interface_uses_no_arrow_glyphs_or_text_chevrons(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
