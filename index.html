@@ -986,7 +986,7 @@ const openMore=()=>{moreSheet.hidden=false;document.body.classList.add('more-ope
 moreButton.onclick=()=>moreSheet.hidden?openMore():closeMore();
 $('#mobile-more-close').onclick=()=>closeMore();
 moreSheet.addEventListener('click',e=>{if(e.target===moreSheet)closeMore()});
-$('[data-more-link]').forEach(a=>a.addEventListener('click',()=>closeMore(false)));
+$$('[data-more-link]').forEach(a=>a.addEventListener('click',()=>closeMore(false)));
 $('#more-cookie-settings').onclick=()=>{closeMore(false);cbar()};
 addEventListener('keydown',e=>{if(e.key==='Escape'&&!moreSheet.hidden)closeMore()});
 const toggleTheme=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark';setLogo()};
