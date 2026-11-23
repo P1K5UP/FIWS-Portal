@@ -350,8 +350,10 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_discreet_staff_access_and_desktop_full_navigation(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn('class="staff-access" href="#admin" aria-label="Staff access"', page)
-        self.assertIn("@media(min-width:701px){.bar{gap:.65rem}", page)
-        self.assertIn(".nav-ico{display:block;width:16px;height:16px", page)
+        self.assertIn("@media(min-width:701px){.bar{gap:.8rem", page)
+        self.assertIn(".nav-ico{display:block;width:15px;height:15px", page)
+        self.assertIn(".mobile-apply{grid-column:4;grid-row:1", page)
+        self.assertIn("width:68px;height:68px;margin-top:-18px", page)
 
     def test_latest_race_card_includes_available_event_details(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
