@@ -160,7 +160,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("all:unset;position:fixed", page)
             self.assertIn("background:transparent!important;box-shadow:none!important", page)
             self.assertNotIn("logo-tapped", page)
-            self.assertIn("background:transparent;box-shadow:none", page)
+            self.assertIn("background:transparent!important;box-shadow:none!important", page)
             self.assertIn("max-width:min(144px,38vw);max-height:44px", page)
             self.assertIn(".fiws-secret-confetti{position:fixed;inset:0", page)
             self.assertIn("const targets=[$('#logo'),$('#mobile-logo')]", page)
