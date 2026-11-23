@@ -335,7 +335,7 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
 .mobile-more-head h2{margin:0;font:700 1.45rem 'Barlow Condensed';text-transform:uppercase}
 .mobile-more-close{border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--text);padding:.45rem .7rem;font:inherit}
 .mobile-more-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}
-.mobile-more-links a,.mobile-more-links button{display:flex;align-items:center;gap:.65rem;min-height:52px;padding:.7rem .8rem;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--text);text-decoration:none;font:600 .95rem inherit;text-align:left}
+.mobile-more-links a,.mobile-more-links button{display:flex;align-items:center;gap:.65rem;min-height:52px;padding:.7rem .8rem;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);text-decoration:none;font-family:inherit;font-size:.95rem;font-weight:600;text-align:left}
 .mobile-more-links a[aria-current=page]{border-color:var(--sky);background:color-mix(in srgb,var(--sky) 12%,var(--panel))}
 .mobile-more-links svg{width:21px;height:21px;fill:none;stroke:var(--acc);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
 body.more-open{overflow:hidden}
@@ -399,7 +399,7 @@ body.more-open{overflow:hidden}
 .cancel-mark{display:inline-block;color:#ef9292;font:700 .82em Barlow Condensed;letter-spacing:.035em;white-space:nowrap}
 :root[data-series=FITC] .live{background:var(--sky);box-shadow:0 0 0 2px color-mix(in srgb,var(--sky) 22%,transparent)}
 @media(max-width:700px){.home-intro .row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}.home-intro .btn{justify-content:center;min-width:0;padding:.72rem .65rem;font-size:1rem}.discord-join{width:100%;justify-content:center}}
-@media(prefers-reduced-motion:reduce){.home-intro .btn,.home-info .btn,.discord-join,.home-intro .btn::after,.mobile-brand{transition:none!important;animation:none!important}}
+@media(prefers-reduced-motion:reduce){.home-intro .btn,.home-info .btn,.discord-join,.home-intro .btn::after,.mobile-brand,.mobile-more-panel{transition:none!important;animation:none!important}}
 </style></head><body>
 <button class="skip btn" id="skip">Skip to content</button>
 <a class="mobile-brand" href="#home" aria-label="FIWS home"><span id="mobile-logo"></span></a>
