@@ -755,7 +755,7 @@ async function adminLoad(force=adminTab==='apps'){
  if(force||!adminRowsLoaded){let result;try{result=await fiwsAdminApi('applications-list')}catch(error){R.innerHTML='<div class="panel">'+esc(error.message)+'</div>';return}adminRows=result.applications||[];adminRowsLoaded=true;}
  const tabs=[['apps','Applications ('+adminRows.length+')'],...(adminIdentity.rank!=='moderator'?[['data','Standings data'],['col','Team colours'],['brand','Logos']]:[]),['logbook','Staff logbook'],...(adminIdentity.rank==='owner'?[['admins','Administrators']]:[]),...(adminIdentity.rank!=='moderator'?[['settings','Settings']]:[]),['sec','Account']];
  R.innerHTML='<div class="admin-shell"><div class="tabs seg admin-toolbar" style="display:flex;flex-wrap:wrap">'+tabs.map(x=>'<button data-at="'+x[0]+'" aria-pressed="'+(adminTab===x[0])+'">'+x[1]+'</button>').join('')+'<button id="admin-out">Sign out</button></div><div id="admin-content" class="admin-content"></div></div>';
- $('[data-at]').forEach(b=>b.onclick=()=>{adminTab=b.dataset.at;adminLoad(adminTab==='apps')});
+ $$('[data-at]').forEach(b=>b.onclick=()=>{adminTab=b.dataset.at;adminLoad(adminTab==='apps')});
  $('#admin-out').onclick=async()=>{try{await fiwsAdminApi('logout')}catch{}adminToken=null;adminIdentity=null;clearRememberedAdmin();admin()};
  const P=$('#admin-content');
  if(adminTab==='apps'){
