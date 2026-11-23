@@ -155,6 +155,15 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn(".ft{padding-bottom:calc(5.8rem + env(safe-area-inset-bottom,0px))}", page)
             self.assertIn("main{padding-bottom:calc(6.8rem + env(safe-area-inset-bottom,0px));scroll-margin-bottom:6.8rem}", page)
             self.assertIn("const NAV_ICONS=", page)
+            self.assertIn('data-nav="rules"', page)
+            self.assertIn('id="nav-more"', page)
+            self.assertIn('id="mobile-more" hidden', page)
+            self.assertIn('aria-modal="true"', page)
+            self.assertIn('data-more-link="admin"', page)
+            self.assertIn("const openMore=()=>{moreSheet.hidden=false", page)
+            self.assertIn("$('#theme-mobile').onclick=toggleTheme", page)
+            self.assertIn(".nav a[data-nav=rules],.nav a[data-nav=apply],.nav a[data-nav=status]{display:none}", page)
+            self.assertIn(".mobile-more{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}", page)
 
     def test_leaderboard_round_titles_are_shortened_only_on_phones(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
