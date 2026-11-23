@@ -174,14 +174,26 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             "Round 18",
             "top four drivers qualify",
             "500 points",
-            "Points",
-            "Specials",
+            "+2 points for each race win",
+            "+0.5 points for each stage win",
             "R19 to R23",
-            "highest accumulated points",
-            "white / non-championship",
+            "most points after R23 wins the championship",
             "Reverse Gear Glitch abuse",
         ):
             self.assertIn(phrase, rules)
+
+    def test_playoff_standings_use_r18_qualifiers_and_season_wide_bonuses(self):
+        for relative in ("src/index.template.html", "index.html"):
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("playoffStandingsData", page)
+            self.assertIn("playoffRoundIndex(s,18)", page)
+            self.assertIn("result?.win", page)
+            self.assertIn("result?.stage", page)
+            self.assertIn("500+bonus.wins*2+bonus.stages*.5+playoffPoints", page)
+            self.assertIn("playoffStandingsMarkup(s,true)", page)
+            self.assertIn('id="playoff-standings"', page)
+            self.assertNotIn("Any reward designated as white", page)
+            self.assertNotIn("Specials</b> award", page)
 
     def test_phone_navigation_is_an_icon_only_bottom_dock_and_footer_is_reachable(self):
         for relative in ("src/index.template.html", "index.html"):
