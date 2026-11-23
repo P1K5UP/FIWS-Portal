@@ -570,12 +570,13 @@ const playoffRoundIndex=(s,n)=>(s.cal||[]).findIndex(c=>Number(c?.n)===n);
 const playoffStandingsData=s=>{
  if(!isFiwsSeasonTwo(s))return null;
  const r18=playoffRoundIndex(s,18),r19=playoffRoundIndex(s,19),cutoff=r18>=0?Math.min(s.done,r18):s.done;
- if(cutoff<0)return{rows:[],regularComplete:false,playoffsActive:false,throughRound:0,r18,r19};
+ const throughRound=cutoff>=0?Number(s.cal?.[cutoff]?.n??cutoff):0;
+ if(cutoff<0||throughRound<1)return{rows:[],regularComplete:false,playoffsActive:false,throughRound:Math.max(0,throughRound),r18,r19};
  const stats=new Map();
  const add=(name,key)=>{const k=normalizedDriverName(name);if(!k)return;const row=stats.get(k)||{wins:0,stages:0};row[key]++;stats.set(k,row)};
  (s.res||[]).forEach((result,i)=>{
   const round=Number(s.cal?.[i]?.n);
-  if(!(round>0)||isCancelledRound(s.cal?.[i])||isAnnulledRound(s.cal?.[i]))return;
+  if(!(round>=1&&round<=23)||isCancelledRound(s.cal?.[i])||isAnnulledRound(s.cal?.[i]))return;
   if(valid(result?.win))resolveResultDrivers(s,result.win).forEach(name=>add(name,'wins'));
   if(valid(result?.stage))resolveResultDrivers(s,result.stage).forEach(name=>add(name,'stages'));
  });
@@ -590,22 +591,27 @@ const playoffStandingsData=s=>{
    if(typeof current==='number'&&Number.isFinite(current))playoffPoints+=current-(typeof previous==='number'&&Number.isFinite(previous)?previous:0);
   }
   return{...d,regularPoints,wins:bonus.wins,stages:bonus.stages,playoffPoints,total:500+bonus.wins*2+bonus.stages*.5+playoffPoints};
- }).sort((a,b)=>b.regularPoints-a.regularPoints||driverJoinOrder(s,a.name)-driverJoinOrder(s,b.name)||a.name.localeCompare(b.name));
- const r19Result=r19>=0?s.res?.[r19]:null;
- const playoffsActive=!!(r19Result&&valid(r19Result.win)&&!isCancelledRound(s.cal[r19])&&!isAnnulledRound(s.cal[r19]));
- return{rows:drivers.slice(0,4),regularComplete:r18>=0&&s.done>=r18,playoffsActive,throughRound:Number(s.cal?.[cutoff]?.n??cutoff),r18,r19};
+ });
+ const regularComplete=r18>=0&&s.done>=r18;
+ const playoffsActive=(s.res||[]).some((result,i)=>{
+  const round=Number(s.cal?.[i]?.n);
+  return round>=19&&round<=23&&valid(result?.win)&&!isCancelledRound(s.cal?.[i])&&!isAnnulledRound(s.cal?.[i]);
+ });
+ drivers.sort((a,b)=>(playoffsActive?b.total-a.total:b.regularPoints-a.regularPoints)||b.regularPoints-a.regularPoints||driverJoinOrder(s,a.name)-driverJoinOrder(s,b.name)||a.name.localeCompare(b.name));
+ return{rows:drivers.slice(0,4),regularComplete,playoffsActive,throughRound,r18,r19};
 };
 const playoffStandingsMarkup=(s,compact=false)=>{
  const data=playoffStandingsData(s);if(!data)return'';
  const title=data.playoffsActive?'Playoff standings':data.regularComplete?'Qualified drivers':'Projected playoff grid';
- const status=data.playoffsActive?'R19–R23 underway':data.regularComplete?'Top four locked after R18':'Provisional · through R'+data.throughRound;
+ const status=data.playoffsActive?'R19–R23 underway':data.regularComplete?'Top four locked after R18':data.throughRound>0?'Provisional · through R'+data.throughRound:'Awaiting regular-season results';
+ const regularLabel=data.regularComplete?'R1–R18':'R1–R'+data.throughRound;
  const rows=data.rows.map((d,i)=>{
   const history=driverTeamHistoryMarkup(s,d.name);
   return '<tr><td class="n"><b>'+(i+1)+'</b></td><td><b>'+esc(d.name)+'</b>'+(history?'<small class="standings-team standings-team-history">'+history+'</small>':'')+'</td>'+
    (compact?'':'<td class="n">'+d.regularPoints.toLocaleString('en-GB')+'</td><td class="n">'+d.wins+'</td><td class="n">'+d.stages+'</td><td class="n">'+d.playoffPoints.toLocaleString('en-GB')+'</td>')+
    '<td class="n"><b>'+d.total.toLocaleString('en-GB',{maximumFractionDigits:1})+'</b></td></tr>';
  }).join('');
- return '<section class="sec playoff-standings"><div class="row" style="align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap"><h2>'+title+'</h2><span class="chip">'+status+'</span></div><p class="muted">Four drivers qualify after R18. Each starts on 500 points, with +2 per race win and +0.5 per stage win across the season, plus points earned in R19–R23.</p><div class="tw"><table class="hm"><thead><tr><th>Pos</th><th>Driver</th>'+(compact?'':'<th>R1–R18</th><th>Wins</th><th>Stages</th><th>R19–R23</th>')+'<th>Playoff total</th></tr></thead><tbody>'+(rows||'<tr><td colspan="'+(compact?'3':'7')+'">No qualifying data yet.</td></tr>')+'</tbody></table></div></section>';
+ return '<section class="sec playoff-standings"><div class="row" style="align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap"><h2>'+title+'</h2><span class="chip">'+status+'</span></div><p class="muted">The top four after R18 qualify. Each starts on 500 points, then adds +2 per race win and +0.5 per stage win across R1–R23, plus points earned in R19–R23.</p><div class="tw"><table class="hm"><thead><tr><th>Pos</th><th>Driver</th>'+(compact?'':'<th>'+regularLabel+'</th><th>Wins (+2)</th><th>Stages (+0.5)</th><th>R19–R23</th>')+'<th>Playoff total</th></tr></thead><tbody>'+(rows||'<tr><td colspan="'+(compact?'3':'7')+'">No qualifying data yet.</td></tr>')+'</tbody></table></div></section>';
 };
 
 function isFormerGridDriver(s,name,round=s.done){return (s.drivers||[]).length>0&&!entryTeamForRound(s,name,round)}
