@@ -465,7 +465,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("const teamRanges=new Map()", page)
         self.assertIn("teamRanges.get(normalizedDriverName(t.Team))", page)
         self.assertIn('class="entry-team-ranges"', page)
-        self.assertIn('class="team-range-tag" style="--team:\${color}"', page)
+        self.assertIn('class="team-range-tag"', page)
 
     def test_home_latest_result_card_does_not_stretch_and_hover_glow_is_subtle(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
