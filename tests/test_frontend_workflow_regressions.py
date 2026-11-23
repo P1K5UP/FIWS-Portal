@@ -189,6 +189,11 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("paintLeaderboardRound(el,s,round)", page)
         self.assertIn("paintLeaderboardRound(el,s,max)", page)
         self.assertIn("grand prix", page)
+        self.assertIn("return 'R'+c.n+' • '+code", page)
+        self.assertIn("function leaderboardPhoneText(s)", page)
+        self.assertIn(r"/\p{Extended_Pictographic}/gu", page)
+        self.assertIn("esc(leaderboardPhoneText(d.name))", page)
+        self.assertIn("leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · '))", page)
 
     def test_standings_includes_all_entry_drivers_even_without_points_rows(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
