@@ -500,7 +500,6 @@ const rLabel=(s,i)=>{const c=s.cal[i];return(c?'R'+c.n+' · '+c.name:'Round '+i)
 const latest=s=>{for(let i=Math.min(s.done<0?s.res.length-1:s.done,s.res.length-1);i>=0;i--)if(valid(s.res[i].win))return i;return -1};
 const cl=[];const cleanup=()=>{while(cl.length)cl.pop()()};
 /* timing tower */
-const leaderboardPhoneText=s=>{const value=String(s??'');return matchMedia('(max-width:700px)').matches?value.replace(/\p{Extended_Pictographic}/gu,'').replace(/[\uFE0E\uFE0F\u200D]/g,'').replace(/\s+/g,' ').trim():value};
 function leaderboardPhoneText(s){const value=String(s??'');return matchMedia('(max-width:700px)').matches?value.replace(/\p{Extended_Pictographic}/gu,'').replace(/[\uFE0E\uFE0F\u200D]/g,'').replace(/\s+/g,' ').trim():value}
 function leaderboardRoundLabel(s,r){const c=s.cal[r],raw=c?'R'+c.n+' · '+c.name:'Round '+r;if(!matchMedia('(max-width:700px)').matches||!c)return raw;const name=String(c.name||'').trim().replace(/^grand prix\s+of\s+/i,'').replace(/^grand prix\s+/i,'').replace(/\s+GP$/i,'').trim();const words=name.split(/[^\p{L}\p{N}]+/u).filter(Boolean);let code=words.length>1?words.map(w=>w[0]).join(''):((words[0]||'GP').slice(0,2));code=('GP'+code).toUpperCase().slice(0,6);return 'R'+c.n+' • '+code}
 function paintLeaderboardRound(el,s,r){const label=$('.lb',el);label.textContent=leaderboardRoundLabel(s,r);if(s.cal[r]&&/CANCEL/i.test(s.cal[r].date)){const mark=document.createElement('span');mark.className='cancel-mark';mark.textContent='(C)';label.append(' ',mark)}}
