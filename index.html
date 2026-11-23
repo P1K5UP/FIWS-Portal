@@ -347,7 +347,7 @@ body.more-open{overflow:hidden}
  .top{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:40;border-bottom:0;border-top:1px solid var(--line);background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -10px 32px -24px #0009;padding-bottom:env(safe-area-inset-bottom,0px)}
  .bar{max-width:none;padding:.42rem .45rem .38rem;gap:.35rem;min-height:62px}
  .brand{display:none}
- .mobile-brand{position:fixed;top:calc(env(safe-area-inset-top,0px) + .65rem);right:.75rem;z-index:35;display:flex;align-items:center;justify-content:center;width:42px;height:42px;border:1px solid color-mix(in srgb,var(--sky) 28%,var(--line));border-radius:11px;background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 5px 18px -14px var(--ink);animation:fiwsLogoPulse 5s ease-in-out infinite}
+ .mobile-brand{position:fixed;top:calc(env(safe-area-inset-top,0px) + .65rem);right:.75rem;z-index:35;display:flex;align-items:center;justify-content:center;min-width:42px;min-height:42px;max-width:min(136px,34vw);max-height:76px;padding:5px;border:1px solid color-mix(in srgb,var(--sky) 28%,var(--line));border-radius:11px;background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 5px 18px -14px var(--ink);animation:fiwsLogoPulse 5s ease-in-out infinite}
  .nav{flex:1 1 auto;min-width:0;display:flex;overflow:visible;justify-content:space-between;gap:.08rem}
  .nav a[data-nav=rules],.nav a[data-nav=apply],.nav a[data-nav=status]{display:none}
  .nav a{flex:1 1 0;min-width:0;min-height:52px;padding:.3rem .1rem}
@@ -357,8 +357,8 @@ body.more-open{overflow:hidden}
  #theme{display:none}
  .mobile-more{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
  .mobile-more-panel{padding-bottom:1rem}
- #mobile-logo{display:flex;align-items:center;justify-content:center;width:34px;height:34px;overflow:hidden}
- #mobile-logo svg,#mobile-logo img,#mobile-logo canvas{display:block;height:30px;width:auto;max-width:34px;object-fit:contain}
+ #mobile-logo{display:flex;align-items:center;justify-content:center;width:auto;height:auto;max-width:min(120px,30vw);max-height:64px;overflow:visible}
+ #mobile-logo svg,#mobile-logo img,#mobile-logo canvas{display:block;width:auto;height:auto;max-width:100%;max-height:64px;object-fit:contain}
  main{padding-top:3.35rem}
  #logo{display:flex;align-items:center;justify-content:center;width:32px;height:32px;overflow:hidden}
  .nav{flex:1 1 auto;min-width:0;overflow:visible;justify-content:space-between;gap:.08rem}
@@ -934,7 +934,7 @@ async function sanitizeLogoToPng(file){
 }
 function setLogo(){
  const k=cur.series,L=$('#logo'),T=$('.brand b'),M=$('#mobile-logo');if(!L)return;
- const syncMobileLogo=()=>{if(M)M.innerHTML=L.innerHTML};
+ const syncMobileLogo=()=>{if(!M)return;M.replaceChildren(...Array.from(L.childNodes,node=>{const copy=node.cloneNode(true);if(node instanceof HTMLCanvasElement&&copy instanceof HTMLCanvasElement){copy.width=node.width;copy.height=node.height;copy.getContext('2d')?.drawImage(node,0,0)}return copy}))};
  L.innerHTML=mark;T.hidden=false;T.textContent=k;setIcon();syncMobileLogo();
  const src=REMOTE_LOGOS[k]||((LS.get('logos',{})||{})[k])||LOGO[k]||LOGO.FIWS;
  if(!src)return;
@@ -946,11 +946,13 @@ function setLogo(){
    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);
    const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),p=pixels.data;
    const dark=document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
-   for(let i=0;i<p.length;i+=4){
+   const ink=getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()|| (dark?'#E7F2FB':'#0B2239');
+   const match=ink.match(/^#([\da-f]{3}|[\da-f]{6})$/i);
+   const tint=match?(match[1].length===3?match[1].split('').map(x=>parseInt(x+x,16)):[0,2,4].map(i=>parseInt(match[1].slice(i,i+2),16))):null;
+   if(tint)for(let i=0;i<p.length;i+=4){
     if(!p[i+3])continue;const hi=Math.max(p[i],p[i+1],p[i+2]),lo=Math.min(p[i],p[i+1],p[i+2]);
     if(hi-lo>18)continue;const y=.2126*p[i]+.7152*p[i+1]+.0722*p[i+2];
-    if(!dark&&y>=225){p[i]=p[i+1]=p[i+2]=0}
-    else if(dark&&y<=30){p[i]=p[i+1]=p[i+2]=255}
+    if((!dark&&y>=225)||(dark&&y<=30)){p[i]=tint[0];p[i+1]=tint[1];p[i+2]=tint[2]}
    }
    ctx.putImageData(pixels,0,0);canvas.setAttribute('role','img');canvas.setAttribute('aria-label',k+' logo');canvas.style.maxWidth='200px';L.innerHTML='';L.append(canvas);T.hidden=true;syncMobileLogo();
   }catch(e){console.warn('Logo theme processing unavailable',e)}
