@@ -375,7 +375,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_entries_grey_out_drivers_without_a_current_grid_team(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("isFormerGridDriver(s,d.Driver,s.done)?'former-grid-row':''", page)
+        self.assertIn("active=!isFormerGridDriver(s,d.Driver,Math.max(s.done,0))", page)
+        self.assertIn("data-entry-participating=", page)
         self.assertIn(".former-grid-row td,.former-grid-row td b{color:var(--mute)!important}", page)
         self.assertIn(".tr.former-grid .pos,.tr.former-grid[data-p=\"0\"] .pos", page)
 
