@@ -39,7 +39,7 @@ class FrontendRedesignContractTests(unittest.TestCase):
 
     def test_data_and_interaction_integrations_remain(self):
         for marker in (
-            "function tower(", "function renderStatus(", "async function submitApplication(",
+            "function tower(", "function renderStatus(", "async function applicationApi(",
             "async function fetchSharedConfig(", "function admin(", "function render(",
         ):
             self.assertIn(marker, self.template)
