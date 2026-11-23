@@ -149,7 +149,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn(".nav-ico{display:block;width:26px;height:26px", page)
             self.assertIn(".mobile-brand{position:fixed;top:calc(env(safe-area-inset-top,0px) + .65rem)", page)
             self.assertIn("animation:fiwsLogoPulse 5s ease-in-out infinite", page)
-            self.assertIn("#mobile-logo svg,#mobile-logo img,#mobile-logo canvas{display:block;height:30px", page)
+            self.assertIn("#mobile-logo svg,#mobile-logo img,#mobile-logo canvas{display:block;width:auto;height:auto", page)
             self.assertIn("M.replaceChildren(...Array.from(L.childNodes", page)
             self.assertIn("copy.getContext('2d')?.drawImage(node,0,0)", page)
             self.assertIn("getComputedStyle(document.documentElement).getPropertyValue('--ink')", page)
