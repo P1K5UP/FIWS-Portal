@@ -176,7 +176,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn('id="nav-more"', page)
             self.assertIn('id="mobile-more" hidden', page)
             self.assertIn('aria-modal="true"', page)
-            self.assertIn('data-more-link="admin"', page)
+            self.assertNotIn('data-more-link="admin"', page)
+            self.assertIn('class="staff-access" href="#admin" aria-label="Staff access"', page)
             self.assertIn("const openMore=()=>{moreSheet.hidden=false", page)
             self.assertIn("$('#theme-mobile').onclick=toggleTheme", page)
             self.assertIn(".nav a[data-nav=rules],.nav a[data-nav=apply],.nav a[data-nav=status]{display:none}", page)
@@ -300,12 +301,44 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("--gr:#050B11;--ok:#3CC796", css)
             self.assertIn("--inverse-ink:#FFFFFF;--inverse-muted:#C9DAE8;", css)
 
-    def test_theme_toggle_persists_and_syncs_both_controls(self):
+    def test_theme_toggle_persists_only_after_all_cookie_consent(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn('JSON.parse(localStorage.getItem("fiws.theme"))', page)
-        self.assertIn("LS.set('theme',next)", page)
+        self.assertIn('localStorage.getItem("fiws.consent")', page)
+        self.assertIn("consent?.all===true&&match", page)
+        self.assertIn("allCookiesAccepted=()=>LS.get('consent',{})?.all===true", page)
+        self.assertIn("if(allCookiesAccepted())saveThemeCookie(next)", page)
+        self.assertIn("Accept all cookies", page)
+        self.assertIn("clearThemeCookie()", page)
+        self.assertNotIn("LS.set('theme',next)", page)
         self.assertIn("syncThemeControls();$('#theme').onclick=toggleTheme;$('#theme-mobile').onclick=toggleTheme;", page)
         self.assertIn("b.setAttribute('aria-pressed',String(dark))", page)
+
+    def test_dob_input_auto_inserts_day_month_year_separators(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("if(input.name!=='dob')return", page)
+        self.assertIn("digits.slice(0,2)+'/'+digits.slice(2,4)+'/'+digits.slice(4)", page)
+
+    def test_selected_mobile_season_buttons_have_rounded_corners(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(".pick .seg button[aria-pressed=true]{border-radius:8px;margin:2px}", page)
+
+    def test_discreet_staff_access_and_desktop_full_navigation(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn('class="staff-access" href="#admin" aria-label="Staff access"', page)
+        self.assertIn("@media(min-width:701px){.bar{gap:.65rem}", page)
+        self.assertIn(".nav-ico{display:block;width:16px;height:16px", page)
+
+    def test_latest_race_card_includes_available_event_details(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("latestMeta=li>=0?", page)
+        self.assertIn("class=\"home-result-meta\"", page)
+        self.assertIn(".home-highlights{gap:clamp(.7rem,1.4vw,1rem);margin-top:1.25rem;align-items:start}", page)
+
+    def test_entries_grey_out_drivers_without_a_current_grid_team(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("isFormerGridDriver(s,d.Driver,s.done)?'former-grid-row':''", page)
+        self.assertIn(".former-grid-row td,.former-grid-row td b{color:var(--mute)!important}", page)
+        self.assertIn(".tr.former-grid .pos,.tr.former-grid[data-p=\"0\"] .pos", page)
 
 if __name__ == "__main__":
     unittest.main()
