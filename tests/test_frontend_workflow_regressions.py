@@ -1,5 +1,7 @@
 import re
 import unittest
+import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,6 +31,53 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             "$$('[data-logo-remove]',P).forEach",
         ):
             self.assertIn(selector, source)
+
+    def test_bundled_excel_dragon_entry_has_a_team_and_lookup_supports_driver_aliases(self):
+        workbook = ROOT / "data/Formula_Imperial_Worldwide_Series.xlsx"
+        main_ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+        rel_ns = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+        package_rel_ns = "{http://schemas.openxmlformats.org/package/2006/relationships}"
+        with zipfile.ZipFile(workbook) as archive:
+            shared_root = ET.fromstring(archive.read("xl/sharedStrings.xml"))
+            shared = ["".join(node.itertext()) for node in shared_root.findall(main_ns + "si")]
+            book_root = ET.fromstring(archive.read("xl/workbook.xml"))
+            rel_root = ET.fromstring(archive.read("xl/_rels/workbook.xml.rels"))
+            targets = {node.attrib["Id"]: node.attrib["Target"] for node in rel_root.findall(package_rel_ns + "Relationship")}
+            found = []
+            for sheet in book_root.findall(".//" + main_ns + "sheet"):
+                target = targets[sheet.attrib[rel_ns + "id"]].lstrip("/")
+                if not target.startswith("xl/"):
+                    target = "xl/" + target
+                root = ET.fromstring(archive.read(target))
+                for row in root.findall(".//" + main_ns + "sheetData/" + main_ns + "row"):
+                    values = {}
+                    for cell in row.findall(main_ns + "c"):
+                        match = re.match(r"([A-Z]+)", cell.attrib.get("r", ""))
+                        if not match:
+                            continue
+                        col = 0
+                        for char in match.group(1):
+                            col = col * 26 + ord(char) - 64
+                        col -= 1
+                        value = cell.find(main_ns + "v")
+                        text = value.text if value is not None else ""
+                        if cell.attrib.get("t") == "s" and text:
+                            text = shared[int(text)]
+                        elif cell.attrib.get("t") == "inlineStr":
+                            inline = cell.find(main_ns + "is")
+                            text = "".join(inline.itertext()) if inline is not None else ""
+                        values[col] = text
+                    headers = {str(value).strip().casefold(): col for col, value in values.items()}
+                    driver_col = next((headers[key] for key in ("driver", "driver name", "name") if key in headers), None)
+                    team_col = next((headers[key] for key in ("team", "team name", "constructor") if key in headers), None)
+                    if driver_col is not None and team_col is not None:
+                        found.append((str(values.get(driver_col, "")).strip(), str(values.get(team_col, "")).strip()))
+            dragon = [team for name, team in found if "dragon" in name.casefold()]
+        self.assertTrue(dragon, "The bundled Excel workbook should contain Dragon in its driver entries.")
+        self.assertTrue(any(team for team in dragon), "Dragon's Excel entry should have a non-empty team.")
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("const driverEntryName=d=>String(d?.Driver??d?.['Driver Name']??d?.Name??'')", page)
+        self.assertIn("e=(s.drivers||[]).find(d=>driverEntryName(d).toLocaleLowerCase()===key)", page)
 
     def test_shared_xlsx_import_parses_before_upload_and_publishes_shared_path(self):
         source = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
