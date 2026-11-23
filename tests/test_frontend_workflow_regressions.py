@@ -269,5 +269,34 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertNotIn(".tower.scrubbing .tr{transition:none!important}", page)
         self.assertIn("@media(max-width:700px){.tower .tr{transition-duration:.42s}", page)
 
+    def test_theme_switcher_is_an_icon_only_bounded_control(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn('id="theme" type="button" aria-label="Toggle light and dark theme" title="Toggle theme"><svg', page)
+        self.assertNotIn('id="theme" aria-label="Toggle light and dark theme">Theme</button>', page)
+        self.assertIn(".ib svg{display:block;width:19px;height:19px}", page)
+
+    def test_calendar_groups_adjacent_cancelled_rounds_and_expands_race_details(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        calendar = page.split("V.calendar=()=>", 1)[1].split("V.entries=()=>", 1)[0]
+        self.assertIn("visible[q].i===group[group.length-1].i+1", calendar)
+        self.assertIn('class="cal-group"', calendar)
+        self.assertIn('class="cal-detail"', calendar)
+        self.assertIn("Caution speed", calendar)
+        self.assertIn("Track:", calendar)
+
+    def test_entries_use_compact_expandable_driver_cards(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        entries = page.split("V.entries=()=>", 1)[1].split("V.rules=()=>", 1)[0]
+        self.assertIn('class="entry-card"', entries)
+        self.assertIn('class="entry-extra"', entries)
+        self.assertIn("driverEntryName(d)", entries)
+        self.assertIn(".entry-grid{display:grid", page)
+
+    def test_leaderboard_uses_directional_position_colors_and_soft_grid_transitions(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(".tr[data-move=up] .pos{background:var(--ok)", page)
+        self.assertIn(".tr[data-move=down] .pos{background:var(--bad)", page)
+        self.assertIn("background-color .48s cubic-bezier(.22,.75,.25,1)", page)
+
 if __name__ == "__main__":
     unittest.main()
