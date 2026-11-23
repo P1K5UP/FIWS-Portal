@@ -387,16 +387,18 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertNotIn("home-result-meta", page)
         self.assertNotIn("latestMeta.length", page)
 
-    def test_entries_directory_is_alphabetical_and_filterable(self):
+    def test_entries_are_team_first_clean_and_follow_series_join_order(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("driverRows=[...s.drivers].sort((a,b)=>driverEntryName(a).localeCompare", page)
-        self.assertIn('id="entry-driver-search"', page)
-        self.assertIn('id="entry-team-filter"', page)
-        self.assertIn('data-entry-status="active"', page)
-        self.assertIn('data-entry-status="inactive"', page)
-        self.assertIn("row.dataset.entryParticipating==='true'", page)
-        self.assertIn("teamAssignmentMarkup(d.Team,s.key)", page)
-        self.assertIn("team-range-tag", page)
+        self.assertIn("const driverRows=[...(s.drivers||[])]", page)
+        self.assertIn("const entryTeamHistory=", page)
+        self.assertIn("const groups=teamNames.map(team=>", page)
+        self.assertIn('id="entry-grid-search"', page)
+        self.assertIn('data-entry-team-card', page)
+        self.assertIn("CURRENT DRIVERS", page)
+        self.assertIn("Previous team members", page)
+        self.assertIn("driverJoinOrder(s,list[a].name)-driverJoinOrder(s,list[b].name)", page)
+        self.assertNotIn('id="entry-driver-search"', page)
+        self.assertNotIn('class="entries-table"', page)
 
     def test_team_range_parser_accepts_explicit_round_prefixes(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
@@ -460,12 +462,15 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("today=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())", page)
         self.assertIn("birth>today", page)
 
-    def test_team_cards_show_round_range_tags_matching_driver_entries(self):
+    def test_team_cards_show_round_range_tags_and_historical_teams(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("const teamRanges=new Map()", page)
-        self.assertIn("teamRanges.get(normalizedDriverName(t.Team))", page)
+        self.assertIn("entryTeamHistory(s,d.Driver,round)", page)
         self.assertIn('class="entry-team-ranges"', page)
         self.assertIn('class="team-range-tag"', page)
+        self.assertIn('data-entry-team-card', page)
+        self.assertIn("roundInfo.teamRound>=0", page)
+        self.assertIn("entryTeamHistory(s,n,round)", page)
+        self.assertIn("current<=end", page)
 
     def test_home_latest_result_card_does_not_stretch_and_hover_glow_is_subtle(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
