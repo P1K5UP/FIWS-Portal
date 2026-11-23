@@ -248,7 +248,8 @@ Deno.serve(async (req) => {
           await db.from("fiws_admin_accounts").update({ failed_login_count: failures, locked_until: failures >= 5 ? new Date(Date.now() + Math.min(60, 5 * 2 ** Math.min(failures - 5, 4)) * 60000).toISOString() : null }).eq("id", account.id);
           return reply({ mfa_required: true, error: "That authenticator code has already been used. Wait for the next code." }, 401);
         }
-        const token = await newSession(account.id, true, 8 * 60);
+        const sessionMinutes = body.remember_device === true ? 30 * 24 * 60 : 8 * 60;
+        const token = await newSession(account.id, true, sessionMinutes);
         await mustSucceed(db.from("fiws_admin_accounts").update({ failed_login_count: 0, locked_until: null, last_login_at: new Date().toISOString() }).eq("id", account.id));
         await mustSucceed(db.from("fiws_admin_login_limits").delete().eq("username_key", key).eq("ip_hash", ipHash));
         await audit(account, "auth.login", "admin", account.id);
