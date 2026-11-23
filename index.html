@@ -6,6 +6,7 @@
 <meta name="description" content="Official portal of the Formula Imperial Worldwide Series (FIWS): live championship standings, race results, calendar, entries, rules and driver and steward applications. Assetto Corsa sim-racing league.">
 <meta name="theme-color" content="#00AEEF">
 <meta name="color-scheme" content="light dark">
+<script type="text/javascript">(()=>{try{const saved=JSON.parse(localStorage.getItem("fiws.theme"));if(saved==="light"||saved==="dark")document.documentElement.dataset.theme=saved}catch{}})();</script>
 <meta name="application-name" content="FIWS">
 <meta name="apple-mobile-web-app-title" content="FIWS">
 <link rel="canonical" href="https://p1k5up.github.io/fiws-portal/">
@@ -33,9 +34,9 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SportsOrganization","name":"Formula Imperial Worldwide Series","alternateName":"FIWS","url":"https://p1k5up.github.io/fiws-portal/","logo":"https://p1k5up.github.io/fiws-portal/assets/apple-touch-icon.png","image":"https://p1k5up.github.io/fiws-portal/assets/og-image.png","sport":"Sim racing","description":"Official portal of the Formula Imperial Worldwide Series (FIWS): live championship standings, race results, calendar, entries, rules and driver and steward applications. Assetto Corsa sim-racing league."}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
 <style>
-:root{--bg:#EAF3FA;--panel:#fff;--ink:#0B2239;--mute:#52697F;--line:#CBDDEC;--sky:#00AEEF;--deep:#0A5BA8;--gr:#2B3138;--ok:#12805C;--bad:#C93B3B;--warn:#9A6200;--soft:#F3F9FD;--acc:#0A5BA8;--pos:#0A5BA8;--accent-ink:#04223A;--inverse-ink:#FFFFFF;--inverse-muted:#C9DAE8;--inverse-muted-soft:#9EB4C7;--inverse-border-soft:rgba(255,255,255,.09);--inverse-border:rgba(255,255,255,.13);--inverse-border-strong:rgba(255,255,255,.18);--inverse-fill:rgba(255,255,255,.07);--overlay-dark:rgba(0,0,0,.19);--shadow-dark:rgba(0,0,0,.55);--shadow-color:rgba(11,34,57,.22);--discord-surface:#0A1724;--discord-surface-raised:#10283D;--discord-surface-deep:#0B1724;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#EAF3FA;--panel:#fff;--ink:#0B2239;--mute:#52697F;--line:#CBDDEC;--sky:#00AEEF;--deep:#0A5BA8;--gr:#FFFFFF;--ok:#12805C;--bad:#C93B3B;--warn:#9A6200;--soft:#F3F9FD;--acc:#0A5BA8;--pos:#0A5BA8;--accent-ink:#04223A;--inverse-ink:#0B2239;--inverse-muted:#52697F;--inverse-muted-soft:#6C8296;--inverse-border-soft:rgba(11,34,57,.10);--inverse-border:rgba(11,34,57,.18);--inverse-border-strong:rgba(11,34,57,.28);--inverse-fill:rgba(11,34,57,.055);--overlay-dark:rgba(11,34,57,.055);--shadow-dark:rgba(0,0,0,.55);--shadow-color:rgba(11,34,57,.22);--discord-surface:#0A1724;--discord-surface-raised:#10283D;--discord-surface-deep:#0B1724;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#09141E;--panel:#0F1F2E;--ink:#E7F2FB;--mute:#8CA5BA;--line:#203648;--sky:#2BBCF5;--gr:#050B11;--ok:#3CC796;--bad:#F07878;--warn:#E2A93B;--soft:#0C1926;--acc:#2BBCF5;--accent-ink:#04223A;--inverse-ink:#FFFFFF;--inverse-muted:#C9DAE8;--inverse-muted-soft:#9EB4C7;--inverse-border-soft:rgba(255,255,255,.09);--inverse-border:rgba(255,255,255,.13);--inverse-border-strong:rgba(255,255,255,.18);--inverse-fill:rgba(255,255,255,.07);--overlay-dark:rgba(0,0,0,.19);--shadow-dark:rgba(0,0,0,.55);--shadow-color:rgba(0,0,0,.35);--discord-surface:#0A1724;--discord-surface-raised:#10283D;--discord-surface-deep:#0B1724;color-scheme:dark}}
-:root[data-theme=dark]{--bg:#09141E;--panel:#0F1F2E;--ink:#E7F2FB;--mute:#8CA5BA;--line:#203648;--sky:#2BBCF5;--gr:#050B11;--ok:#3CC796;--bad:#F07878;--warn:#E2A93B;--soft:#0C1926;--acc:#2BBCF5;--shadow-color:rgba(0,0,0,.35);color-scheme:dark}
+:root[data-theme=dark]{--bg:#09141E;--panel:#0F1F2E;--ink:#E7F2FB;--mute:#8CA5BA;--line:#203648;--sky:#2BBCF5;--gr:#050B11;--ok:#3CC796;--bad:#F07878;--warn:#E2A93B;--soft:#0C1926;--acc:#2BBCF5;--inverse-ink:#FFFFFF;--inverse-muted:#C9DAE8;--inverse-muted-soft:#9EB4C7;--inverse-border-soft:rgba(255,255,255,.09);--inverse-border:rgba(255,255,255,.13);--inverse-border-strong:rgba(255,255,255,.18);--inverse-fill:rgba(255,255,255,.07);--overlay-dark:rgba(0,0,0,.19);--shadow-dark:rgba(0,0,0,.55);--shadow-color:rgba(0,0,0,.35);color-scheme:dark}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 Barlow,system-ui,sans-serif;background-image:linear-gradient(115deg,transparent 0 62%,color-mix(in srgb,var(--sky) 7%,transparent) 62% 63.2%,transparent 63.2% 66%,color-mix(in srgb,var(--sky) 5%,transparent) 66% 67%,transparent 67%);background-attachment:fixed}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--panel);z-index:30}
@@ -65,7 +66,7 @@ main{max-width:1180px;margin:auto;padding:1.5rem 1rem 3rem;outline:none}
 .row{display:flex;gap:.8rem;flex-wrap:wrap}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}.seg button{border:0;background:none;color:var(--ink);padding:.45rem .9rem;font:600 1rem 'Barlow Condensed';letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}.seg button[aria-pressed=true]{background:var(--gr);color:var(--inverse-ink)}.seg em{font:500 .8rem Barlow;font-style:normal;margin-left:.45rem;opacity:.75;text-transform:none}
 .pick{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:1.2rem}
-.tower{background:var(--gr);color:var(--inverse-ink);border-radius:6px;overflow:hidden;box-shadow:0 18px 40px -24px var(--shadow-color)}
+.tower{background:var(--gr);color:var(--inverse-ink);border:1px solid var(--inverse-border);border-radius:6px;overflow:hidden;box-shadow:0 18px 40px -24px var(--shadow-color)}
 .th{display:flex;justify-content:space-between;align-items:center;padding:.6rem .9rem;border-bottom:3px solid var(--sky);font:600 1rem 'Barlow Condensed';letter-spacing:.05em;text-transform:uppercase;gap:1rem}
 .th small{font:500 .8rem Barlow;opacity:.7;text-transform:none;letter-spacing:0}
 .live[hidden]{display:none}.live{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--sky);margin-right:.5rem;animation:pl 1.8s infinite}@keyframes pl{50%{opacity:.25}}
@@ -1037,8 +1038,10 @@ moreSheet.addEventListener('click',e=>{if(e.target===moreSheet)closeMore()});
 $$('[data-more-link]').forEach(a=>a.addEventListener('click',()=>closeMore(false)));
 $('#more-cookie-settings').onclick=()=>{closeMore(false);cbar()};
 addEventListener('keydown',e=>{if(e.key==='Escape'&&!moreSheet.hidden)closeMore()});
-const toggleTheme=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark';setLogo()};
-$('#theme').onclick=toggleTheme;$('#theme-mobile').onclick=toggleTheme;
+const currentTheme=()=>document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+const syncThemeControls=()=>{const dark=currentTheme()==='dark',label=dark?'Switch to light mode':'Switch to dark mode';['#theme','#theme-mobile'].forEach(sel=>{const b=$(sel);if(b){b.setAttribute('aria-label',label);b.setAttribute('title',label);b.setAttribute('aria-pressed',String(dark))}})};
+const toggleTheme=()=>{const r=document.documentElement,next=currentTheme()==='dark'?'light':'dark';r.dataset.theme=next;LS.set('theme',next);syncThemeControls();setLogo()};
+syncThemeControls();$('#theme').onclick=toggleTheme;$('#theme-mobile').onclick=toggleTheme;
 addEventListener('hashchange',()=>render());
 const hasF=e=>e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files'),zone=on=>{const z=$('#dz');z&&z.classList.toggle('on',on)};
 addEventListener('dragover',e=>{if(!hasF(e))return;e.preventDefault();e.dataTransfer.dropEffect='copy';if(onDrop)zone(true)});
