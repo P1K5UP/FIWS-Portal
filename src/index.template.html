@@ -326,14 +326,18 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
 
 /* Phone navigation dock: app-like bottom navigation with a clear top edge. */
 .nav a{transition:color .16s ease,background .16s ease}
+.mobile-brand{display:none}
+@keyframes fiwsLogoPulse{0%,100%{filter:drop-shadow(0 0 1px color-mix(in srgb,var(--sky) 14%,transparent));transform:scale(1)}50%{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--sky) 30%,transparent));transform:scale(1.025)}}
 .nav a:focus-visible{outline-offset:-3px}
 .nav-ico{display:none}
 @media(max-width:700px){
  .top{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:40;border-bottom:0;border-top:1px solid var(--line);background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -10px 32px -24px #0009;padding-bottom:env(safe-area-inset-bottom,0px)}
  .bar{max-width:none;padding:.42rem .45rem .38rem;gap:.35rem;min-height:62px}
- .brand{display:flex;flex:0 0 32px;min-width:32px;justify-content:center;gap:0;overflow:hidden}
- .brand svg,.brand img,.brand canvas{height:28px;width:auto;max-width:32px;object-fit:contain}
- .brand b{display:none}
+ .brand{display:none}
+ .mobile-brand{position:fixed;top:calc(env(safe-area-inset-top,0px) + .65rem);right:.75rem;z-index:35;display:flex;align-items:center;justify-content:center;width:42px;height:42px;border:1px solid color-mix(in srgb,var(--sky) 28%,var(--line));border-radius:11px;background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 5px 18px -14px var(--ink);animation:fiwsLogoPulse 5s ease-in-out infinite}
+ #mobile-logo{display:flex;align-items:center;justify-content:center;width:34px;height:34px;overflow:hidden}
+ #mobile-logo svg,#mobile-logo img,#mobile-logo canvas{display:block;height:30px;width:auto;max-width:34px;object-fit:contain}
+ main{padding-top:3.35rem}
  #logo{display:flex;align-items:center;justify-content:center;width:32px;height:32px;overflow:hidden}
  .nav{flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;gap:.12rem;scrollbar-width:none;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
  .nav::-webkit-scrollbar{display:none}
@@ -377,6 +381,7 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
 @media(prefers-reduced-motion:reduce){.home-intro .btn,.home-info .btn,.discord-join,.home-intro .btn::after{transition:none!important}}
 </style></head><body>
 <button class="skip btn" id="skip">Skip to content</button>
+<a class="mobile-brand" href="#home" aria-label="FIWS home"><span id="mobile-logo"></span></a>
 <header class="top"><div class="bar"><a class="brand" href="#home" aria-label="FIWS home"><span id="logo"></span><b>FIWS</b></a>
 <nav class="nav" id="nav" aria-label="Main"></nav><button class="ib" id="theme" aria-label="Toggle light and dark theme">◐</button></div></header>
 <main id="main" tabindex="-1"></main>
@@ -894,8 +899,9 @@ async function sanitizeLogoToPng(file){
  }finally{if(url)URL.revokeObjectURL(url)}
 }
 function setLogo(){
- const k=cur.series,L=$('#logo'),T=$('.brand b');if(!L)return;
- L.innerHTML=mark;T.hidden=false;T.textContent=k;setIcon();
+ const k=cur.series,L=$('#logo'),T=$('.brand b'),M=$('#mobile-logo');if(!L)return;
+ const syncMobileLogo=()=>{if(M)M.innerHTML=L.innerHTML};
+ L.innerHTML=mark;T.hidden=false;T.textContent=k;setIcon();syncMobileLogo();
  const src=REMOTE_LOGOS[k]||((LS.get('logos',{})||{})[k])||LOGO[k]||LOGO.FIWS;
  if(!src)return;
  const img=new Image();if(/^https?:/.test(src))img.crossOrigin='anonymous';
@@ -912,10 +918,10 @@ function setLogo(){
     if(!dark&&y>=225){p[i]=p[i+1]=p[i+2]=0}
     else if(dark&&y<=30){p[i]=p[i+1]=p[i+2]=255}
    }
-   ctx.putImageData(pixels,0,0);canvas.setAttribute('role','img');canvas.setAttribute('aria-label',k+' logo');canvas.style.maxWidth='200px';L.innerHTML='';L.append(canvas);T.hidden=true;
+   ctx.putImageData(pixels,0,0);canvas.setAttribute('role','img');canvas.setAttribute('aria-label',k+' logo');canvas.style.maxWidth='200px';L.innerHTML='';L.append(canvas);T.hidden=true;syncMobileLogo();
   }catch(e){console.warn('Logo theme processing unavailable',e)}
  };
- img.onerror=()=>{L.innerHTML=mark;T.hidden=false};img.src=src;
+ img.onerror=()=>{L.innerHTML=mark;T.hidden=false;syncMobileLogo()};img.src=src;
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!document.documentElement.dataset.theme)setLogo()});
 
