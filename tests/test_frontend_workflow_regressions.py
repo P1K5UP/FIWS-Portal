@@ -424,7 +424,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_nationality_names_are_normalized_to_three_letter_codes(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("const nationalityCode=value=>", page)
-        self.assertIn("poland:POL", page)
+        self.assertIn("Poland:POL", page)
         self.assertIn("nationalityCode(d.Nationality)", page)
         self.assertIn("nationalityCode(e.Nationality)", page)
 
