@@ -815,8 +815,8 @@ V.entries=()=>{
  const s=seas();if(!s)return{html:empty('No data','Load a workbook in Admin.')};
  const driverRows=(s.drivers||[]).map(d=>{
   const name=driverEntryName(d),rawTeam=info(s,name,Math.max(0,s.done)).team||entryTeamName(d);
-  const team=String(rawTeam||'').split(/\\s*,\\s*/)[0].trim();
-  const cleanTeam=/^(N\\/A|TBD)$/i.test(team)?'':team;
+  const team=String(rawTeam||'').split(/\s*,\s*/)[0].trim();
+  const cleanTeam=/^(N\/A|TBD)$/i.test(team)?'':team;
   const number=String(entryField(d,['Number','Race Number','Car Number'])||'—').replace(/^#+/,'');
   const nationality=CC[entryField(d,['Nationality','Country'])]||entryField(d,['Nationality','Country'])||'Nationality not listed';
   const car=entryField(d,['Car','Car Model','Car/Model','Vehicle','Chassis','Car Used','Car Name','Model']);
