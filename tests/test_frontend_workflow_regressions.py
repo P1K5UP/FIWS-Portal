@@ -287,5 +287,25 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn(".seg button[aria-pressed=true]{background:var(--gr);color:var(--inverse-ink)}", css)
             self.assertIn(".tower{background:var(--gr);color:var(--inverse-ink)", css)
 
+    def test_light_theme_inverts_leaderboard_surface_and_text_palette(self):
+        for relative in ("src/index.template.html", "index.html"):
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            css = page.split("<style>", 1)[1].split("</style>", 1)[0]
+            self.assertIn("--gr:#FFFFFF;", css)
+            self.assertIn("--inverse-ink:#0B2239;", css)
+            self.assertIn("--inverse-muted:#52697F;", css)
+            self.assertIn("--inverse-border:rgba(11,34,57,.18);", css)
+            self.assertIn(".tower{background:var(--gr);color:var(--inverse-ink);border:1px solid var(--inverse-border)", css)
+            self.assertIn(":root[data-theme=dark]{--bg:#09141E;", css)
+            self.assertIn("--gr:#050B11;--ok:#3CC796", css)
+            self.assertIn("--inverse-ink:#FFFFFF;--inverse-muted:#C9DAE8;", css)
+
+    def test_theme_toggle_persists_and_syncs_both_controls(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn('JSON.parse(localStorage.getItem("fiws.theme"))', page)
+        self.assertIn("LS.set('theme',next)", page)
+        self.assertIn("syncThemeControls();$('#theme').onclick=toggleTheme;$('#theme-mobile').onclick=toggleTheme;", page)
+        self.assertIn("b.setAttribute('aria-pressed',String(dark))", page)
+
 if __name__ == "__main__":
     unittest.main()
