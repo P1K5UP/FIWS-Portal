@@ -452,5 +452,33 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("border:5px solid var(--panel)", page)
 
+
+    def test_dob_validation_accepts_formatted_or_plain_digits_and_uses_calendar_date(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("digits=v.replace(/\\D/g,'').slice(0,8)", page)
+        self.assertIn("normalized=digits.length===8?digits.slice(0,2)+'/'+digits.slice(2,4)+'/'+digits.slice(4):v", page)
+        self.assertIn("today=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())", page)
+        self.assertIn("birth>today", page)
+
+    def test_team_cards_show_round_range_tags_matching_driver_entries(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("const teamRanges=new Map()", page)
+        self.assertIn("teamRanges.get(normalizedDriverName(t.Team))", page)
+        self.assertIn('class="entry-team-ranges"', page)
+        self.assertIn('class="team-range-tag" style="--team:\${color}"', page)
+
+    def test_home_latest_result_card_does_not_stretch_and_hover_glow_is_subtle(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(".home-highlights>*{min-height:0}", page)
+        self.assertIn(".home-result{height:max-content;min-height:0;align-self:start", page)
+        self.assertIn("0 0 0 1px color-mix(in srgb,var(--sky) 13%,transparent)", page)
+        self.assertNotIn("box-shadow:0 12px 28px -22px var(--ink)", page)
+
+    def test_entries_page_has_refined_team_cards_and_range_tag_layout(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(".entry-team-card{padding:1.15rem 1.2rem 1.25rem", page)
+        self.assertIn(".entry-team-ranges{display:flex;flex-wrap:wrap", page)
+        self.assertIn(".entries-intro{max-width:68ch", page)
+
 if __name__ == "__main__":
     unittest.main()
