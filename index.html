@@ -696,6 +696,7 @@ function tower(el,s,kind,limit){
  };
  const set=(round,animate=true)=>{
   round=Math.max(0,Math.min(max,Number(round)||0));
+  const r=round;
   const valueAt=d=>Number(d.vals[round]??0);
   const order=list.map((d,i)=>i).sort((a,b)=>valueAt(list[b])-valueAt(list[a])||
    (round?(Number(list[b].vals[round-1]??0)-Number(list[a].vals[round-1]??0)):0)||
@@ -707,8 +708,8 @@ function tower(el,s,kind,limit){
   order.forEach((idx,position)=>{
    const row=rows[idx],d=list[idx],score=valueAt(d),delta=round>0?score-Number(d.vals[round-1]??0):0;
    const prior=previousRanks?previousRanks[idx]:position;
-   const roundInfo=kind==='drv'?info(s,d.name,round):null;
-   const former=kind==='drv'&&isFormerGridDriver(s,d.name,round);
+   const roundInfo=kind==='drv'?info(s,d.name,r):null;
+   const former=kind==='drv'&&isFormerGridDriver(s,d.name,r);
    row.hidden=position>=n;
    row.classList.toggle('former-grid',former);
    if(roundInfo){const marker=$('.tc',row),small=$('.who small',row);marker.style.background=tcol(roundInfo.team||d.name,s.key);small.textContent=leaderboardPhoneText([roundInfo.num,roundInfo.nat,roundInfo.team].filter(Boolean).join(' · '))}
