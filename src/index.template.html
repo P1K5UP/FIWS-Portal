@@ -340,15 +340,14 @@ body,.top,.panel,.cal,.rc{transition:background-color .35s,border-color .35s}
 .mobile-more-links svg{width:21px;height:21px;fill:none;stroke:var(--acc);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
 body.more-open{overflow:hidden}
 .mobile-brand{display:none}
-@keyframes fiwsLogoPulse{0%,100%{filter:drop-shadow(0 0 1px color-mix(in srgb,var(--sky) 14%,transparent));transform:scale(1)}50%{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--sky) 30%,transparent));transform:scale(1.025)}}
-.mobile-brand::after{content:"";position:absolute;inset:-3px;border:2px solid var(--sky);border-radius:13px;opacity:0;pointer-events:none;transform:scale(.86)}.mobile-brand.logo-tapped::after{animation:fiwsLogoTap .48s ease-out}@keyframes fiwsLogoTap{0%{opacity:.75;transform:scale(.86)}100%{opacity:0;transform:scale(1.3)}}
+
 .nav a:focus-visible{outline-offset:-3px}
 .nav-ico{display:none}
 @media(max-width:700px){
  .top{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:40;border-bottom:0;border-top:1px solid var(--line);background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -10px 32px -24px #0009;padding-bottom:env(safe-area-inset-bottom,0px)}
  .bar{max-width:none;padding:.42rem .45rem .38rem;gap:.35rem;min-height:62px}
  .brand{display:none}
- .mobile-brand{position:fixed;top:calc(env(safe-area-inset-top,0px) + .65rem);right:.75rem;z-index:35;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;max-width:min(106px,28vw);max-height:58px;padding:4px;appearance:none;color:var(--ink);cursor:pointer;border:1px solid color-mix(in srgb,var(--sky) 28%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 5px 18px -14px var(--ink);animation:fiwsLogoPulse 5s ease-in-out infinite}
+ .mobile-brand{all:unset;position:fixed;top:calc(env(safe-area-inset-top,0px) + .65rem);right:.75rem;z-index:35;display:block;width:auto;height:auto;max-width:min(144px,38vw);max-height:46px;padding:0;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;appearance:none;-webkit-appearance:none;color:var(--ink);cursor:pointer;line-height:0;-webkit-tap-highlight-color:transparent}
  .nav{flex:1 1 auto;min-width:0;display:flex;overflow:visible;justify-content:space-between;gap:.08rem}
  .nav a[data-nav=rules],.nav a[data-nav=apply],.nav a[data-nav=status]{display:none}
  .nav a{flex:1 1 0;min-width:0;min-height:52px;padding:.3rem .1rem}
@@ -358,8 +357,9 @@ body.more-open{overflow:hidden}
  #theme{display:none}
  .mobile-more{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
  .mobile-more-panel{padding-bottom:1rem}
- #mobile-logo{display:flex;align-items:center;justify-content:center;width:auto;height:auto;max-width:min(92px,25vw);max-height:48px;overflow:visible}
- #mobile-logo svg,#mobile-logo img,#mobile-logo canvas{display:block;width:auto;height:auto;max-width:100%;max-height:48px;object-fit:contain}
+ #mobile-logo{display:block;width:auto;height:auto;max-width:min(144px,38vw);max-height:44px;overflow:visible}
+ #mobile-logo svg,#mobile-logo img,#mobile-logo canvas{display:block;width:auto;height:auto;max-width:100%;max-height:44px;object-fit:contain;transform-origin:center;transition:transform .11s ease-out}
+ .mobile-brand:active #mobile-logo svg,.mobile-brand:active #mobile-logo img,.mobile-brand:active #mobile-logo canvas{transform:scale(.96,.90)}
  main{padding-top:3.35rem}
  #logo{display:flex;align-items:center;justify-content:center;width:32px;height:32px;overflow:hidden}
  .nav{flex:1 1 auto;min-width:0;overflow:visible;justify-content:space-between;gap:.08rem}
@@ -968,7 +968,6 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!
  const targets=[$('#logo'),$('#mobile-logo')].filter(Boolean);
  let taps=0,lastTap=0;
  targets.forEach(target=>target.addEventListener('click',()=>{
-  const mobile=target.closest('.mobile-brand');if(mobile){mobile.classList.remove('logo-tapped');void mobile.offsetWidth;mobile.classList.add('logo-tapped');mobile.addEventListener('animationend',()=>mobile.classList.remove('logo-tapped'),{once:true})}
   const now=Date.now();taps=now-lastTap<3200?taps+1:1;lastTap=now;
   if(taps>=10){taps=0;launchSecretConfetti()}
  }));
