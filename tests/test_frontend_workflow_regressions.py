@@ -155,7 +155,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn(".ft{padding-bottom:calc(5.8rem + env(safe-area-inset-bottom,0px))}", page)
             self.assertIn("main{padding-bottom:calc(6.8rem + env(safe-area-inset-bottom,0px));scroll-margin-bottom:6.8rem}", page)
             self.assertIn("const NAV_ICONS=", page)
-            self.assertIn('data-nav="rules"', page)
+            self.assertIn('data-nav="${k}"', page)
             self.assertIn('id="nav-more"', page)
             self.assertIn('id="mobile-more" hidden', page)
             self.assertIn('aria-modal="true"', page)
