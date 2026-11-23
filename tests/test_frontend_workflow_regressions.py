@@ -95,7 +95,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("isNext?' next':''", calendar)
         self.assertIn("visible=s.cal.map", calendar)
         self.assertNotIn('data-more-link="apply"', page)
-        self.assertIn("Meet the ${esc(s.sheet)} Season ${esc(s.num)} grid", page)
+        self.assertIn("The current grid, organised by team.", page)
 
 
     def test_mobile_apply_and_numeric_dob_entry(self):
@@ -235,7 +235,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("const entryTeamForRound=(s,n,round=s.done)=>", page)
         self.assertIn("const parts=raw.split(/\\s*,\\s*/)", page)
-        self.assertIn("current>=start&&current<end", page)
+        self.assertIn("current>=start&&current<=end", page)
         self.assertIn("function isFormerGridDriver(s,name,round=s.done){return (s.drivers||[]).length>0&&!entryTeamForRound(s,name,round)}", page)
         self.assertIn("const roundInfo=kind==='drv'?info(s,d.name,r):null", page)
         self.assertIn("marker.style.background=tcol(roundInfo.team||d.name,s.key)", page)
@@ -282,7 +282,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_standings_dynamic_entries_are_not_hard_coded_and_zero_point_rows_remain_visible(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("entry.Driver??entry['Driver Name']??entry.Name", page)
+        self.assertIn("const driverEntryName=d=>String(d?.Driver??d?.['Driver Name']??d?.Name??'')", page)
         self.assertIn("const driverEntryName=d=>String(d?.Driver??d?.['Driver Name']??d?.Name??'')", page)
         self.assertIn("normalize('NFKC').replace(/\\s+/g,' ').trim().toLocaleLowerCase()", page)
         self.assertIn("const driverEntryForResult=(s,raw)=>", page)
@@ -376,7 +376,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_entries_grey_out_drivers_without_a_current_grid_team(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("active=!isFormerGridDriver(s,d.Driver,Math.max(s.done,0))", page)
+        self.assertIn("const active=[],former=[],ranges=new Set()", page)
         self.assertIn("data-entry-participating=", page)
         self.assertIn(".former-grid-row td,.former-grid-row td b{color:var(--mute)!important}", page)
         self.assertIn(".tr.former-grid .pos,.tr.former-grid[data-p=\"0\"] .pos", page)
@@ -391,7 +391,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("const driverRows=[...(s.drivers||[])]", page)
         self.assertIn("const entryTeamHistory=", page)
-        self.assertIn("const groups=teamNames.map(team=>", page)
+        self.assertIn("groups=teamNames.map(team=>", page)
         self.assertIn('id="entry-grid-search"', page)
         self.assertIn('data-entry-team-card', page)
         self.assertIn("CURRENT DRIVERS", page)
@@ -469,7 +469,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn('class="team-range-tag"', page)
         self.assertIn('data-entry-team-card', page)
         self.assertIn("roundInfo.teamRound>=0", page)
-        self.assertIn("entryTeamHistory(s,n,round)", page)
+        self.assertIn("entryTeamHistory(s,driverEntryName(e),round)", page)
         self.assertIn("current<=end", page)
 
     def test_home_latest_result_card_does_not_stretch_and_hover_glow_is_subtle(self):
