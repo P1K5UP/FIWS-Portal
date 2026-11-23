@@ -95,6 +95,14 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("isNext?' next':''", calendar)
         self.assertIn("visible=s.cal.map", calendar)
 
+
+    def test_mobile_apply_and_numeric_dob_entry(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn('href="#apply" aria-label="Apply to FIWS"', page)
+        self.assertIn("width:68px;height:68px;margin-top:-18px", page)
+        self.assertIn("input.value=digits.length>4?", page)
+        self.assertIn("digits.slice(0,2)+'/'+digits.slice(2,4)+'/'+digits.slice(4)", page)
+
     def test_admin_remember_device_has_server_and_client_expiry(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         function = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
