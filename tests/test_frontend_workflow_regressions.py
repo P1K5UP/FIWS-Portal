@@ -269,5 +269,23 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertNotIn(".tower.scrubbing .tr{transition:none!important}", page)
         self.assertIn("@media(max-width:700px){.tower .tr{transition-duration:.42s}", page)
 
+    def test_theme_palette_uses_shared_semantic_tokens(self):
+        for relative in ("src/index.template.html", "index.html"):
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            css = page.split("<style>", 1)[1].split("</style>", 1)[0]
+            for token in (
+                "--accent-ink:", "--inverse-ink:", "--inverse-muted:",
+                "--inverse-border-soft:", "--inverse-border:",
+                "--inverse-border-strong:", "--inverse-fill:",
+                "--overlay-dark:", "--shadow-dark:", "--shadow-color:",
+                "--discord-surface:", "--discord-surface-raised:",
+                "--discord-surface-deep:",
+            ):
+                self.assertIn(token, css, f"{relative} is missing {token}")
+            self.assertIn("color-scheme:light", css)
+            self.assertIn("color-scheme:dark", css)
+            self.assertIn(".seg button[aria-pressed=true]{background:var(--gr);color:var(--inverse-ink)}", css)
+            self.assertIn(".tower{background:var(--gr);color:var(--inverse-ink)", css)
+
 if __name__ == "__main__":
     unittest.main()
