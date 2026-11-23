@@ -94,6 +94,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("NEXT RACE · ROUND", calendar)
         self.assertIn("isNext?' next':''", calendar)
         self.assertIn("visible=s.cal.map", calendar)
+        self.assertNotIn('data-more-link="apply"', page)
+        self.assertIn("Meet the ${esc(s.sheet)} Season ${esc(s.num)} grid", page)
 
 
     def test_mobile_apply_and_numeric_dob_entry(self):
