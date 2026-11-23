@@ -416,6 +416,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("entryTeamForRound(s,name,round)", page)
         self.assertIn("entryTeamForRound(s,name,i)", page)
+        self.assertIn("resultDriverSummary(s,r.pole,i)", page)
+        self.assertIn("tm||r.team", page)
         self.assertIn("!isAnnulledRound(s.cal[i])", page)
         self.assertIn("Annulled Rounds", page)
         self.assertIn("Points retained", page)
