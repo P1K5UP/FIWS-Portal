@@ -499,6 +499,79 @@ body{transition:background-color .32s,color .32s}
 @media(prefers-reduced-motion:reduce){.driver-card,.team-card,.cal-detail,.cal-group,.rule-section,.rules-grid>.rule-intro,.rule-footer,.home-result{animation:none!important;transition:none!important}.driver-card:hover,.team-card:hover,.home-result:hover{transform:none}}
 
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]) .sc{background:#00000030}:root:not([data-theme=light]) .ft{background:var(--gr);color:#C9DAE8}:root:not([data-theme=light]) .tower{box-shadow:0 18px 40px -24px #0B2239}}
+
+
+/* Focused visual repair: stable leaderboard, consistent contrast and intentional entries */
+.tower .tb{position:relative;display:flex;flex-direction:column;height:auto!important;min-width:0}
+.tower .tr{position:relative;inset:auto;left:auto;right:auto;width:100%;height:44px;flex:0 0 44px;will-change:transform;transition:transform .42s cubic-bezier(.2,.8,.2,1),opacity .18s ease,background-color .2s ease}
+.tower .tr[hidden]{display:none!important}
+.tower.scrubbing .tr{transition:none!important;will-change:auto}.tower.scrubbing .pt{transition:none!important}
+.tower .pt{font-variant-numeric:tabular-nums}
+.tower .sc{color:inherit}
+.pick .seg button[aria-pressed=true]{background:var(--sky);color:#04223A;box-shadow:inset 0 -3px 0 #04223A22}
+.home-result::after,.home-championship::after{content:none!important;display:none!important}
+.home-championship #tw.tower{color:#F4F8FC}
+.home-championship #tw.tower .th,
+.home-championship #tw.tower .who strong,
+.home-championship #tw.tower .pt{color:#F4F8FC!important}
+.home-championship #tw.tower .who small,
+.home-championship #tw.tower .th small{color:#BED0DF!important;opacity:1}
+.home-championship #tw.tower .sc{color:#EAF4FC}
+.home-championship #tw.tower .sc .btn.ghost{color:#EAF4FC}
+
+.entries-hero{position:relative;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(230px,.7fr);align-items:end;gap:2rem;margin:.8rem 0 2.3rem;padding:clamp(1.5rem,4vw,3rem);overflow:hidden;border-top:5px solid var(--sky);border-radius:12px;background:linear-gradient(125deg,#0B2239 0%,#123b59 68%,#0c2e49 100%);color:#F4F8FC;box-shadow:0 22px 48px -34px #092238}
+.entries-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 0 58%,#ffffff08 58% 58.3%,transparent 58.3% 62%,#ffffff06 62% 62.3%,transparent 62.3%)}
+.entries-hero-copy,.entries-hero-stats{position:relative;z-index:1}
+.entries-overline,.entry-eyebrow{display:block;color:var(--sky);font:700 .72rem Barlow Condensed,sans-serif;letter-spacing:.17em;text-transform:uppercase}
+.entries-hero h2{margin:.6rem 0 .8rem;font-size:clamp(3.5rem,8vw,6.8rem);line-height:.82;letter-spacing:-.025em}
+.entries-hero h2 span{display:block;margin-top:.7rem;color:#9eddf4;font-size:clamp(1.35rem,2.8vw,2rem);letter-spacing:.09em}
+.entries-hero p{max-width:54ch;margin:1.1rem 0 1rem;color:#cfdeea;font-size:1rem;line-height:1.65}
+.entries-season-status{display:inline-flex;align-items:center;min-height:26px;padding:.25rem .65rem;border:1px solid #ffffff35;border-radius:3px;color:#e6f1fa;font:600 .72rem Barlow Condensed,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.entries-hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;align-self:end;padding-top:1rem;border-top:1px solid #ffffff30}
+.entries-hero-stats div{display:grid;gap:.18rem}
+.entries-hero-stats b{font:700 clamp(2rem,4vw,3.4rem)/.95 Barlow Condensed,sans-serif;color:#fff;font-variant-numeric:tabular-nums}
+.entries-hero-stats span{color:#a9c2d5;font:600 .65rem Barlow,sans-serif;letter-spacing:.12em}
+.entries-register{margin-top:1rem}
+.entries-register-head{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.entries-register-head h2{margin:.3rem 0 .35rem;font-size:clamp(2rem,4vw,2.8rem)}
+.entries-register-head p{margin:0;color:var(--mute);font-size:.9rem}
+.entries-field-count{flex:none;padding:.35rem .65rem;border:1px solid var(--line);border-radius:4px;color:var(--acc);font:700 .76rem Barlow Condensed,sans-serif;letter-spacing:.08em}
+.entries-toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,280px);gap:.7rem;margin:1.2rem 0 1rem;padding:.8rem;border:1px solid var(--line);border-radius:9px;background:var(--panel)}
+.entries-search,.entries-filter{position:relative;display:block}
+.entries-search svg{position:absolute;left:.9rem;top:50%;width:18px;height:18px;transform:translateY(-50%);fill:none;stroke:var(--mute);stroke-width:1.7;pointer-events:none}
+.entries-search input,.entries-filter select{height:46px;margin:0;border-radius:6px;background:var(--soft);border-color:var(--line);font-size:.92rem}
+.entries-search input{padding-left:2.7rem}
+.entries-search input::placeholder{color:var(--mute);opacity:.85}
+.entry-team-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;align-items:start}
+.entry-team-card{--team-color:var(--sky);min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--panel);box-shadow:0 12px 30px -27px var(--ink);animation:fiwsRise .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--stagger,0)*24ms);transition:border-color .2s,box-shadow .2s,transform .2s}
+.entry-team-card[hidden]{display:none!important}
+.entry-team-card:hover{transform:translateY(-2px);border-color:var(--team-color);box-shadow:0 17px 34px -27px var(--team-color)}
+.entry-team-accent{height:6px;background:linear-gradient(90deg,var(--team-color),color-mix(in srgb,var(--team-color) 35%,var(--panel)) 72%,transparent)}
+.entry-team-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 1.1rem .3rem}
+.entry-team-head h3{margin:.2rem 0 0;font-size:1.75rem;line-height:1.02;overflow-wrap:anywhere}
+.entry-team-count{display:grid;justify-items:end;color:var(--ink);font:700 1.6rem/.9 Barlow Condensed,sans-serif;font-variant-numeric:tabular-nums}
+.entry-team-count small{margin-top:.3rem;color:var(--mute);font:600 .58rem Barlow,sans-serif;letter-spacing:.12em}
+.entry-team-meta{display:flex;flex-wrap:wrap;gap:.35rem;padding:.45rem 1.1rem .8rem;color:var(--mute);font:600 .67rem Barlow,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.entry-team-meta span{padding:.2rem .45rem;border:1px solid var(--line);border-radius:3px;background:var(--soft)}
+.entry-roster{list-style:none;margin:0;padding:0 .8rem .8rem}
+.entry-driver-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:.7rem;min-width:0;padding:.7rem .35rem;border-top:1px solid var(--line)}
+.entry-car-number{display:grid;place-items:center;min-height:42px;border-left:3px solid var(--team-color);background:color-mix(in srgb,var(--team-color) 11%,var(--soft));color:var(--team-color);font:700 1.15rem Barlow Condensed,sans-serif;font-variant-numeric:tabular-nums}
+.entry-driver-name{min-width:0}
+.entry-driver-name b,.entry-driver-name small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.entry-driver-name b{color:var(--ink);font:700 1.12rem/1.1 Barlow Condensed,sans-serif;text-transform:uppercase;letter-spacing:.025em}
+.entry-driver-name small{margin-top:.18rem;color:var(--mute);font-size:.72rem}
+.entry-race-range{max-width:112px;color:var(--mute);font:600 .67rem Barlow,sans-serif;text-align:right;line-height:1.35}
+.entry-no-roster{padding:1rem .35rem;border-top:1px solid var(--line);color:var(--mute);font-size:.85rem}
+.entries-no-results,.entries-empty{padding:1.3rem;border:1px dashed var(--line);border-radius:8px;color:var(--mute);text-align:center}
+.entries-no-results[hidden]{display:none!important}
+.entries-source-note{margin:1rem 0 0;color:var(--mute);font-size:.75rem;text-align:right}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.rule-section .rule-body{overflow:hidden;transition:height .36s cubic-bezier(.2,.8,.2,1),opacity .24s ease,transform .36s cubic-bezier(.2,.8,.2,1);will-change:height}
+.rule-section summary:after{transition:transform .28s ease,color .2s ease}
+.rule-section[open] summary:after{transform:rotate(180deg)}
+@media(max-width:760px){.entries-hero{grid-template-columns:1fr;gap:1.3rem;padding:1.4rem}.entries-hero-stats{padding-top:.8rem}.entry-team-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.entries-register-head{align-items:start;flex-direction:column}.entries-toolbar{grid-template-columns:1fr}.entry-driver-row{grid-template-columns:42px minmax(0,1fr) auto;gap:.55rem;padding:.65rem .2rem}.entry-team-head{padding-inline:.9rem}.entry-team-meta{padding-inline:.9rem}.entry-roster{padding-inline:.65rem}.entry-race-range{max-width:88px;font-size:.61rem}.entries-hero h2{font-size:clamp(3.3rem,17vw,5rem)}.entries-hero-stats b{font-size:2.2rem}}
+@media(prefers-reduced-motion:reduce){.tower .tr,.entry-team-card,.rule-section .rule-body,.rule-section summary:after{transition:none!important;animation:none!important;will-change:auto!important}.entry-team-card:hover{transform:none}}
 </style></head><body>
 <button class="skip btn" id="skip">Skip to content</button>
 <button class="mobile-brand" type="button" aria-label="FIWS logo"><span id="mobile-logo"></span></button>
@@ -606,18 +679,95 @@ const normalizedDriverName=name=>String(name??'').normalize('NFKC').replace(/\s+
 function isFormerGridDriver(s,name,round=s.done){return (s.drivers||[]).length>0&&!entryTeamForRound(s,name,round)}
 function tower(el,s,kind,limit){
  el.classList.add('tower');
- const list=kind==='con'?s.con:s.drv,n=Math.min(limit,list.length),H=44,max=Math.max(0,s.done);
- el.innerHTML=`<div class="th"><span><i class="live" ${/^(ONGOING|LIVE|ACTIVE)$/i.test(String(s.status||''))?'':'hidden'}></i>${kind==='con'?'Constructors':'Drivers'} · Season ${esc(s.num)}</span><small class="lb"></small></div><div class="tb" style="height:${n*H}px"></div><div class="sc"><button class="btn sm" aria-label="Replay season">Replay</button><input type="range" min="0" max="${max}" value="${max}" aria-label="Round"><span class="rl"></span></div>`;
- const tb=$('.tb',el),rows=list.map(d=>{const i=info(s,d.name,s.done),r=document.createElement('div');r.className='tr';r.innerHTML=`<b class="pos"></b><i class="tc" style="background:${tcol(kind==='con'?d.name:i.team||d.name,s.key)}"></i><span class="who"><strong>${esc(leaderboardPhoneText(d.name))}</strong><small>${kind==='con'?'':esc(leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · ')))}</small></span><span class="dl"></span><span class="pt"></span>`;tb.append(r);return r});
- let shown=list.map(()=>0),tm,rankByIndex=null;const scoreFrames=list.map(()=>0),moveTimers=list.map(()=>0);
- const set=r=>{const key=d=>d.vals[r]??0;const order=list.map((d,i)=>i).sort((a,b)=>key(list[b])-key(list[a])||(r?(list[b].vals[r-1]??0)-(list[a].vals[r-1]??0):0)||list[a].name.localeCompare(list[b].name));
-  order.forEach((idx,p)=>{const row=rows[idx],d=list[idx],v=key(d),dv=r>0?v-(d.vals[r-1]??0):0,prior=rankByIndex?rankByIndex[idx]:p;const roundInfo=kind==='drv'?info(s,d.name,r):null,former=kind==='drv'&&isFormerGridDriver(s,d.name,r);row.classList.toggle('former-grid',former);if(roundInfo){const marker=$('.tc',row),small=$('.who small',row);marker.style.background=tcol(roundInfo.team||d.name,s.key);small.textContent=leaderboardPhoneText([roundInfo.num,roundInfo.nat,roundInfo.team].filter(Boolean).join(' · '))}if(moveTimers[idx])clearTimeout(moveTimers[idx]);row.dataset.move=!rankByIndex?'flat':p<prior?'up':p>prior?'down':'flat';if(row.dataset.move!=='flat')moveTimers[idx]=setTimeout(()=>{row.dataset.move='flat';moveTimers[idx]=0},900);row.style.transform=`translateY(${p*H}px)`;row.style.opacity=p<n?1:0;row.style.pointerEvents=p<n?'auto':'none';row.dataset.p=p;$('.pos',row).textContent=p+1;$('.dl',row).textContent=dv>0?'+'+dv:dv<0?String(dv):'';
-   const pt=$('.pt',row);if(scoreFrames[idx])cancelAnimationFrame(scoreFrames[idx]);if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v;scoreFrames[idx]=0}else{const from=Number(pt.textContent)||shown[idx],t0=performance.now(),duration=RM?0:420;const f=t=>{const k=duration?Math.min(1,(t-t0)/duration):1,eased=1-Math.pow(1-k,3);pt.textContent=+(from+(v-from)*eased).toFixed(1);if(k<1)scoreFrames[idx]=requestAnimationFrame(f);else{shown[idx]=v;scoreFrames[idx]=0}};scoreFrames[idx]=requestAnimationFrame(f)}});rankByIndex=order.reduce((a,idx,p)=>(a[idx]=p,a),[]);
-  paintLeaderboardRound(el,s,r);$('.rl',el).textContent=rLabel(s,r).split(' · ')[0]};
- const rng=$('input',el),b=$('button',el);
- let touchScrub=false,lastHaptic=+rng.value;const canHaptic=matchMedia('(pointer:coarse)').matches&&typeof navigator.vibrate==='function';rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')});rng.addEventListener('pointerup',()=>{touchScrub=false});rng.addEventListener('pointercancel',()=>{touchScrub=false});rng.addEventListener('keydown',()=>el.classList.add('scrubbing'));rng.addEventListener('change',()=>{el.classList.remove('scrubbing');touchScrub=false});rng.oninput=()=>{clearInterval(tm);el.classList.add('scrubbing');const round=+rng.value;if(canHaptic&&touchScrub&&round!==lastHaptic){try{navigator.vibrate(8)}catch(_){}}lastHaptic=round;set(round);paintLeaderboardRound(el,s,round)};
- b.onclick=()=>{clearInterval(tm);let r=0;rng.value=0;set(0);tm=setInterval(()=>{r++;if(r>max){clearInterval(tm);return}rng.value=r;set(r);paintLeaderboardRound(el,s,r)},RM?300:1100)};
- cl.push(()=>{clearInterval(tm);scoreFrames.forEach(id=>id&&cancelAnimationFrame(id));moveTimers.forEach(id=>id&&clearTimeout(id))});set(max);paintLeaderboardRound(el,s,max);
+ const list=kind==='con'?s.con:s.drv,n=Math.min(limit,list.length),max=Math.max(0,s.done);
+ el.innerHTML=`<div class="th"><span><i class="live" ${/^(ONGOING|LIVE|ACTIVE)$/i.test(String(s.status||''))?'':'hidden'}></i>${kind==='con'?'Constructors':'Drivers'} · Season ${esc(s.num)}</span><small class="lb"></small></div><div class="tb"></div><div class="sc"><button class="btn sm" aria-label="Replay season">Replay</button><input type="range" min="0" max="${max}" value="${max}" aria-label="Round"><span class="rl"></span></div>`;
+ const tb=$('.tb',el);
+ const rows=list.map(d=>{
+  const i=info(s,d.name,s.done),row=document.createElement('div');
+  row.className='tr';
+  row.innerHTML=`<b class="pos"></b><i class="tc" style="background:${tcol(kind==='con'?d.name:i.team||d.name,s.key)}"></i><span class="who"><strong>${esc(leaderboardPhoneText(d.name))}</strong><small>${kind==='con'?'':esc(leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · ')))}</small></span><span class="dl"></span><span class="pt"></span>`;
+  tb.append(row);return row;
+ });
+ let previousRanks=null,tm=null,lastHaptic= max,rafIds=[],moveTimers=rows.map(()=>0),touchScrub=false;
+ const reduceMotion=RM||matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const cancelMotion=()=>{
+  rafIds.forEach(id=>cancelAnimationFrame(id));rafIds=[];
+  rows.forEach(row=>{row.style.transition='';row.style.transform=''});
+ };
+ const set=(round,animate=true)=>{
+  round=Math.max(0,Math.min(max,Number(round)||0));
+  const r=round;
+  const valueAt=d=>Number(d.vals[round]??0);
+  const order=list.map((d,i)=>i).sort((a,b)=>valueAt(list[b])-valueAt(list[a])||
+   (round?(Number(list[b].vals[round-1]??0)-Number(list[a].vals[round-1]??0)):0)||
+   String(list[a].name).localeCompare(String(list[b].name)));
+  const shouldAnimate=animate&&!reduceMotion&&!el.classList.contains('scrubbing')&&previousRanks!==null;
+  cancelMotion();
+  const oldTops=new Map();
+  if(shouldAnimate)rows.forEach(row=>{if(!row.hidden)oldTops.set(row,row.getBoundingClientRect().top)});
+  order.forEach((idx,position)=>{
+   const row=rows[idx],d=list[idx],score=valueAt(d),delta=round>0?score-Number(d.vals[round-1]??0):0;
+   const prior=previousRanks?previousRanks[idx]:position;
+   const roundInfo=kind==='drv'?info(s,d.name,r):null;
+   const former=kind==='drv'&&isFormerGridDriver(s,d.name,r);
+   row.hidden=position>=n;
+   row.classList.toggle('former-grid',former);
+   if(roundInfo){const marker=$('.tc',row),small=$('.who small',row);marker.style.background=tcol(roundInfo.team||d.name,s.key);small.textContent=leaderboardPhoneText([roundInfo.num,roundInfo.nat,roundInfo.team].filter(Boolean).join(' · '))}
+   if(moveTimers[idx])clearTimeout(moveTimers[idx]);
+   row.dataset.move=!previousRanks?'flat':position<prior?'up':position>prior?'down':'flat';
+   if(row.dataset.move!=='flat')moveTimers[idx]=setTimeout(()=>{row.dataset.move='flat';moveTimers[idx]=0},850);
+   row.dataset.p=String(position);
+   $('.pos',row).textContent=String(position+1);
+   $('.dl',row).textContent=delta>0?'+'+delta:delta<0?String(delta):'';
+   $('.pt',row).textContent=String(score);
+   tb.append(row);
+  });
+  if(shouldAnimate){
+   rows.forEach(row=>{
+    if(row.hidden)return;
+    const oldTop=oldTops.get(row);
+    if(oldTop===undefined)return;
+    const distance=oldTop-row.getBoundingClientRect().top;
+    if(Math.abs(distance)<1)return;
+    row.style.transition='none';
+    row.style.transform=`translateY(${distance}px)`;
+   });
+   void tb.offsetHeight;
+   rafIds=rows.filter(row=>!row.hidden&&row.style.transform).map(row=>requestAnimationFrame(()=>{
+    row.style.transition='';row.style.transform='';
+   }));
+  }
+  previousRanks=order.reduce((rank,index,position)=>(rank[index]=position,rank),[]);
+  paintLeaderboardRound(el,s,round);
+  $('.rl',el).textContent=rLabel(s,round).split(' · ')[0];
+ };
+ const rng=$('input',el),replay=$('button',el);
+ const canHaptic=matchMedia('(pointer:coarse)').matches&&typeof navigator.vibrate==='function';
+ rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')});rng.addEventListener('pointerdown',()=>cancelMotion());
+ rng.addEventListener('pointerup',()=>{touchScrub=false});
+ rng.addEventListener('pointercancel',()=>{touchScrub=false;el.classList.remove('scrubbing');set(+rng.value,true)});
+ rng.addEventListener('keydown',()=>{el.classList.add('scrubbing');cancelMotion()});
+ rng.addEventListener('change',()=>{el.classList.remove('scrubbing');touchScrub=false;set(+rng.value,true)});
+ rng.oninput=()=>{
+  clearInterval(tm);el.classList.add('scrubbing');cancelMotion();
+  const round=+rng.value;
+  if(canHaptic&&touchScrub&&round!==lastHaptic){try{navigator.vibrate(8)}catch(_){}}
+  lastHaptic=round;set(round,false);
+ };
+ replay.onclick=()=>{
+  clearInterval(tm);el.classList.remove('scrubbing');rng.value='0';set(0,true);
+  let round=0;
+  tm=setInterval(()=>{
+   round++;
+   if(round>max){clearInterval(tm);tm=null;return}
+   rng.value=String(round);set(round,true);
+  },RM?600:1050);
+ };
+ cl.push(()=>{
+  clearInterval(tm);cancelMotion();
+  moveTimers.forEach(id=>id&&clearTimeout(id));
+ });
+ set(max,false);paintLeaderboardRound(el,s,max);
 }
 /* views */
 const pick=()=>`<div class="pick"><div class="seg" role="group" aria-label="Series">${series().map(x=>`<button data-ser="${esc(x)}" aria-pressed="${x===cur.series}">${esc(x)}</button>`).join('')}</div><div class="seg" role="group" aria-label="Season">${D.filter(x=>x.sheet===cur.series).map(x=>`<button data-sea="${esc(x.key)}" aria-pressed="${x.key===cur.key}">Season ${esc(x.num)}<em>${esc(stl[x.status]||'')}</em></button>`).join('')}</div></div>`;
@@ -659,12 +809,121 @@ const formatRaceRange=value=>{const raw=String(value??'').trim();if(!raw)return'
 const entryTeamName=d=>String(d?.Team??d?.['Team Name']??d?.Constructor??'').replace(/\s*\(.*?\)/g,'').trim();
 const teamEntryFor=(s,t)=>(s.teams||[]).find(x=>String(x.Team||'').trim().toLocaleLowerCase()===String(t||'').trim().toLocaleLowerCase())||{};
 const entryRoster=(s,t)=>{const target=String(t||'').trim().toLocaleLowerCase();return(s.drivers||[]).filter(d=>entryTeamName(d).split(/\s*,\s*/).some(x=>x.toLocaleLowerCase()===target)||entryTeamForRound(s,driverEntryName(d),s.done).toLocaleLowerCase()===target)};
-V.entries=()=>{const s=seas();if(!s)return{html:empty('No data','')};
- const drivers=s.drivers.map((d,i)=>{const name=driverEntryName(d),team=info(s,name).team||entryTeamName(d).split(/\s*,\s*/)[0],number=String(entryField(d,['Number','Race Number','Car Number'])||'—').replace(/^#+/,'') ,nat=CC[entryField(d,['Nationality','Country'])]||entryField(d,['Nationality','Country'])||'Not listed',car=entryField(d,['Car','Car Model','Car/Model','Vehicle','Chassis','Car Used','Car Name','Model'])||entryField(teamEntryFor(s,team),['Car','Car Model','Car/Model','Vehicle','Chassis','Car Used','Car Name','Model']),races=formatRaceRange(entryField(d,['Races','Race Range','Rounds','Participation'])),color=tcol(team||name,s.key);
- return '<details class="driver-card" style="--team-color:'+color+';--stagger:'+Math.min(i,14)+'"><summary><span class="driver-number">#'+esc(number)+'<small>DRIVER</small></span><span class="driver-identity"><b>'+esc(name||'Unknown driver')+'</b><span class="driver-team"><i></i><span>'+esc(team||'Team assignment pending')+'</span></span></span><svg class="entry-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="driver-meta"><span>'+esc(nat)+'</span><span>'+esc(car||'Car details pending')+'</span></div><div class="driver-detail"><div><span>Nationality</span><b>'+esc(nat)+'</b></div><div><span>Car</span><b>'+esc(car||'Not listed in workbook')+'</b></div><div><span>Team</span><b>'+esc(team||'Not assigned')+'</b></div><div class="driver-races"><span>Race availability</span><b>'+esc(races)+'</b></div></div></details>'});
- const teams=s.teams.map((t,i)=>{const name=String(t.Team||'Team').trim(),color=tcol(name,s.key),roster=entryRoster(s,name),one=String(t['Entry One']||'').trim(),two=String(t['Entry Two']||'').trim(),driversForTeam=roster.length?roster.map(d=>driverEntryName(d)): [one,two].filter(Boolean),car=entryField(t,['Car','Car Model','Vehicle','Chassis','Model']),nat=entryField(t,['Nationality','Country']);
- return '<article class="team-card" style="--team-color:'+color+';--stagger:'+Math.min(i,12)+'"><div class="team-banner"></div><div class="team-content"><div class="team-eyebrow">Constructor · '+esc(s.num)+'</div><div class="team-title"><i class="team-swatch"></i><h3>'+esc(name)+'</h3></div><div class="team-roster">'+(driversForTeam.length?driversForTeam.map((driver,j)=>'<div class="team-driver"><b>'+esc(driver)+'</b><small>Driver '+(j+1)+'</small></div>').join(''):'<div class="team-empty">Driver line-up to be confirmed</div>')+'</div><div class="team-specs">'+(car?'<span class="team-tag">'+esc(car)+'</span>':'')+(nat?'<span class="team-tag">'+esc(nat)+'</span>':'')+'</div></div></article>'});
- return{html:'<h1>Entries</h1>'+pick()+'<section class="entries-intro"><div><div class="team-eyebrow">The paddock · Season '+esc(s.num)+'</div><h2 style="margin-top:.25rem">Meet the grid.</h2><p>Every driver and team on the entry list, with their number, machinery and race availability. Open a driver card for the full entry details.</p></div><div class="entries-count">'+drivers.length+'<small>Drivers entered</small></div></section><section><div class="entries-section-head"><div><h2>Driver line-up</h2><p>Individual profiles from the official entry sheet</p></div></div>'+(drivers.length?'<div class="driver-grid">'+drivers.join('')+'</div>':'<div class="entries-empty">No driver entries are available for this season.</div>')+'</section><section class="sec"><div class="entries-section-head"><div><h2>Teams & constructors</h2><p>Team identity, colour and current roster</p></div></div>'+(teams.length?'<div class="team-grid">'+teams.join('')+'</div>':'<div class="entries-empty">No team entries are available for this season.</div>')+'</section>',after:()=>{}}};
+V.entries=()=>{
+ const s=seas();if(!s)return{html:empty('No data','Load a workbook in Admin.')};
+ const driverRows=(s.drivers||[]).map(d=>{
+  const name=driverEntryName(d),rawTeam=info(s,name,Math.max(0,s.done)).team||entryTeamName(d);
+  const team=String(rawTeam||'').split(/\s*,\s*/)[0].trim();
+  const cleanTeam=/^(N\/A|TBD)$/i.test(team)?'':team;
+  const number=String(entryField(d,['Number','Race Number','Car Number'])||'—').replace(/^#+/,'');
+  const nationality=CC[entryField(d,['Nationality','Country'])]||entryField(d,['Nationality','Country'])||'Nationality not listed';
+  const car=entryField(d,['Car','Car Model','Car/Model','Vehicle','Chassis','Car Used','Car Name','Model']);
+  const range=formatRaceRange(entryField(d,['Races','Race Range','Rounds','Participation']));
+  return{name:name||'Unnamed driver',team:cleanTeam,number,nationality,car,range};
+ });
+ const teamsFromSheet=(s.teams||[]).map(row=>({name:String(row.Team||'').trim(),row})).filter(t=>t.name);
+ const teamNames=teamsFromSheet.map(t=>t.name);
+ driverRows.forEach(d=>{if(d.team&&!teamNames.some(name=>name.toLocaleLowerCase()===d.team.toLocaleLowerCase()))teamNames.push(d.team)});
+ const groups=teamNames.map(name=>{
+  const sheet=teamsFromSheet.find(t=>t.name.toLocaleLowerCase()===name.toLocaleLowerCase());
+  const roster=driverRows.filter(d=>d.team.toLocaleLowerCase()===name.toLocaleLowerCase());
+  const row=sheet?.row||{};
+  const car=entryField(row,['Car','Car Model','Car/Model','Vehicle','Chassis','Car Used','Car Name','Model']);
+  const nationality=entryField(row,['Nationality','Country']);
+  const fallback=[row['Entry One'],row['Entry Two']].filter(valid).map(name=>({name:String(name).trim(),number:'—',nationality:'',range:'Full season'}));
+  return{name,row,roster:roster.length?roster:fallback,car,nationality};
+ });
+ const unassigned=driverRows.filter(d=>!d.team);
+ if(unassigned.length)groups.push({name:'Unassigned',row:{},roster:unassigned,car:'',nationality:''});
+ const constructorCount=groups.filter(g=>g.name!=='Unassigned').length;
+ const makeRoster=roster=>roster.map(driver=>{
+  const carNumber=String(driver.number||'—').replace(/^#+/,'');
+  const nation=driver.nationality||'';
+  const range=driver.range||'Full season';
+  return `<li class="entry-driver-row"><span class="entry-car-number">${carNumber==='—'?'—':'#'+esc(carNumber)}</span><span class="entry-driver-name"><b>${esc(driver.name)}</b><small>${esc(nation||'Driver entry')}</small></span><span class="entry-race-range">${esc(range)}</span></li>`;
+ }).join('');
+ const teamCards=groups.map((group,index)=>{
+  const color=tcol(group.name,s.key);
+  const teamSearch=[group.name,group.car,group.nationality,...group.roster.flatMap(d=>[d.name,d.number,d.nationality,d.car,d.range])].filter(Boolean).join(' ').toLocaleLowerCase();
+  const subtitle=group.name==='Unassigned'?'Entry assignment pending':'Constructor · '+String(s.num);
+  return `<article class="entry-team-card" style="--team-color:${color};--stagger:${Math.min(index,12)}" data-team="${esc(group.name.toLocaleLowerCase())}" data-search="${esc(teamSearch)}">
+   <div class="entry-team-accent"></div>
+   <div class="entry-team-head"><div><span class="entry-eyebrow">${esc(subtitle)}</span><h3>${esc(group.name)}</h3></div><span class="entry-team-count">${group.roster.length}<small>ENTRANTS</small></span></div>
+   <div class="entry-team-meta">${group.car?'<span>'+esc(group.car)+'</span>':''}${group.nationality?'<span>'+esc(group.nationality)+'</span>':''}<span>${group.roster.length===1?'1 driver':' '+group.roster.length+' drivers'}</span></div>
+   <ul class="entry-roster">${makeRoster(group.roster)||'<li class="entry-no-roster">The team entry is listed in the workbook; no driver names are currently assigned.</li>'}</ul>
+  </article>`;
+ }).join('');
+ const seasonStatus=stl[s.status]||'Season register';
+ return{html:`<h1>Entries</h1>${pick()}
+ <section class="entries-hero">
+  <div class="entries-hero-copy"><span class="entries-overline">FIWS · OFFICIAL ENTRY REGISTER</span><h2>THE GRID<span>Season ${esc(s.num)}</span></h2><p>The people and constructors behind the championship. Browse the registered field, explore each line-up and find a driver or team in seconds.</p><span class="entries-season-status">${esc(seasonStatus)}</span></div>
+  <div class="entries-hero-stats"><div><b>${driverRows.length}</b><span>DRIVERS</span></div><div><b>${constructorCount}</b><span>CONSTRUCTORS</span></div><div><b>${s.cal.length}</b><span>ROUNDS</span></div></div>
+ </section>
+ <section class="entries-register">
+  <div class="entries-register-head"><div><span class="entries-overline">THE PADDOCK</span><h2>Constructor register</h2><p>Each entry is assembled from the selected season’s Excel workbook.</p></div><span class="entries-field-count" id="entryResultCount">${groups.length} ENTRIES</span></div>
+  <div class="entries-toolbar"><label class="entries-search"><span class="sr-only">Search the entry register</span><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"></circle><path d="m13 13 4 4"></path></svg><input id="entrySearch" type="search" placeholder="Search driver, constructor, car or nationality" autocomplete="off"></label><label class="entries-filter"><span class="sr-only">Filter by constructor</span><select id="entryTeamFilter"><option value="">All constructors</option>${groups.map(g=>'<option value="'+esc(g.name.toLocaleLowerCase())+'">'+esc(g.name)+'</option>').join('')}</select></label></div>
+  <div class="entry-team-grid" id="entryTeamGrid">${teamCards||'<div class="entries-empty">No driver or constructor entries are available in this workbook.</div>'}</div>
+  <p class="entries-no-results" id="entryNoResults" hidden>No entries match this search. Try a different driver or constructor.</p>
+  <p class="entries-source-note">Source: ${esc(srcNote)} · Entry details, team changes and race ranges are read from the selected workbook.</p>
+ </section>`,
+ after:()=>{
+  const search=$('#entrySearch'),filter=$('#entryTeamFilter'),grid=$('#entryTeamGrid'),count=$('#entryResultCount'),none=$('#entryNoResults');
+  if(!search||!filter||!grid||!count||!none)return;
+  const cards=$$('.entry-team-card',grid);
+  const apply=()=>{
+   const query=search.value.trim().toLocaleLowerCase(),team=filter.value;
+   let visible=0,entrants=0;
+   cards.forEach(card=>{
+    const matchTeam=!team||card.dataset.team===team;
+    const matchText=!query||card.dataset.search.includes(query);
+    const show=matchTeam&&matchText;
+    card.hidden=!show;
+    if(show){visible++;entrants+=Number($('.entry-team-count',card)?.firstChild?.textContent)||0}
+   });
+   count.textContent=visible+' / '+groups.length+' ENTRIES';
+   none.hidden=visible>0;
+  };
+  search.addEventListener('input',apply);filter.addEventListener('change',apply);
+  }
+ };
+};
+function initRuleAccordion(){
+ $$('.rule-section').forEach(section=>{
+  const summary=$('summary',section),body=$('.rule-body',section);
+  if(!summary||!body)return;
+  summary.addEventListener('click',event=>{
+   event.preventDefault();
+   if(section.classList.contains('is-opening')||section.classList.contains('is-closing'))return;
+   const reduce=RM||matchMedia('(prefers-reduced-motion: reduce)').matches;
+   if(reduce){section.open=!section.open;return}
+   const opening=!section.open;
+   section.classList.remove('is-opening','is-closing');
+   if(opening){
+    section.open=true;section.classList.add('is-opening');
+    body.style.height='0px';body.style.opacity='0';body.style.transform='translateY(-7px)';
+    void body.offsetHeight;
+    requestAnimationFrame(()=>{
+     body.style.height=body.scrollHeight+'px';body.style.opacity='1';body.style.transform='translateY(0)';
+    });
+   }else{
+    section.classList.add('is-closing');
+    body.style.height=body.scrollHeight+'px';body.style.opacity='1';body.style.transform='translateY(0)';
+    void body.offsetHeight;
+    requestAnimationFrame(()=>{
+     body.style.height='0px';body.style.opacity='0';body.style.transform='translateY(-7px)';
+    });
+   }
+   const finish=event=>{
+    if(event.target!==body||event.propertyName!=='height')return;
+    body.removeEventListener('transitionend',finish);
+    if(!opening)section.open=false;
+    section.classList.remove('is-opening','is-closing');
+    body.style.height='';body.style.opacity='';body.style.transform='';
+   };
+   body.addEventListener('transitionend',finish);
+  });
+ });
+}
 V.rules=()=>({html:`<h1>Rules & driving standards</h1>
 <p class="muted" style="max-width:70ch;margin:.65rem 0 1.2rem">A clear guide to racing fairly in FIWS and FITC. These rules apply to every driver. Event-specific instructions from the race director or stewards take priority where stated.</p>
 <div class="rules-grid">
@@ -712,7 +971,7 @@ V.rules=()=>({html:`<h1>Rules & driving standards</h1>
 <h3>Driver Rating (DR)</h3><ul><li>Every driver starts Formula Imperial with <b>200 DR</b>.</li><li>Complete a race and receive <b>+5 DR</b>.</li><li>If found guilty of an incident, lose <b>0.5–5 DR</b>, depending on severity.</li></ul></div></details>
 <details class="panel rule-section"><summary><span class="rule-no">07</span><span><b>Season 2 points & playoffs</b><small>How championship points and the title are decided</small></span></summary><div class="rule-body"><h3>Points</h3><ul><li>Points are awarded using the official Season 2 points table: race-finish points and separate first-stage points are listed by finishing position.</li><li>The first stage runs from Lap 1 to the mandatory caution. Stage points are awarded at the stage flag, and penalties do not change those stage results.</li></ul><h3>Playoffs</h3><ul><li>The regular season ends after <b>Round 18</b>. The top four drivers in the standings qualify for the playoffs.</li><li>Each playoff driver starts the playoff phase on <b>400 points</b>, with <b>+2 points per win</b> and <b>+0.5 points per stage</b>.</li><li>The playoffs cover the final five rounds. The championship goes to the driver with the best four results across those five rounds.</li></ul><p class="tbl-note">The official points table and event-specific instructions remain the source of exact scoring values.</p></div></details>
 <div class="panel rule-footer"><b>Questions or unsure about a situation?</b><p class="muted">Ask the race director or a steward before the session. Follow event briefings and official steward instructions. These standards apply to all drivers.</p></div>
-</div>`,after:()=>{$$('.rule-section').forEach((el,i)=>el.style.setProperty('--stagger',Math.min(i,12)))}});
+</div>`,after:()=>{$$('.rule-section').forEach((el,i)=>el.style.setProperty('--stagger',Math.min(i,12)));initRuleAccordion()}});
 /* application form definitions */
 const OPTS={series:['FIWS','FITC','Both'],ctl:['Controller','Wheel','Keyboard and Mouse','Other'],voice:['I can talk and listen to voice chat',"I can't talk but can listen to voice chat",'I cannot talk or listen to voice chat'],exp:['Newcomer','Lightly Experienced','Moderately Experienced','Highly Experienced','Pro Sim-Racer'],pace:['Newcomer (5-20s Off Pace)','Lightly Experienced (3-4s Off Pace)','Moderately Experienced (2-1s Off Pace)','Highly Experienced (On/1s Ahead of Pace)','Pro Sim-Racer (1s+ Ahead of Pace)']};
 const FIELDS=[
