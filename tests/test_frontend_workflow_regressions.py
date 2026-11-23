@@ -363,14 +363,15 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("@media(min-width:701px){.bar{gap:.8rem", page)
         self.assertIn(".nav-ico{display:block;width:15px;height:15px", page)
         self.assertIn(".staff-access{display:none!important}", page)
-            self.assertIn('href="#admin" data-more-link="admin"', page)
-            self.assertIn(".mobile-apply{grid-column:4;grid-row:1", page)
+        self.assertIn('href="#admin" data-more-link="admin"', page)
+        self.assertIn(".mobile-apply{grid-column:4;grid-row:1", page)
         self.assertIn("width:68px;height:68px;margin-top:-18px", page)
 
     def test_latest_race_card_includes_available_event_details(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("latestMeta=li>=0?", page)
-        self.assertIn("class=\"home-result-meta\"", page)
+        self.assertIn("Latest result", page)
+        self.assertNotIn("latestMeta=li>=0?", page)
+        self.assertNotIn("home-result-meta", page)
         self.assertIn(".home-highlights{gap:clamp(.7rem,1.4vw,1rem);margin-top:1.25rem;align-items:start}", page)
 
     def test_entries_grey_out_drivers_without_a_current_grid_team(self):
