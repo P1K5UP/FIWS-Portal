@@ -228,7 +228,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("return 'R'+c.n+' - '+code", page)
         self.assertIn("function leaderboardPhoneText(s)", page)
         self.assertIn(r"/\p{Extended_Pictographic}/gu", page)
-        self.assertIn("esc(leaderboardPhoneText(d.name))", page)
+        self.assertIn("esc(leaderboardPhoneText(resultDriverText(s,d.name)||d.name))", page)
         self.assertIn("leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · '))", page)
 
     def test_round_by_round_team_ranges_drive_driver_status_and_team_switches(self):
@@ -285,7 +285,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("entry.Driver??entry['Driver Name']??entry.Name", page)
         self.assertIn("const driverEntryName=d=>String(d?.Driver??d?.['Driver Name']??d?.Name??'')", page)
         self.assertIn("normalize('NFKC').replace(/\\s+/g,' ').trim().toLocaleLowerCase()", page)
-        self.assertIn("e=(s.drivers||[]).find(d=>driverEntryName(d).toLocaleLowerCase()===key)", page)
+        self.assertIn("const driverEntryForResult=(s,raw)=>", page)
         self.assertIn("e.Team??e['Team Name']??e.Constructor??''", page)
         self.assertIn("if(!l.length||(k==='con'&&s.done<0))", page)
         self.assertIn("s.done>=0?(d.vals[s.done]??0):0", page)
@@ -419,7 +419,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("!isAnnulledRound(s.cal[i])", page)
         self.assertIn("Annulled Rounds", page)
         self.assertIn("Points retained", page)
-        self.assertIn("isAnnulledRound(c)=>/ANN?UL+ED/i", page)
+        self.assertIn("isAnnulledRound=c=>/ANN?UL+ED/i", page)
 
     def test_nationality_names_are_normalized_to_three_letter_codes(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
