@@ -195,14 +195,17 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("esc(leaderboardPhoneText(d.name))", page)
         self.assertIn("leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · '))", page)
 
-    def test_former_grid_status_starts_after_workbook_exit_round(self):
+    def test_round_by_round_team_ranges_drive_driver_status_and_team_switches(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("function entryGridExitRound(s,name)", page)
-        self.assertIn(r"/\bR\s*(\d+)\s*[-–—]\s*(\d*)/gi", page)
-        self.assertIn("return Number(currentRound)>entryExit", page)
+        self.assertIn("const entryTeamForRound=(s,n,round=s.done)=>", page)
+        self.assertIn("const parts=raw.split(/\\s*,\\s*/)", page)
+        self.assertIn("current>=start&&current<end", page)
+        self.assertIn("function isFormerGridDriver(s,name,round=s.done){return (s.drivers||[]).length>0&&!entryTeamForRound(s,name,round)}", page)
+        self.assertIn("const roundInfo=kind==='drv'?info(s,d.name,r):null", page)
+        self.assertIn("marker.style.background=tcol(roundInfo.team||d.name,s.key)", page)
         self.assertIn("row.classList.toggle('former-grid',former)", page)
-        self.assertIn("formerTag.textContent=formerGridExitLabel(s,d.name)", page)
-        self.assertIn("Left after R", page)
+        self.assertNotIn("Left after R", page)
+        self.assertNotIn("formerGridExitLabel", page)
         self.assertIn(".tr.former-grid .dl,.tr.former-grid .pt{color:var(--mute)}", page)
 
     def test_mobile_interface_uses_no_arrow_glyphs_or_text_chevrons(self):
