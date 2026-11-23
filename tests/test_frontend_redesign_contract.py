@@ -12,10 +12,10 @@ class FrontendRedesignContractTests(unittest.TestCase):
         self.generated = (ROOT / "index.html").read_text(encoding="utf-8")
 
     def test_design_system_is_present_and_css_is_balanced(self):
-        marker = '<style id="fiws-2026-design-system">'
+        marker = '/* FIWS 2026 design system */'
         for document in (self.template, self.generated):
             self.assertIn(marker, document)
-            css = document.split(marker, 1)[1].split("</style>", 1)[0]
+            css = document.split("<style>", 1)[1].split("</style>", 1)[0]
             self.assertEqual(css.count("{"), css.count("}"), "Design system CSS braces must balance")
             self.assertIn("@media(prefers-reduced-motion:reduce)", css)
             self.assertIn("Manrope", css)
@@ -23,9 +23,9 @@ class FrontendRedesignContractTests(unittest.TestCase):
             self.assertIn("--fiws-red:", css)
 
     def test_template_and_generated_design_system_match(self):
-        marker = '<style id="fiws-2026-design-system">'
-        template_css = self.template.split(marker, 1)[1].split("</style>", 1)[0]
-        generated_css = self.generated.split(marker, 1)[1].split("</style>", 1)[0]
+        marker = '/* FIWS 2026 design system */'
+        template_css = self.template.split("<style>", 1)[1].split("</style>", 1)[0]
+        generated_css = self.generated.split("<style>", 1)[1].split("</style>", 1)[0]
         self.assertEqual(template_css, generated_css)
 
     def test_primary_navigation_and_existing_views_remain(self):
@@ -45,7 +45,7 @@ class FrontendRedesignContractTests(unittest.TestCase):
             self.assertIn(marker, self.template)
 
     def test_mobile_navigation_remains_a_bottom_dock(self):
-        marker = '<style id="fiws-2026-design-system">'
+        marker = '/* FIWS 2026 design system */'
         css = self.template.split(marker, 1)[1].split("</style>", 1)[0]
         self.assertRegex(css, r"\.top\s*\{[^}]*position:fixed;top:auto;bottom:0")
         self.assertIn(".nav-ico{width:23px;height:23px}", css)
