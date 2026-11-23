@@ -99,16 +99,14 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn('decided_at: status === "pending" ? null : new Date().toISOString()', function)
 
 
-    def test_mobile_scoreboard_scrubbing_suppresses_overlapping_motion(self):
+    def test_mobile_scoreboard_scrubbing_keeps_smooth_row_tweening(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("el.classList.add('tower')", page)
         self.assertIn("rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')})", page)
-        self.assertIn("const shouldAnimate=animate&&!reduceMotion&&!el.classList.contains('scrubbing')&&previousRanks!==null", page)
-        self.assertNotIn("scoreFrames", page)
-        self.assertNotIn("shown=list.map", page)
-        self.assertIn(".tower.scrubbing .tr{transition:none!important;will-change:auto}", page)
+        self.assertIn("if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v", page)
+        self.assertNotIn(".tower.scrubbing .tr{transition:none!important}", page)
         self.assertIn(".tower.scrubbing .pt{transition:none!important}", page)
-        self.assertIn("transition:transform .42s cubic-bezier(.2,.8,.2,1)", page)
+        self.assertIn("transition:transform .5s cubic-bezier(.22,.75,.25,1)", page)
 
     def test_mobile_navigation_uses_one_compact_top_bar(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
@@ -258,30 +256,6 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         for name in ("Yoshinaran", "29deCesaris", "Mariusz", "Formula B", "Protomango", "Jetto", "Yishmate", "P1K5UP", "BlackDragon", "Endo", "Putra", "Pmoneyspread"):
             self.assertNotIn(name, page)
 
-
-    def test_entries_page_is_a_searchable_workbook_driven_register(self):
-        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("Constructor register", page)
-        self.assertIn('id="entrySearch"', page)
-        self.assertIn('id="entryTeamFilter"', page)
-        self.assertIn("info(s,name,Math.max(0,s.done))", page)
-        self.assertIn("(s.teams||[]).map", page)
-        self.assertIn("formatRaceRange(entryField", page)
-
-    def test_light_theme_and_home_decorations_keep_clear_contrast(self):
-        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn(".pick .seg button[aria-pressed=true]{background:var(--sky);color:#04223A", page)
-        self.assertIn(".home-championship #tw.tower .who strong", page)
-        self.assertIn(".home-result::after,.home-championship::after{content:none!important", page)
-
-    def test_rules_accordions_animate_open_and_close(self):
-        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("function initRuleAccordion()", page)
-        self.assertIn("body.style.height='0px'", page)
-        self.assertIn("body.style.height=body.scrollHeight+'px'", page)
-        self.assertIn(".rule-section .rule-body{overflow:hidden;transition:height .36s", page)
-        self.assertIn("prefers-reduced-motion: reduce", page)
-
     def test_homepage_ctas_have_distinct_but_coordinated_interactions(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn(".home-intro .btn:first-child::after", page)
@@ -289,13 +263,11 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn(".home-info .btn:not(.ghost)", page)
         self.assertIn(".home-info .btn:hover,.home-intro .btn:hover", page)
 
-    def test_leaderboard_rank_swaps_use_stable_flip_motion_outside_scrubbing(self):
+    def test_leaderboard_rank_swaps_animate_during_slider_scrubbing(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn(".tower .tb{position:relative;display:flex;flex-direction:column", page)
-        self.assertIn("const oldTops=new Map()", page)
-        self.assertIn("row.style.transform=`translateY(${distance}px)`", page)
-        self.assertIn("transition:transform .42s cubic-bezier(.2,.8,.2,1)", page)
-        self.assertIn(".tower.scrubbing .tr{transition:none!important;will-change:auto}", page)
+        self.assertIn("transition:transform .5s cubic-bezier(.22,.75,.25,1)", page)
+        self.assertNotIn(".tower.scrubbing .tr{transition:none!important}", page)
+        self.assertIn("@media(max-width:700px){.tower .tr{transition-duration:.42s}", page)
 
 if __name__ == "__main__":
     unittest.main()

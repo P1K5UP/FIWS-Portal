@@ -50,7 +50,7 @@ a{color:var(--acc)}
 .nav a{color:var(--ink)!important;text-decoration:none;padding:.45rem .8rem;font:600 1.05rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em;position:relative;white-space:nowrap}
 .nav a::after{content:"";position:absolute;left:.8rem;right:.8rem;bottom:2px;height:3px;background:var(--sky);transform:scaleX(0);transform-origin:left;transition:transform .25s}
 .nav a:hover::after,.nav a[aria-current=page]::after{transform:scaleX(1)}
-.ib{border:1px solid var(--line);background:none;color:var(--ink);border-radius:6px;width:36px;height:36px;display:grid;place-items:center;flex:0 0 36px;cursor:pointer;transition:background .2s,border-color .2s}.ib svg{display:block;width:19px;height:19px}.ib:hover{background:var(--soft);border-color:var(--sky)}
+.ib{border:1px solid var(--line);background:none;color:var(--ink);border-radius:6px;width:36px;height:36px;cursor:pointer;font-size:1rem;transition:background .2s}.ib:hover{background:var(--soft)}
 main{max-width:1180px;margin:auto;padding:1.5rem 1rem 3rem;outline:none}
 :focus-visible{outline:3px solid var(--sky);outline-offset:2px;border-radius:3px}
 .skip{position:absolute;left:-999px}.skip:focus{left:1rem;top:1rem;z-index:50;background:var(--panel);padding:.5rem 1rem}
@@ -69,9 +69,9 @@ main{max-width:1180px;margin:auto;padding:1.5rem 1rem 3rem;outline:none}
 .th{display:flex;justify-content:space-between;align-items:center;padding:.6rem .9rem;border-bottom:3px solid var(--sky);font:600 1rem 'Barlow Condensed';letter-spacing:.05em;text-transform:uppercase;gap:1rem}
 .th small{font:500 .8rem Barlow;opacity:.7;text-transform:none;letter-spacing:0}
 .live[hidden]{display:none}.live{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--sky);margin-right:.5rem;animation:pl 1.8s infinite}@keyframes pl{50%{opacity:.25}}
-.tb{position:relative}.tr{position:absolute;left:0;right:0;height:44px;display:grid;grid-template-columns:44px 6px 1fr auto 70px;align-items:center;gap:.7rem;padding-right:.9rem;border-bottom:1px solid #ffffff14;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s,background-color .48s cubic-bezier(.22,.75,.25,1),box-shadow .48s,color .48s}
+.tb{position:relative}.tr{position:absolute;left:0;right:0;height:44px;display:grid;grid-template-columns:44px 6px 1fr auto 70px;align-items:center;gap:.7rem;padding-right:.9rem;border-bottom:1px solid #ffffff14;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s}
 .pos{background:var(--pos);height:100%;display:grid;place-items:center;font:700 1.35rem 'Barlow Condensed'}.tr[data-p="0"] .pos{background:var(--sky);color:#04223A}
-.tc{height:60%;width:6px;border-radius:1px}.who{min-width:0;line-height:1.1}.who strong{font:600 1.15rem 'Barlow Condensed';letter-spacing:.03em;text-transform:uppercase;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.who small{opacity:.65;font-size:.78rem}.tr.former-grid .who strong{color:var(--mute)}.tr.former-grid{background:color-mix(in srgb,var(--mute) 7%,transparent)}.tr.former-grid .pos{background:color-mix(in srgb,var(--gr) 76%,var(--mute));color:var(--mute)}.tr.former-grid .tc{opacity:.28;filter:grayscale(1)}.tr.former-grid .dl,.tr.former-grid .pt{color:var(--mute)}.tr.former-grid .who small{opacity:.48}.tr .tc,.tr .who strong,.tr .who small,.tr .dl,.tr .pt,.tr .pos{transition:color .45s ease,background-color .45s ease,opacity .45s ease,filter .45s ease,box-shadow .45s ease}.tr[data-move=up] .pos{background:var(--ok);color:#fff;box-shadow:0 0 13px color-mix(in srgb,var(--ok) 38%,transparent)}.tr[data-move=down] .pos{background:var(--bad);color:#fff;box-shadow:0 0 13px color-mix(in srgb,var(--bad) 38%,transparent)}.former-grid-row td:first-child{color:var(--mute)}
+.tc{height:60%;width:6px;border-radius:1px}.who{min-width:0;line-height:1.1}.who strong{font:600 1.15rem 'Barlow Condensed';letter-spacing:.03em;text-transform:uppercase;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.who small{opacity:.65;font-size:.78rem}.tr.former-grid .who strong{color:var(--mute)}.tr.former-grid{background:color-mix(in srgb,var(--mute) 7%,transparent)}.tr.former-grid .pos{background:color-mix(in srgb,var(--gr) 76%,var(--mute));color:var(--mute)}.tr.former-grid .tc{opacity:.28;filter:grayscale(1)}.tr.former-grid .dl,.tr.former-grid .pt{color:var(--mute)}.tr.former-grid .who small{opacity:.48}.former-grid-row td:first-child{color:var(--mute)}
 .dl{font:600 .9rem 'Barlow Condensed';color:var(--sky);min-width:2.2rem;text-align:right}.pt{font:700 1.3rem 'Barlow Condensed';text-align:right;font-variant-numeric:tabular-nums}
 .sc{display:flex;gap:.8rem;align-items:center;min-width:0;padding:.7rem .9rem;background:#00000030}.sc input[type=range]{flex:1 1 0;width:0;min-width:0;max-width:100%;height:8px;padding:0;margin:0;border:0;border-radius:99px;appearance:none;background:linear-gradient(90deg,var(--sky),color-mix(in srgb,var(--sky) 30%,#fff));cursor:pointer;touch-action:none;overscroll-behavior:contain}.sc input[type=range]::-webkit-slider-thumb{appearance:none;width:19px;height:19px;border:3px solid var(--gr);border-radius:50%;background:var(--sky);box-shadow:0 0 0 2px var(--sky);transition:transform .18s}.sc input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.16)}.sc input[type=range]::-moz-range-thumb{width:14px;height:14px;border:3px solid var(--gr);border-radius:50%;background:var(--sky);box-shadow:0 0 0 2px var(--sky)}.sc .btn{flex:0 0 auto;padding:.3rem .8rem}.sc span{flex:0 0 auto;font-size:.85rem;opacity:.85;min-width:0;white-space:nowrap}
 .g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
@@ -402,181 +402,11 @@ body.more-open{overflow:hidden}
 @media(max-width:700px){.home-intro .btn::after{content:none!important}.discord-join span[aria-hidden=true],a.home-text-link span[aria-hidden=true]{display:none!important}.home-intro .row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}.home-intro .btn{justify-content:center;min-width:0;padding:.72rem .65rem;font-size:1rem}.discord-join{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.home-intro .btn,.home-info .btn,.discord-join,.home-intro .btn::after,.mobile-brand,.mobile-more-panel{transition:none!important;animation:none!important}}
 .fiws-secret-confetti{position:fixed;inset:0;width:100%;height:100%;z-index:9999;pointer-events:none;display:block}
-
-.ib#theme{overflow:hidden}.ib#theme svg{pointer-events:none}
-.cal-detail,.cal-group{display:block;border:1px solid var(--line);border-radius:8px;background:var(--panel);margin-bottom:.55rem;overflow:hidden}.cal-detail>summary,.cal-group>summary{list-style:none;cursor:pointer}.cal-detail>summary::-webkit-details-marker,.cal-group>summary::-webkit-details-marker{display:none}.cal-detail[open],.cal-group[open]{border-color:var(--sky);box-shadow:0 10px 24px -22px var(--ink)}.cal-detail .cal{border:0;border-left:6px solid var(--line);border-radius:0;margin:0}.cal-detail[open] .cal{border-left-color:var(--sky)}.cal-extra{padding:.7rem 1rem .9rem calc(72px + 2rem);border-top:1px solid var(--line);color:var(--mute);font-size:.92rem}.cal-extra b{color:var(--ink)}.cal-group>summary{display:flex;align-items:center;gap:.8rem;padding:.7rem .9rem;background:color-mix(in srgb,var(--bad) 5%,var(--panel))}.cal-group .group-count{margin-left:auto}.cal-group-list{padding:.25rem .8rem .6rem}.cal-mini{display:grid;grid-template-columns:1fr;gap:.2rem;padding:.45rem .2rem;border-top:1px solid var(--line)}.cal-mini summary{cursor:pointer;font-weight:600;list-style:none}.cal-mini summary::-webkit-details-marker{display:none}.cal-mini p{margin:.2rem 0 0;color:var(--mute);font-size:.85rem}
-.entry-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:.65rem}.entry-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;transition:border-color .2s,box-shadow .2s}.entry-card:hover,.entry-card[open]{border-color:var(--sky);box-shadow:0 10px 24px -22px var(--ink)}.entry-card>summary{display:flex;align-items:center;gap:.75rem;padding:.75rem .85rem;cursor:pointer;list-style:none}.entry-card>summary::-webkit-details-marker{display:none}.entry-num{display:grid;place-items:center;min-width:34px;height:34px;border-radius:6px;background:var(--soft);font:700 1.05rem 'Barlow Condensed';color:var(--acc)}.entry-main{min-width:0;flex:1}.entry-main b,.entry-main small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.entry-main b{font:700 1.12rem 'Barlow Condensed';text-transform:uppercase}.entry-main small{font-size:.8rem;color:var(--mute)}.entry-chevron{width:16px;height:16px;transition:transform .2s}.entry-card[open] .entry-chevron{transform:rotate(180deg)}.entry-extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem .9rem;padding:.7rem .85rem;border-top:1px solid var(--line);background:var(--soft)}.entry-extra span{display:block;color:var(--mute);font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}.entry-extra b{display:block;font-size:.9rem;overflow-wrap:anywhere}
-@media(max-width:620px){.cal-extra{padding:.7rem .85rem}.cal{grid-template-columns:48px 1fr auto;gap:.6rem;padding:.7rem}.entry-extra{gap:.45rem}}
-
-/* FIWS visual quality pass: theme surfaces, motion and entry presentation */
-:root{--gr:#18354d}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--gr:#050b11}}
-:root[data-theme=dark]{--gr:#050b11}
-:root[data-theme=light]{color-scheme:light}
-:root:not([data-theme=dark]) .sc{background:color-mix(in srgb,var(--ink) 5%,var(--panel))}
-:root:not([data-theme=dark]) .home-championship #tw .sc{background:color-mix(in srgb,var(--ink) 6%,var(--panel))}
-:root:not([data-theme=dark]) .ft{background:#18354d;color:#e4eff7}
-:root:not([data-theme=dark]) .ft a{color:#fff!important}
-:root:not([data-theme=dark]) .tower{box-shadow:0 18px 40px -25px #18354d55}
-:root:not([data-theme=dark]) .home-championship #tw .sc{border-top:1px solid var(--line)}
-body{transition:background-color .32s,color .32s}
-.panel,.entry-card,.cal-detail,.cal-group,.rule-section,.rule-intro,.rule-footer{transition:background-color .3s,border-color .3s,color .3s,box-shadow .3s}
-.sc{transition:background-color .3s}
-.tr[data-move=up] .pos{background:var(--ok);color:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 18%,transparent),0 0 16px color-mix(in srgb,var(--ok) 42%,transparent)}
-.tr[data-move=down] .pos{background:var(--bad);color:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--bad) 18%,transparent),0 0 16px color-mix(in srgb,var(--bad) 42%,transparent)}
-.tr[data-move=flat] .pos{box-shadow:none}
-@keyframes fiwsRise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fiwsOpen{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fiwsGlow{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--sky) 0%,transparent)}45%{box-shadow:0 0 0 4px color-mix(in srgb,var(--sky) 12%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
-/* Calendar: purposeful stagger and an animated detail reveal */
-.cal-detail,.cal-group{animation:fiwsRise .42s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--stagger,0)*38ms)}
-.cal-detail[open],.cal-group[open]{animation:fiwsGlow .55s ease-out}
-.cal-extra{animation:fiwsOpen .28s ease both}
-.cal-mini{animation:fiwsOpen .25s ease both}
-.cal-detail>summary .dt{transition:transform .25s,color .25s}
-.cal-detail:hover>summary .dt{transform:scale(1.06);color:var(--acc)}
-.cal-group>summary .chip{transition:transform .2s}
-.cal-group>summary:hover .chip{transform:translateY(-1px)}
-/* Entries: paddock-card system, intentionally distinct from Results */
-.entries-intro{display:flex;justify-content:space-between;align-items:end;gap:1rem;margin:.8rem 0 1.25rem;padding:1rem 1.15rem;border:1px solid var(--line);border-left:5px solid var(--sky);border-radius:10px;background:linear-gradient(115deg,color-mix(in srgb,var(--sky) 9%,var(--panel)),var(--panel) 62%)}
-.entries-intro p{max-width:58ch;margin:.35rem 0 0;color:var(--mute)}
-.entries-count{flex:none;text-align:right;font:700 2rem/.9 'Barlow Condensed';color:var(--acc)}
-.entries-count small{display:block;margin-top:.4rem;font:600 .7rem Barlow;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
-.entries-section-head{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin:2.1rem 0 .85rem}
-.entries-section-head h2{margin:0}
-.entries-section-head p{margin:0;color:var(--mute);font-size:.86rem}
-.driver-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:.85rem}
-.driver-card{--team-color:var(--sky);position:relative;isolation:isolate;overflow:hidden;min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--panel);box-shadow:0 10px 26px -25px var(--ink);animation:fiwsRise .46s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--stagger,0)*35ms);transition:transform .24s,border-color .24s,box-shadow .24s}
-.driver-card::before{content:"";position:absolute;z-index:-1;inset:0 0 auto;height:5px;background:var(--team-color)}
-.driver-card:hover,.driver-card[open]{transform:translateY(-3px);border-color:var(--team-color);box-shadow:0 17px 34px -25px var(--team-color)}
-.driver-card>summary{display:grid;grid-template-columns:68px minmax(0,1fr) 20px;gap:.85rem;align-items:center;list-style:none;cursor:pointer;padding:1rem}
-.driver-card>summary::-webkit-details-marker{display:none}
-.driver-number{display:grid;place-items:center;min-height:66px;border-radius:9px;background:color-mix(in srgb,var(--team-color) 13%,var(--soft));color:var(--team-color);font:700 2rem/.9 'Barlow Condensed';font-variant-numeric:tabular-nums}
-.driver-number small{display:block;font:600 .6rem Barlow;letter-spacing:.12em;margin-top:.35rem;color:var(--mute)}
-.driver-identity{min-width:0}
-.driver-identity b{display:block;font:700 1.35rem/1.05 'Barlow Condensed';text-transform:uppercase;overflow-wrap:anywhere}
-.driver-team{display:flex;align-items:center;gap:.4rem;margin-top:.42rem;color:var(--mute);font-size:.84rem;min-width:0}
-.driver-team i{width:8px;height:22px;flex:none;border-radius:4px;background:var(--team-color)}
-.driver-team span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.driver-card .entry-chevron{color:var(--mute)}
-.driver-meta{display:flex;flex-wrap:wrap;gap:.35rem;padding:0 1rem .95rem}
-.driver-meta span,.team-tag{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .55rem;border:1px solid var(--line);border-radius:99px;background:var(--soft);color:var(--mute);font-size:.72rem;font-weight:600}
-.driver-detail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;padding:1rem;border-top:1px solid var(--line);background:var(--soft);animation:fiwsOpen .3s ease both}
-.driver-detail div{min-width:0;padding:.55rem .65rem;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
-.driver-detail span{display:block;color:var(--mute);font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase}
-.driver-detail b{display:block;margin-top:.2rem;font-size:.9rem;overflow-wrap:anywhere}
-.driver-races{grid-column:1/-1}
-.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:.9rem}
-.team-card{--team-color:var(--sky);position:relative;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--panel);animation:fiwsRise .48s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--stagger,0)*45ms);transition:transform .24s,border-color .24s,box-shadow .24s}
-.team-card:hover{transform:translateY(-4px);border-color:var(--team-color);box-shadow:0 18px 34px -26px var(--team-color)}
-.team-banner{height:9px;background:linear-gradient(90deg,var(--team-color),color-mix(in srgb,var(--team-color) 35%,var(--panel)))}
-.team-content{padding:1.05rem}
-.team-eyebrow{font-size:.68rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--mute)}
-.team-title{display:flex;align-items:center;gap:.6rem;margin:.2rem 0 .9rem}
-.team-title h3{font-size:1.7rem;overflow-wrap:anywhere}
-.team-swatch{width:12px;height:30px;flex:none;border-radius:5px;background:var(--team-color)}
-.team-roster{display:grid;gap:.45rem}
-.team-driver{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.55rem .65rem;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
-.team-driver b{font:600 1rem 'Barlow Condensed';text-transform:uppercase}
-.team-driver small{color:var(--mute);white-space:nowrap}
-.team-specs{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem}
-.team-empty{padding:.75rem;border:1px dashed var(--line);border-radius:8px;color:var(--mute);font-size:.85rem}
-.entries-empty{padding:1.4rem;border:1px dashed var(--line);border-radius:10px;color:var(--mute)}
-/* Home micro-detail: retain the existing composition and restore a strong latest-result presence */
-.home-result{position:relative;isolation:isolate;box-shadow:0 14px 34px -28px var(--ink);transition:transform .25s,box-shadow .25s}
-.home-result::after{content:"";position:absolute;right:-26px;top:-30px;width:110px;height:110px;border:1px solid color-mix(in srgb,var(--sky) 35%,transparent);border-radius:50%;box-shadow:0 0 0 12px color-mix(in srgb,var(--sky) 5%,transparent),0 0 0 26px color-mix(in srgb,var(--sky) 3%,transparent);pointer-events:none}
-.home-result .hd,.home-result .pd{position:relative;z-index:1}
-.home-result:hover{transform:translateY(-3px);box-shadow:0 20px 38px -27px var(--ink)}
-.home-championship{position:relative}
-.home-championship::after{content:"";position:absolute;right:-8px;top:-10px;width:58px;height:58px;border:1px solid color-mix(in srgb,var(--sky) 28%,transparent);border-radius:50%;pointer-events:none}
-.rules-grid>.rule-intro{animation:fiwsRise .45s both}
-.rule-section{animation:fiwsRise .42s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--stagger,0)*45ms)}
-.rule-section>summary{transition:background-color .2s,color .2s}
-.rule-section>summary:hover{background:color-mix(in srgb,var(--sky) 6%,transparent)}
-.rule-section[open] .rule-body{animation:fiwsOpen .34s cubic-bezier(.2,.8,.2,1) both}
-.rule-footer{animation:fiwsRise .45s .25s both}
-@media(max-width:620px){.entries-intro{align-items:start}.entries-count{font-size:1.6rem}.driver-grid,.team-grid{grid-template-columns:1fr}.driver-card>summary{grid-template-columns:58px minmax(0,1fr) 18px;padding:.85rem}.driver-number{min-height:58px;font-size:1.75rem}.driver-identity b{font-size:1.2rem}.driver-detail{gap:.45rem;padding:.75rem}.team-content{padding:.9rem}}
-@media(prefers-reduced-motion:reduce){.driver-card,.team-card,.cal-detail,.cal-group,.rule-section,.rules-grid>.rule-intro,.rule-footer,.home-result{animation:none!important;transition:none!important}.driver-card:hover,.team-card:hover,.home-result:hover{transform:none}}
-
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .sc{background:#00000030}:root:not([data-theme=light]) .ft{background:var(--gr);color:#C9DAE8}:root:not([data-theme=light]) .tower{box-shadow:0 18px 40px -24px #0B2239}}
-
-
-/* Focused visual repair: stable leaderboard, consistent contrast and intentional entries */
-.tower .tb{position:relative;display:flex;flex-direction:column;height:auto!important;min-width:0}
-.tower .tr{position:relative;inset:auto;left:auto;right:auto;width:100%;height:44px;flex:0 0 44px;will-change:transform;transition:transform .42s cubic-bezier(.2,.8,.2,1),opacity .18s ease,background-color .2s ease}
-.tower .tr[hidden]{display:none!important}
-.tower.scrubbing .tr{transition:none!important;will-change:auto}.tower.scrubbing .pt{transition:none!important}
-.tower .pt{font-variant-numeric:tabular-nums}
-.tower .sc{color:inherit}
-.pick .seg button[aria-pressed=true]{background:var(--sky);color:#04223A;box-shadow:inset 0 -3px 0 #04223A22}
-.home-result::after,.home-championship::after{content:none!important;display:none!important}
-.home-championship #tw.tower{color:#F4F8FC}
-.home-championship #tw.tower .th,
-.home-championship #tw.tower .who strong,
-.home-championship #tw.tower .pt{color:#F4F8FC!important}
-.home-championship #tw.tower .who small,
-.home-championship #tw.tower .th small{color:#BED0DF!important;opacity:1}
-.home-championship #tw.tower .sc{color:#EAF4FC}
-.home-championship #tw.tower .sc .btn.ghost{color:#EAF4FC}
-
-.entries-hero{position:relative;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(230px,.7fr);align-items:end;gap:2rem;margin:.8rem 0 2.3rem;padding:clamp(1.5rem,4vw,3rem);overflow:hidden;border-top:5px solid var(--sky);border-radius:12px;background:linear-gradient(125deg,#0B2239 0%,#123b59 68%,#0c2e49 100%);color:#F4F8FC;box-shadow:0 22px 48px -34px #092238}
-.entries-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 0 58%,#ffffff08 58% 58.3%,transparent 58.3% 62%,#ffffff06 62% 62.3%,transparent 62.3%)}
-.entries-hero-copy,.entries-hero-stats{position:relative;z-index:1}
-.entries-overline,.entry-eyebrow{display:block;color:var(--sky);font:700 .72rem Barlow Condensed,sans-serif;letter-spacing:.17em;text-transform:uppercase}
-.entries-hero h2{margin:.6rem 0 .8rem;font-size:clamp(3.5rem,8vw,6.8rem);line-height:.82;letter-spacing:-.025em}
-.entries-hero h2 span{display:block;margin-top:.7rem;color:#9eddf4;font-size:clamp(1.35rem,2.8vw,2rem);letter-spacing:.09em}
-.entries-hero p{max-width:54ch;margin:1.1rem 0 1rem;color:#cfdeea;font-size:1rem;line-height:1.65}
-.entries-season-status{display:inline-flex;align-items:center;min-height:26px;padding:.25rem .65rem;border:1px solid #ffffff35;border-radius:3px;color:#e6f1fa;font:600 .72rem Barlow Condensed,sans-serif;letter-spacing:.12em;text-transform:uppercase}
-.entries-hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;align-self:end;padding-top:1rem;border-top:1px solid #ffffff30}
-.entries-hero-stats div{display:grid;gap:.18rem}
-.entries-hero-stats b{font:700 clamp(2rem,4vw,3.4rem)/.95 Barlow Condensed,sans-serif;color:#fff;font-variant-numeric:tabular-nums}
-.entries-hero-stats span{color:#a9c2d5;font:600 .65rem Barlow,sans-serif;letter-spacing:.12em}
-.entries-register{margin-top:1rem}
-.entries-register-head{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1rem}
-.entries-register-head h2{margin:.3rem 0 .35rem;font-size:clamp(2rem,4vw,2.8rem)}
-.entries-register-head p{margin:0;color:var(--mute);font-size:.9rem}
-.entries-field-count{flex:none;padding:.35rem .65rem;border:1px solid var(--line);border-radius:4px;color:var(--acc);font:700 .76rem Barlow Condensed,sans-serif;letter-spacing:.08em}
-.entries-toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,280px);gap:.7rem;margin:1.2rem 0 1rem;padding:.8rem;border:1px solid var(--line);border-radius:9px;background:var(--panel)}
-.entries-search,.entries-filter{position:relative;display:block}
-.entries-search svg{position:absolute;left:.9rem;top:50%;width:18px;height:18px;transform:translateY(-50%);fill:none;stroke:var(--mute);stroke-width:1.7;pointer-events:none}
-.entries-search input,.entries-filter select{height:46px;margin:0;border-radius:6px;background:var(--soft);border-color:var(--line);font-size:.92rem}
-.entries-search input{padding-left:2.7rem}
-.entries-search input::placeholder{color:var(--mute);opacity:.85}
-.entry-team-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;align-items:start}
-.entry-team-card{--team-color:var(--sky);min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--panel);box-shadow:0 12px 30px -27px var(--ink);animation:fiwsRise .35s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--stagger,0)*24ms);transition:border-color .2s,box-shadow .2s,transform .2s}
-.entry-team-card[hidden]{display:none!important}
-.entry-team-card:hover{transform:translateY(-2px);border-color:var(--team-color);box-shadow:0 17px 34px -27px var(--team-color)}
-.entry-team-accent{height:6px;background:linear-gradient(90deg,var(--team-color),color-mix(in srgb,var(--team-color) 35%,var(--panel)) 72%,transparent)}
-.entry-team-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 1.1rem .3rem}
-.entry-team-head h3{margin:.2rem 0 0;font-size:1.75rem;line-height:1.02;overflow-wrap:anywhere}
-.entry-team-count{display:grid;justify-items:end;color:var(--ink);font:700 1.6rem/.9 Barlow Condensed,sans-serif;font-variant-numeric:tabular-nums}
-.entry-team-count small{margin-top:.3rem;color:var(--mute);font:600 .58rem Barlow,sans-serif;letter-spacing:.12em}
-.entry-team-meta{display:flex;flex-wrap:wrap;gap:.35rem;padding:.45rem 1.1rem .8rem;color:var(--mute);font:600 .67rem Barlow,sans-serif;letter-spacing:.06em;text-transform:uppercase}
-.entry-team-meta span{padding:.2rem .45rem;border:1px solid var(--line);border-radius:3px;background:var(--soft)}
-.entry-roster{list-style:none;margin:0;padding:0 .8rem .8rem}
-.entry-driver-row{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:.7rem;min-width:0;padding:.7rem .35rem;border-top:1px solid var(--line)}
-.entry-car-number{display:grid;place-items:center;min-height:42px;border-left:3px solid var(--team-color);background:color-mix(in srgb,var(--team-color) 11%,var(--soft));color:var(--team-color);font:700 1.15rem Barlow Condensed,sans-serif;font-variant-numeric:tabular-nums}
-.entry-driver-name{min-width:0}
-.entry-driver-name b,.entry-driver-name small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.entry-driver-name b{color:var(--ink);font:700 1.12rem/1.1 Barlow Condensed,sans-serif;text-transform:uppercase;letter-spacing:.025em}
-.entry-driver-name small{margin-top:.18rem;color:var(--mute);font-size:.72rem}
-.entry-race-range{max-width:112px;color:var(--mute);font:600 .67rem Barlow,sans-serif;text-align:right;line-height:1.35}
-.entry-no-roster{padding:1rem .35rem;border-top:1px solid var(--line);color:var(--mute);font-size:.85rem}
-.entries-no-results,.entries-empty{padding:1.3rem;border:1px dashed var(--line);border-radius:8px;color:var(--mute);text-align:center}
-.entries-no-results[hidden]{display:none!important}
-.entries-source-note{margin:1rem 0 0;color:var(--mute);font-size:.75rem;text-align:right}
-.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-.rule-section .rule-body{overflow:hidden;transition:height .36s cubic-bezier(.2,.8,.2,1),opacity .24s ease,transform .36s cubic-bezier(.2,.8,.2,1);will-change:height}
-.rule-section summary:after{transition:transform .28s ease,color .2s ease}
-.rule-section[open] summary:after{transform:rotate(180deg)}
-@media(max-width:760px){.entries-hero{grid-template-columns:1fr;gap:1.3rem;padding:1.4rem}.entries-hero-stats{padding-top:.8rem}.entry-team-grid{grid-template-columns:1fr}}
-@media(max-width:560px){.entries-register-head{align-items:start;flex-direction:column}.entries-toolbar{grid-template-columns:1fr}.entry-driver-row{grid-template-columns:42px minmax(0,1fr) auto;gap:.55rem;padding:.65rem .2rem}.entry-team-head{padding-inline:.9rem}.entry-team-meta{padding-inline:.9rem}.entry-roster{padding-inline:.65rem}.entry-race-range{max-width:88px;font-size:.61rem}.entries-hero h2{font-size:clamp(3.3rem,17vw,5rem)}.entries-hero-stats b{font-size:2.2rem}}
-@media(prefers-reduced-motion:reduce){.tower .tr,.entry-team-card,.rule-section .rule-body,.rule-section summary:after{transition:none!important;animation:none!important;will-change:auto!important}.entry-team-card:hover{transform:none}}
 </style></head><body>
 <button class="skip btn" id="skip">Skip to content</button>
 <button class="mobile-brand" type="button" aria-label="FIWS logo"><span id="mobile-logo"></span></button>
 <header class="top"><div class="bar"><a class="brand" href="#home" aria-label="FIWS home"><span id="logo"></span><b>FIWS</b></a>
-<nav class="nav" id="nav" aria-label="Main"></nav><button class="nav-more" id="nav-more" type="button" aria-label="More navigation" aria-expanded="false" aria-controls="mobile-more"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></button><button class="ib" id="theme" type="button" aria-label="Toggle light and dark theme" title="Toggle theme"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42m-9.88 9.88-1.42 1.42" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button></div></header>
+<nav class="nav" id="nav" aria-label="Main"></nav><button class="nav-more" id="nav-more" type="button" aria-label="More navigation" aria-expanded="false" aria-controls="mobile-more"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></button><button class="ib" id="theme" aria-label="Toggle light and dark theme">Theme</button></div></header>
 <div class="mobile-more" id="mobile-more" hidden>
  <section class="mobile-more-panel" role="dialog" aria-modal="true" aria-labelledby="mobile-more-title">
   <div class="mobile-more-head"><h2 id="mobile-more-title">More</h2><button class="mobile-more-close" id="mobile-more-close" type="button">Close</button></div>
@@ -679,95 +509,18 @@ const normalizedDriverName=name=>String(name??'').normalize('NFKC').replace(/\s+
 function isFormerGridDriver(s,name,round=s.done){return (s.drivers||[]).length>0&&!entryTeamForRound(s,name,round)}
 function tower(el,s,kind,limit){
  el.classList.add('tower');
- const list=kind==='con'?s.con:s.drv,n=Math.min(limit,list.length),max=Math.max(0,s.done);
- el.innerHTML=`<div class="th"><span><i class="live" ${/^(ONGOING|LIVE|ACTIVE)$/i.test(String(s.status||''))?'':'hidden'}></i>${kind==='con'?'Constructors':'Drivers'} · Season ${esc(s.num)}</span><small class="lb"></small></div><div class="tb"></div><div class="sc"><button class="btn sm" aria-label="Replay season">Replay</button><input type="range" min="0" max="${max}" value="${max}" aria-label="Round"><span class="rl"></span></div>`;
- const tb=$('.tb',el);
- const rows=list.map(d=>{
-  const i=info(s,d.name,s.done),row=document.createElement('div');
-  row.className='tr';
-  row.innerHTML=`<b class="pos"></b><i class="tc" style="background:${tcol(kind==='con'?d.name:i.team||d.name,s.key)}"></i><span class="who"><strong>${esc(leaderboardPhoneText(d.name))}</strong><small>${kind==='con'?'':esc(leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · ')))}</small></span><span class="dl"></span><span class="pt"></span>`;
-  tb.append(row);return row;
- });
- let previousRanks=null,tm=null,lastHaptic= max,rafIds=[],moveTimers=rows.map(()=>0),touchScrub=false;
- const reduceMotion=RM||matchMedia('(prefers-reduced-motion: reduce)').matches;
- const cancelMotion=()=>{
-  rafIds.forEach(id=>cancelAnimationFrame(id));rafIds=[];
-  rows.forEach(row=>{row.style.transition='';row.style.transform=''});
- };
- const set=(round,animate=true)=>{
-  round=Math.max(0,Math.min(max,Number(round)||0));
-  const r=round;
-  const valueAt=d=>Number(d.vals[round]??0);
-  const order=list.map((d,i)=>i).sort((a,b)=>valueAt(list[b])-valueAt(list[a])||
-   (round?(Number(list[b].vals[round-1]??0)-Number(list[a].vals[round-1]??0)):0)||
-   String(list[a].name).localeCompare(String(list[b].name)));
-  const shouldAnimate=animate&&!reduceMotion&&!el.classList.contains('scrubbing')&&previousRanks!==null;
-  cancelMotion();
-  const oldTops=new Map();
-  if(shouldAnimate)rows.forEach(row=>{if(!row.hidden)oldTops.set(row,row.getBoundingClientRect().top)});
-  order.forEach((idx,position)=>{
-   const row=rows[idx],d=list[idx],score=valueAt(d),delta=round>0?score-Number(d.vals[round-1]??0):0;
-   const prior=previousRanks?previousRanks[idx]:position;
-   const roundInfo=kind==='drv'?info(s,d.name,r):null;
-   const former=kind==='drv'&&isFormerGridDriver(s,d.name,r);
-   row.hidden=position>=n;
-   row.classList.toggle('former-grid',former);
-   if(roundInfo){const marker=$('.tc',row),small=$('.who small',row);marker.style.background=tcol(roundInfo.team||d.name,s.key);small.textContent=leaderboardPhoneText([roundInfo.num,roundInfo.nat,roundInfo.team].filter(Boolean).join(' · '))}
-   if(moveTimers[idx])clearTimeout(moveTimers[idx]);
-   row.dataset.move=!previousRanks?'flat':position<prior?'up':position>prior?'down':'flat';
-   if(row.dataset.move!=='flat')moveTimers[idx]=setTimeout(()=>{row.dataset.move='flat';moveTimers[idx]=0},850);
-   row.dataset.p=String(position);
-   $('.pos',row).textContent=String(position+1);
-   $('.dl',row).textContent=delta>0?'+'+delta:delta<0?String(delta):'';
-   $('.pt',row).textContent=String(score);
-   tb.append(row);
-  });
-  if(shouldAnimate){
-   rows.forEach(row=>{
-    if(row.hidden)return;
-    const oldTop=oldTops.get(row);
-    if(oldTop===undefined)return;
-    const distance=oldTop-row.getBoundingClientRect().top;
-    if(Math.abs(distance)<1)return;
-    row.style.transition='none';
-    row.style.transform=`translateY(${distance}px)`;
-   });
-   void tb.offsetHeight;
-   rafIds=rows.filter(row=>!row.hidden&&row.style.transform).map(row=>requestAnimationFrame(()=>{
-    row.style.transition='';row.style.transform='';
-   }));
-  }
-  previousRanks=order.reduce((rank,index,position)=>(rank[index]=position,rank),[]);
-  paintLeaderboardRound(el,s,round);
-  $('.rl',el).textContent=rLabel(s,round).split(' · ')[0];
- };
- const rng=$('input',el),replay=$('button',el);
- const canHaptic=matchMedia('(pointer:coarse)').matches&&typeof navigator.vibrate==='function';
- rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')});rng.addEventListener('pointerdown',()=>cancelMotion());
- rng.addEventListener('pointerup',()=>{touchScrub=false});
- rng.addEventListener('pointercancel',()=>{touchScrub=false;el.classList.remove('scrubbing');set(+rng.value,true)});
- rng.addEventListener('keydown',()=>{el.classList.add('scrubbing');cancelMotion()});
- rng.addEventListener('change',()=>{el.classList.remove('scrubbing');touchScrub=false;set(+rng.value,true)});
- rng.oninput=()=>{
-  clearInterval(tm);el.classList.add('scrubbing');cancelMotion();
-  const round=+rng.value;
-  if(canHaptic&&touchScrub&&round!==lastHaptic){try{navigator.vibrate(8)}catch(_){}}
-  lastHaptic=round;set(round,false);
- };
- replay.onclick=()=>{
-  clearInterval(tm);el.classList.remove('scrubbing');rng.value='0';set(0,true);
-  let round=0;
-  tm=setInterval(()=>{
-   round++;
-   if(round>max){clearInterval(tm);tm=null;return}
-   rng.value=String(round);set(round,true);
-  },RM?600:1050);
- };
- cl.push(()=>{
-  clearInterval(tm);cancelMotion();
-  moveTimers.forEach(id=>id&&clearTimeout(id));
- });
- set(max,false);paintLeaderboardRound(el,s,max);
+ const list=kind==='con'?s.con:s.drv,n=Math.min(limit,list.length),H=44,max=Math.max(0,s.done);
+ el.innerHTML=`<div class="th"><span><i class="live" ${/^(ONGOING|LIVE|ACTIVE)$/i.test(String(s.status||''))?'':'hidden'}></i>${kind==='con'?'Constructors':'Drivers'} · Season ${esc(s.num)}</span><small class="lb"></small></div><div class="tb" style="height:${n*H}px"></div><div class="sc"><button class="btn sm" aria-label="Replay season">Replay</button><input type="range" min="0" max="${max}" value="${max}" aria-label="Round"><span class="rl"></span></div>`;
+ const tb=$('.tb',el),rows=list.map(d=>{const i=info(s,d.name,s.done),r=document.createElement('div');r.className='tr';r.innerHTML=`<b class="pos"></b><i class="tc" style="background:${tcol(kind==='con'?d.name:i.team||d.name,s.key)}"></i><span class="who"><strong>${esc(leaderboardPhoneText(d.name))}</strong><small>${kind==='con'?'':esc(leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · ')))}</small></span><span class="dl"></span><span class="pt"></span>`;tb.append(r);return r});
+ let shown=list.map(()=>0),tm,rankByIndex=null;const scoreFrames=list.map(()=>0);
+ const set=r=>{const key=d=>d.vals[r]??0;const order=list.map((d,i)=>i).sort((a,b)=>key(list[b])-key(list[a])||(r?(list[b].vals[r-1]??0)-(list[a].vals[r-1]??0):0)||list[a].name.localeCompare(list[b].name));
+  order.forEach((idx,p)=>{const row=rows[idx],d=list[idx],v=key(d),dv=r>0?v-(d.vals[r-1]??0):0,prior=rankByIndex?rankByIndex[idx]:p;const roundInfo=kind==='drv'?info(s,d.name,r):null,former=kind==='drv'&&isFormerGridDriver(s,d.name,r);row.classList.toggle('former-grid',former);if(roundInfo){const marker=$('.tc',row),small=$('.who small',row);marker.style.background=tcol(roundInfo.team||d.name,s.key);small.textContent=leaderboardPhoneText([roundInfo.num,roundInfo.nat,roundInfo.team].filter(Boolean).join(' · '))}row.dataset.move=!rankByIndex?'flat':p<prior?'up':p>prior?'down':'flat';row.style.transform=`translateY(${p*H}px)`;row.style.opacity=p<n?1:0;row.style.pointerEvents=p<n?'auto':'none';row.dataset.p=p;$('.pos',row).textContent=p+1;$('.dl',row).textContent=dv>0?'+'+dv:dv<0?String(dv):'';
+   const pt=$('.pt',row);if(scoreFrames[idx])cancelAnimationFrame(scoreFrames[idx]);if(el.classList.contains('scrubbing')){pt.textContent=v;shown[idx]=v;scoreFrames[idx]=0}else{const from=Number(pt.textContent)||shown[idx],t0=performance.now(),duration=RM?0:420;const f=t=>{const k=duration?Math.min(1,(t-t0)/duration):1,eased=1-Math.pow(1-k,3);pt.textContent=+(from+(v-from)*eased).toFixed(1);if(k<1)scoreFrames[idx]=requestAnimationFrame(f);else{shown[idx]=v;scoreFrames[idx]=0}};scoreFrames[idx]=requestAnimationFrame(f)}});rankByIndex=order.reduce((a,idx,p)=>(a[idx]=p,a),[]);
+  paintLeaderboardRound(el,s,r);$('.rl',el).textContent=rLabel(s,r).split(' · ')[0]};
+ const rng=$('input',el),b=$('button',el);
+ let touchScrub=false,lastHaptic=+rng.value;const canHaptic=matchMedia('(pointer:coarse)').matches&&typeof navigator.vibrate==='function';rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')});rng.addEventListener('pointerup',()=>{touchScrub=false});rng.addEventListener('pointercancel',()=>{touchScrub=false});rng.addEventListener('keydown',()=>el.classList.add('scrubbing'));rng.addEventListener('change',()=>{el.classList.remove('scrubbing');touchScrub=false});rng.oninput=()=>{clearInterval(tm);el.classList.add('scrubbing');const round=+rng.value;if(canHaptic&&touchScrub&&round!==lastHaptic)navigator.vibrate(8);lastHaptic=round;set(round);paintLeaderboardRound(el,s,round)};
+ b.onclick=()=>{clearInterval(tm);let r=0;rng.value=0;set(0);tm=setInterval(()=>{r++;if(r>max){clearInterval(tm);return}rng.value=r;set(r);paintLeaderboardRound(el,s,r)},RM?300:1100)};
+ cl.push(()=>{clearInterval(tm);scoreFrames.forEach(id=>id&&cancelAnimationFrame(id))});set(max);paintLeaderboardRound(el,s,max);
 }
 /* views */
 const pick=()=>`<div class="pick"><div class="seg" role="group" aria-label="Series">${series().map(x=>`<button data-ser="${esc(x)}" aria-pressed="${x===cur.series}">${esc(x)}</button>`).join('')}</div><div class="seg" role="group" aria-label="Season">${D.filter(x=>x.sheet===cur.series).map(x=>`<button data-sea="${esc(x.key)}" aria-pressed="${x.key===cur.key}">Season ${esc(x.num)}<em>${esc(stl[x.status]||'')}</em></button>`).join('')}</div></div>`;
@@ -799,131 +552,12 @@ V.results=()=>{const s=seas();if(!s)return{html:empty('No data','')};
   const set=(c,o)=>{c.dataset.open=o;const b=$('.rh',c);b&&b.setAttribute&&b.hasAttribute('aria-expanded')&&b.setAttribute('aria-expanded',o)};
   $$('button.rh').forEach(b=>b.onclick=()=>set(b.closest('.rc'),b.closest('.rc').dataset.open!=='true'));
   const ea=$('#ea');if(ea){ea.onclick=()=>$$('.rc:not(.x)').forEach(c=>set(c,true));$('#ca').onclick=()=>$$('.rc:not(.x)').forEach(c=>set(c,false))}}}};
-V.calendar=()=>{const s=seas();if(!s)return{html:empty('No data','')};const today=new Date().toISOString().slice(0,10),visible=s.cal.map((c,i)=>({c,i})).filter(({c})=>(/^\d{4}/.test(c.date)&&c.date<today)||/CANCEL/i.test(c.date));
-  const race=({c},stagger=0)=>{const dated=/^\d{4}/.test(c.date),done=dated&&c.date<today,dt=dated?new Date(c.date+'T12:00:00Z'):null;return '<details class="cal-detail" style="--stagger:'+stagger+'"><summary class="cal"><div class="dt">'+(dt?dt.getUTCDate()+'<small>'+dt.toLocaleDateString('en-GB',{month:'short',timeZone:'UTC'})+'</small>':'<small>TBD</small>')+'</div><div><h3>R'+esc(c.n)+' · '+esc(c.name)+'</h3><span class="muted">'+esc(c.circuit||'Track details available on expand')+'</span></div><div>'+(done?'<span class="chip ok">Completed</span>':'<span class="chip">Scheduled</span>')+'</div></summary><div class="cal-extra"><b>Track:</b> '+esc(c.circuit||'Not specified')+(c.date?' · <b>Date:</b> '+esc(fd(c.date)):'')+(c.laps!==''?' · <b>Laps:</b> '+esc(c.laps):'')+(c.caution?' · <b>Caution speed:</b> '+esc(c.caution):'')+(c.notes?' · <b>Notes:</b> '+esc(c.notes):'')+'</div></details>'};
-  const rows=[];for(let p=0;p<visible.length;){const item=visible[p],c=item.c;if(!/CANCEL/i.test(c.date)){rows.push(race(item,p));p++;continue}const group=[item];let q=p+1;while(q<visible.length&&visible[q].i===group[group.length-1].i+1&&/CANCEL/i.test(visible[q].c.date)){group.push(visible[q]);q++}const first=group[0].c,last=group[group.length-1].c,label=group.length>1?'R'+first.n+'–R'+last.n:'R'+first.n;rows.push('<details class="cal-group" style="--stagger:'+p+'"><summary><span class="chip bad">Cancelled</span><b>'+label+'</b><span class="muted">'+group.length+' '+(group.length===1?'round':'consecutive rounds')+'</span><span class="group-count muted">Expand</span></summary><div class="cal-group-list">'+group.map(({c:g})=>'<details class="cal-mini"><summary>R'+esc(g.n)+' · '+esc(g.name)+'</summary><p>'+esc(g.circuit||'Track not specified')+(g.notes?' · '+esc(g.notes):'')+(g.laps!==''?' · '+esc(g.laps)+' laps':'')+(g.caution?' · caution '+esc(g.caution):'')+'</p></details>').join('')+'</div></details>');p=q}
-  return{html:'<h1>Calendar</h1>'+pick()+(rows.length?rows.join(''):empty('No calendar','This season has no calendar yet.')),after:()=>{}}};
-
-const entryField=(row,names)=>{const keys=Object.keys(row||{}),norm=x=>String(x).toLowerCase().replace(/[^a-z0-9]/g,'');for(const name of names){const key=keys.find(k=>norm(k)===norm(name));if(key&&valid(row[key]))return String(row[key]).trim()}return''};
-const formatRaceRange=value=>{const raw=String(value??'').trim();if(!raw)return'Full season';const s=raw.replace(/\s+/g,' '),m=s.match(/^R\s*(\d+)\s*[-–—]\s*(\d*)$/i);if(m)return m[2]?'Rounds '+m[1]+'–'+m[2]:'Round '+m[1]+' onwards';const one=s.match(/^R\s*(\d+)$/i);if(one)return'Round '+one[1];return s.replace(/\bR(\d+)/gi,'Round $1').replace(/\s*[-–—]\s*$/,' onwards')};
-const entryTeamName=d=>String(d?.Team??d?.['Team Name']??d?.Constructor??'').replace(/\s*\(.*?\)/g,'').trim();
-const teamEntryFor=(s,t)=>(s.teams||[]).find(x=>String(x.Team||'').trim().toLocaleLowerCase()===String(t||'').trim().toLocaleLowerCase())||{};
-const entryRoster=(s,t)=>{const target=String(t||'').trim().toLocaleLowerCase();return(s.drivers||[]).filter(d=>entryTeamName(d).split(/\s*,\s*/).some(x=>x.toLocaleLowerCase()===target)||entryTeamForRound(s,driverEntryName(d),s.done).toLocaleLowerCase()===target)};
-V.entries=()=>{
- const s=seas();if(!s)return{html:empty('No data','Load a workbook in Admin.')};
- const driverRows=(s.drivers||[]).map(d=>{
-  const name=driverEntryName(d),rawTeam=info(s,name,Math.max(0,s.done)).team||entryTeamName(d);
-  const team=String(rawTeam||'').split(/\s*,\s*/)[0].trim();
-  const cleanTeam=/^(N\/A|TBD)$/i.test(team)?'':team;
-  const number=String(entryField(d,['Number','Race Number','Car Number'])||'—').replace(/^#+/,'');
-  const nationality=CC[entryField(d,['Nationality','Country'])]||entryField(d,['Nationality','Country'])||'Nationality not listed';
-  const car=entryField(d,['Car','Car Model','Car/Model','Vehicle','Chassis','Car Used','Car Name','Model']);
-  const range=formatRaceRange(entryField(d,['Races','Race Range','Rounds','Participation']));
-  return{name:name||'Unnamed driver',team:cleanTeam,number,nationality,car,range};
- });
- const teamsFromSheet=(s.teams||[]).map(row=>({name:String(row.Team||'').trim(),row})).filter(t=>t.name);
- const teamNames=teamsFromSheet.map(t=>t.name);
- driverRows.forEach(d=>{if(d.team&&!teamNames.some(name=>name.toLocaleLowerCase()===d.team.toLocaleLowerCase()))teamNames.push(d.team)});
- const groups=teamNames.map(name=>{
-  const sheet=teamsFromSheet.find(t=>t.name.toLocaleLowerCase()===name.toLocaleLowerCase());
-  const roster=driverRows.filter(d=>d.team.toLocaleLowerCase()===name.toLocaleLowerCase());
-  const row=sheet?.row||{};
-  const car=entryField(row,['Car','Car Model','Car/Model','Vehicle','Chassis','Car Used','Car Name','Model']);
-  const nationality=entryField(row,['Nationality','Country']);
-  const fallback=[row['Entry One'],row['Entry Two']].filter(valid).map(name=>({name:String(name).trim(),number:'—',nationality:'',range:'Full season'}));
-  return{name,row,roster:roster.length?roster:fallback,car,nationality};
- });
- const unassigned=driverRows.filter(d=>!d.team);
- if(unassigned.length)groups.push({name:'Unassigned',row:{},roster:unassigned,car:'',nationality:''});
- const constructorCount=groups.filter(g=>g.name!=='Unassigned').length;
- const makeRoster=roster=>roster.map(driver=>{
-  const carNumber=String(driver.number||'—').replace(/^#+/,'');
-  const nation=driver.nationality||'';
-  const range=driver.range||'Full season';
-  return `<li class="entry-driver-row"><span class="entry-car-number">${carNumber==='—'?'—':'#'+esc(carNumber)}</span><span class="entry-driver-name"><b>${esc(driver.name)}</b><small>${esc(nation||'Driver entry')}</small></span><span class="entry-race-range">${esc(range)}</span></li>`;
- }).join('');
- const teamCards=groups.map((group,index)=>{
-  const color=tcol(group.name,s.key);
-  const teamSearch=[group.name,group.car,group.nationality,...group.roster.flatMap(d=>[d.name,d.number,d.nationality,d.car,d.range])].filter(Boolean).join(' ').toLocaleLowerCase();
-  const subtitle=group.name==='Unassigned'?'Entry assignment pending':'Constructor · '+String(s.num);
-  return `<article class="entry-team-card" style="--team-color:${color};--stagger:${Math.min(index,12)}" data-team="${esc(group.name.toLocaleLowerCase())}" data-search="${esc(teamSearch)}">
-   <div class="entry-team-accent"></div>
-   <div class="entry-team-head"><div><span class="entry-eyebrow">${esc(subtitle)}</span><h3>${esc(group.name)}</h3></div><span class="entry-team-count">${group.roster.length}<small>ENTRANTS</small></span></div>
-   <div class="entry-team-meta">${group.car?'<span>'+esc(group.car)+'</span>':''}${group.nationality?'<span>'+esc(group.nationality)+'</span>':''}<span>${group.roster.length===1?'1 driver':' '+group.roster.length+' drivers'}</span></div>
-   <ul class="entry-roster">${makeRoster(group.roster)||'<li class="entry-no-roster">The team entry is listed in the workbook; no driver names are currently assigned.</li>'}</ul>
-  </article>`;
- }).join('');
- const seasonStatus=stl[s.status]||'Season register';
- return{html:`<h1>Entries</h1>${pick()}
- <section class="entries-hero">
-  <div class="entries-hero-copy"><span class="entries-overline">FIWS · OFFICIAL ENTRY REGISTER</span><h2>THE GRID<span>Season ${esc(s.num)}</span></h2><p>The people and constructors behind the championship. Browse the registered field, explore each line-up and find a driver or team in seconds.</p><span class="entries-season-status">${esc(seasonStatus)}</span></div>
-  <div class="entries-hero-stats"><div><b>${driverRows.length}</b><span>DRIVERS</span></div><div><b>${constructorCount}</b><span>CONSTRUCTORS</span></div><div><b>${s.cal.length}</b><span>ROUNDS</span></div></div>
- </section>
- <section class="entries-register">
-  <div class="entries-register-head"><div><span class="entries-overline">THE PADDOCK</span><h2>Constructor register</h2><p>Each entry is assembled from the selected season’s Excel workbook.</p></div><span class="entries-field-count" id="entryResultCount">${groups.length} ENTRIES</span></div>
-  <div class="entries-toolbar"><label class="entries-search"><span class="sr-only">Search the entry register</span><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"></circle><path d="m13 13 4 4"></path></svg><input id="entrySearch" type="search" placeholder="Search driver, constructor, car or nationality" autocomplete="off"></label><label class="entries-filter"><span class="sr-only">Filter by constructor</span><select id="entryTeamFilter"><option value="">All constructors</option>${groups.map(g=>'<option value="'+esc(g.name.toLocaleLowerCase())+'">'+esc(g.name)+'</option>').join('')}</select></label></div>
-  <div class="entry-team-grid" id="entryTeamGrid">${teamCards||'<div class="entries-empty">No driver or constructor entries are available in this workbook.</div>'}</div>
-  <p class="entries-no-results" id="entryNoResults" hidden>No entries match this search. Try a different driver or constructor.</p>
-  <p class="entries-source-note">Source: ${esc(srcNote)} · Entry details, team changes and race ranges are read from the selected workbook.</p>
- </section>`,
- after:()=>{
-  const search=$('#entrySearch'),filter=$('#entryTeamFilter'),grid=$('#entryTeamGrid'),count=$('#entryResultCount'),none=$('#entryNoResults');
-  if(!search||!filter||!grid||!count||!none)return;
-  const cards=$$('.entry-team-card',grid);
-  const apply=()=>{
-   const query=search.value.trim().toLocaleLowerCase(),team=filter.value;
-   let visible=0,entrants=0;
-   cards.forEach(card=>{
-    const matchTeam=!team||card.dataset.team===team;
-    const matchText=!query||card.dataset.search.includes(query);
-    const show=matchTeam&&matchText;
-    card.hidden=!show;
-    if(show){visible++;entrants+=Number($('.entry-team-count',card)?.firstChild?.textContent)||0}
-   });
-   count.textContent=visible+' / '+groups.length+' ENTRIES';
-   none.hidden=visible>0;
-  };
-  search.addEventListener('input',apply);filter.addEventListener('change',apply);
-  }
- };
-};
-function initRuleAccordion(){
- $$('.rule-section').forEach(section=>{
-  const summary=$('summary',section),body=$('.rule-body',section);
-  if(!summary||!body)return;
-  summary.addEventListener('click',event=>{
-   event.preventDefault();
-   if(section.classList.contains('is-opening')||section.classList.contains('is-closing'))return;
-   const reduce=RM||matchMedia('(prefers-reduced-motion: reduce)').matches;
-   if(reduce){section.open=!section.open;return}
-   const opening=!section.open;
-   section.classList.remove('is-opening','is-closing');
-   if(opening){
-    section.open=true;section.classList.add('is-opening');
-    body.style.height='0px';body.style.opacity='0';body.style.transform='translateY(-7px)';
-    void body.offsetHeight;
-    requestAnimationFrame(()=>{
-     body.style.height=body.scrollHeight+'px';body.style.opacity='1';body.style.transform='translateY(0)';
-    });
-   }else{
-    section.classList.add('is-closing');
-    body.style.height=body.scrollHeight+'px';body.style.opacity='1';body.style.transform='translateY(0)';
-    void body.offsetHeight;
-    requestAnimationFrame(()=>{
-     body.style.height='0px';body.style.opacity='0';body.style.transform='translateY(-7px)';
-    });
-   }
-   const finish=event=>{
-    if(event.target!==body||event.propertyName!=='height')return;
-    body.removeEventListener('transitionend',finish);
-    if(!opening)section.open=false;
-    section.classList.remove('is-opening','is-closing');
-    body.style.height='';body.style.opacity='';body.style.transform='';
-   };
-   body.addEventListener('transitionend',finish);
-  });
- });
-}
+V.calendar=()=>{const s=seas();if(!s)return{html:empty('No data','')};const t=new Date().toISOString().slice(0,10),visible=s.cal.map((c,i)=>({c,i})).filter(({c})=>(/^\d{4}/.test(c.date)&&c.date<t)||/CANCEL/i.test(c.date));
+ return{html:`<h1>Calendar</h1>${pick()}${visible.length?visible.map(({c,i})=>{const x=/CANCEL/i.test(c.date),d=/^\d{4}/.test(c.date),done=d&&c.date<t,dt=d?new Date(c.date+'T12:00:00Z'):null;
+  return`<div class="cal${x?' x':''}"><div class="dt">${dt?dt.getUTCDate()+'<small>'+dt.toLocaleDateString('en-GB',{month:'short',timeZone:'UTC'})+'</small>':'<small>'+esc(x?'Off':'TBD')+'</small>'}</div><div><h3>R${esc(c.n)} · ${esc(c.name)}</h3><span class="muted">${esc(c.circuit)}${c.notes?' · '+esc(c.notes):''}${c.laps!==''?' · '+esc(c.laps)+' laps':''}${c.caution?' · caution '+esc(c.caution):''}</span></div><div>${x?'<span class="chip bad">Cancelled</span>':done?'<span class="chip ok">Completed</span>':'<span class="chip">'+(d?'Scheduled':'TBD')+'</span>'}</div></div>`}).join(''):empty('No calendar','This season has no calendar yet.')}`,after:()=>{}}};
+V.entries=()=>{const s=seas();if(!s)return{html:empty('No data','')};
+ return{html:`<h1>Entries</h1>${pick()}<div class="sec" style="margin-top:1rem"><h2>Drivers</h2>${s.drivers.length?`<div class="tw"><table><thead><tr><th>Driver</th><th>Nat.</th><th>No.</th><th>Team</th>${s.drivers.some(d=>d.Car)?'<th>Car</th>':''}<th>Races</th></tr></thead><tbody>${s.drivers.map(d=>`<tr><td><b>${esc(d.Driver)}</b></td><td>${esc(CC[d.Nationality]||d.Nationality||'')}</td><td>${esc(d.Number||'')}</td><td><i style="display:inline-block;width:8px;height:14px;background:${tcol(info(s,d.Driver).team||d.Driver,s.key)};margin-right:.5rem;vertical-align:-2px"></i>${esc(d.Team||'')}</td>${s.drivers.some(x=>x.Car)?`<td>${esc(d.Car||'')}</td>`:''}<td>${esc(d.Races||'')}</td></tr>`).join('')}</tbody></table></div>`:empty('No entries','')}</div>
+ <div class="sec"><h2>Teams</h2><div class="g3">${s.teams.map(t=>`<div class="panel" style="border-top:5px solid ${tcol(t.Team,s.key)}"><h3>${esc(t.Team)}</h3><p class="muted" style="margin:.4rem 0 0">${esc(t['Entry One']||'')}${t['Entry Two']?'<br>'+esc(t['Entry Two']):''}<br>${esc(t.Nationality||'')}${t.Car?' · '+esc(t.Car):''}</p></div>`).join('')||empty('No teams','')}</div></div>`,after:()=>{}}};
 V.rules=()=>({html:`<h1>Rules & driving standards</h1>
 <p class="muted" style="max-width:70ch;margin:.65rem 0 1.2rem">A clear guide to racing fairly in FIWS and FITC. These rules apply to every driver. Event-specific instructions from the race director or stewards take priority where stated.</p>
 <div class="rules-grid">
@@ -971,7 +605,7 @@ V.rules=()=>({html:`<h1>Rules & driving standards</h1>
 <h3>Driver Rating (DR)</h3><ul><li>Every driver starts Formula Imperial with <b>200 DR</b>.</li><li>Complete a race and receive <b>+5 DR</b>.</li><li>If found guilty of an incident, lose <b>0.5–5 DR</b>, depending on severity.</li></ul></div></details>
 <details class="panel rule-section"><summary><span class="rule-no">07</span><span><b>Season 2 points & playoffs</b><small>How championship points and the title are decided</small></span></summary><div class="rule-body"><h3>Points</h3><ul><li>Points are awarded using the official Season 2 points table: race-finish points and separate first-stage points are listed by finishing position.</li><li>The first stage runs from Lap 1 to the mandatory caution. Stage points are awarded at the stage flag, and penalties do not change those stage results.</li></ul><h3>Playoffs</h3><ul><li>The regular season ends after <b>Round 18</b>. The top four drivers in the standings qualify for the playoffs.</li><li>Each playoff driver starts the playoff phase on <b>400 points</b>, with <b>+2 points per win</b> and <b>+0.5 points per stage</b>.</li><li>The playoffs cover the final five rounds. The championship goes to the driver with the best four results across those five rounds.</li></ul><p class="tbl-note">The official points table and event-specific instructions remain the source of exact scoring values.</p></div></details>
 <div class="panel rule-footer"><b>Questions or unsure about a situation?</b><p class="muted">Ask the race director or a steward before the session. Follow event briefings and official steward instructions. These standards apply to all drivers.</p></div>
-</div>`,after:()=>{$$('.rule-section').forEach((el,i)=>el.style.setProperty('--stagger',Math.min(i,12)));initRuleAccordion()}});
+</div>`,after:()=>{}});
 /* application form definitions */
 const OPTS={series:['FIWS','FITC','Both'],ctl:['Controller','Wheel','Keyboard and Mouse','Other'],voice:['I can talk and listen to voice chat',"I can't talk but can listen to voice chat",'I cannot talk or listen to voice chat'],exp:['Newcomer','Lightly Experienced','Moderately Experienced','Highly Experienced','Pro Sim-Racer'],pace:['Newcomer (5-20s Off Pace)','Lightly Experienced (3-4s Off Pace)','Moderately Experienced (2-1s Off Pace)','Highly Experienced (On/1s Ahead of Pace)','Pro Sim-Racer (1s+ Ahead of Pace)']};
 const FIELDS=[
