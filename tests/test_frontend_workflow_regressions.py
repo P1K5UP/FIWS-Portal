@@ -147,7 +147,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             page = (ROOT / relative).read_text(encoding="utf-8")
             self.assertIn(".top{position:fixed;top:auto;bottom:0", page)
             self.assertIn(".nav-ico{display:block;width:26px;height:26px", page)
-            self.assertIn(".mobile-brand{position:fixed;top:calc(env(safe-area-inset-top,0px) + .65rem)", page)
+            self.assertIn(".mobile-brand{all:unset;position:fixed;top:calc(env(safe-area-inset-top,0px) + .65rem)", page)
             self.assertIn("#mobile-logo svg,#mobile-logo img,#mobile-logo canvas{display:block;width:auto;height:auto", page)
             self.assertIn("M.replaceChildren(...Array.from(L.childNodes", page)
             self.assertIn("copy.getContext('2d')?.drawImage(node,0,0)", page)
