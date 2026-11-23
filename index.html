@@ -505,7 +505,7 @@ body{transition:background-color .32s,color .32s}
 .tower .tb{position:relative;display:flex;flex-direction:column;height:auto!important;min-width:0}
 .tower .tr{position:relative;inset:auto;left:auto;right:auto;width:100%;height:44px;flex:0 0 44px;will-change:transform;transition:transform .42s cubic-bezier(.2,.8,.2,1),opacity .18s ease,background-color .2s ease}
 .tower .tr[hidden]{display:none!important}
-.tower.scrubbing .tr{transition:none!important;will-change:auto}
+.tower.scrubbing .tr{transition:none!important;will-change:auto}.tower.scrubbing .pt{transition:none!important}
 .tower .pt{font-variant-numeric:tabular-nums}
 .tower .sc{color:inherit}
 .pick .seg button[aria-pressed=true]{background:var(--sky);color:#04223A;box-shadow:inset 0 -3px 0 #04223A22}
@@ -683,9 +683,9 @@ function tower(el,s,kind,limit){
  el.innerHTML=`<div class="th"><span><i class="live" ${/^(ONGOING|LIVE|ACTIVE)$/i.test(String(s.status||''))?'':'hidden'}></i>${kind==='con'?'Constructors':'Drivers'} · Season ${esc(s.num)}</span><small class="lb"></small></div><div class="tb"></div><div class="sc"><button class="btn sm" aria-label="Replay season">Replay</button><input type="range" min="0" max="${max}" value="${max}" aria-label="Round"><span class="rl"></span></div>`;
  const tb=$('.tb',el);
  const rows=list.map(d=>{
-  const meta=info(s,d.name,s.done),row=document.createElement('div');
+  const i=info(s,d.name,s.done),row=document.createElement('div');
   row.className='tr';
-  row.innerHTML=`<b class="pos"></b><i class="tc" style="background:${tcol(kind==='con'?d.name:meta.team||d.name,s.key)}"></i><span class="who"><strong>${esc(leaderboardPhoneText(d.name))}</strong><small>${kind==='con'?'':esc(leaderboardPhoneText([meta.num,meta.nat,meta.team].filter(Boolean).join(' · ')))}</small></span><span class="dl"></span><span class="pt"></span>`;
+  row.innerHTML=`<b class="pos"></b><i class="tc" style="background:${tcol(kind==='con'?d.name:i.team||d.name,s.key)}"></i><span class="who"><strong>${esc(leaderboardPhoneText(d.name))}</strong><small>${kind==='con'?'':esc(leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · ')))}</small></span><span class="dl"></span><span class="pt"></span>`;
   tb.append(row);return row;
  });
  let previousRanks=null,tm=null,lastHaptic= max,rafIds=[],moveTimers=rows.map(()=>0),touchScrub=false;
@@ -705,16 +705,13 @@ function tower(el,s,kind,limit){
   const oldTops=new Map();
   if(shouldAnimate)rows.forEach(row=>{if(!row.hidden)oldTops.set(row,row.getBoundingClientRect().top)});
   order.forEach((idx,position)=>{
-   const row=rows[idx],driver=list[idx],score=valueAt(driver),delta=round>0?score-Number(driver.vals[round-1]??0):0;
+   const row=rows[idx],d=list[idx],score=valueAt(d),delta=round>0?score-Number(d.vals[round-1]??0):0;
    const prior=previousRanks?previousRanks[idx]:position;
-   const meta=kind==='drv'?info(s,driver.name,round):null;
-   const former=kind==='drv'&&isFormerGridDriver(s,driver.name,round);
+   const roundInfo=kind==='drv'?info(s,d.name,round):null;
+   const former=kind==='drv'&&isFormerGridDriver(s,d.name,round);
    row.hidden=position>=n;
    row.classList.toggle('former-grid',former);
-   if(meta){
-    $('.tc',row).style.background=tcol(meta.team||driver.name,s.key);
-    $('.who small',row).textContent=leaderboardPhoneText([meta.num,meta.nat,meta.team].filter(Boolean).join(' · '));
-   }
+   if(roundInfo){const marker=$('.tc',row),small=$('.who small',row);marker.style.background=tcol(roundInfo.team||d.name,s.key);small.textContent=leaderboardPhoneText([roundInfo.num,roundInfo.nat,roundInfo.team].filter(Boolean).join(' · '))}
    if(moveTimers[idx])clearTimeout(moveTimers[idx]);
    row.dataset.move=!previousRanks?'flat':position<prior?'up':position>prior?'down':'flat';
    if(row.dataset.move!=='flat')moveTimers[idx]=setTimeout(()=>{row.dataset.move='flat';moveTimers[idx]=0},850);
@@ -745,7 +742,7 @@ function tower(el,s,kind,limit){
  };
  const rng=$('input',el),replay=$('button',el);
  const canHaptic=matchMedia('(pointer:coarse)').matches&&typeof navigator.vibrate==='function';
- rng.addEventListener('pointerdown',event=>{touchScrub=event.pointerType==='touch';el.classList.add('scrubbing');cancelMotion()});
+ rng.addEventListener('pointerdown',e=>{touchScrub=e.pointerType==='touch';el.classList.add('scrubbing')});rng.addEventListener('pointerdown',()=>cancelMotion());
  rng.addEventListener('pointerup',()=>{touchScrub=false});
  rng.addEventListener('pointercancel',()=>{touchScrub=false;el.classList.remove('scrubbing');set(+rng.value,true)});
  rng.addEventListener('keydown',()=>{el.classList.add('scrubbing');cancelMotion()});
