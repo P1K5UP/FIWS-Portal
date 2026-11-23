@@ -28,9 +28,9 @@ class LightModePolishTests(unittest.TestCase):
         for relative in ("src/index.template.html", "index.html"):
             page = (ROOT / relative).read_text(encoding="utf-8")
             self.assertIn("const cancelledIx=s.cal.map", page)
-            self.assertIn("ix.length||cancelledIx.length?", page)
+            self.assertIn("ix.length||cancelledIx.length||annulledIx.length?", page)
             self.assertIn("const t=new Date().toISOString().slice(0,10),cancelled=s.cal.map", page)
-            self.assertIn("visible.length||cancelled.length?", page)
+            self.assertIn("visible.length||cancelled.length||annulled.length?", page)
             self.assertIn('<details class="panel cancelled-rounds">', page)
             self.assertIn(".cancelled-round-list{display:grid", page)
             self.assertNotIn("Points per round are derived from the cumulative standings", page)

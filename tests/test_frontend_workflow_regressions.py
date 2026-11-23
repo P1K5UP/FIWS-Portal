@@ -228,7 +228,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("return 'R'+c.n+' - '+code", page)
         self.assertIn("function leaderboardPhoneText(s)", page)
         self.assertIn(r"/\p{Extended_Pictographic}/gu", page)
-        self.assertIn("esc(leaderboardPhoneText(d.name))", page)
+        self.assertIn("esc(leaderboardPhoneText(resultDriverText(s,d.name)||d.name))", page)
         self.assertIn("leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · '))", page)
 
     def test_round_by_round_team_ranges_drive_driver_status_and_team_switches(self):
@@ -285,7 +285,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("entry.Driver??entry['Driver Name']??entry.Name", page)
         self.assertIn("const driverEntryName=d=>String(d?.Driver??d?.['Driver Name']??d?.Name??'')", page)
         self.assertIn("normalize('NFKC').replace(/\\s+/g,' ').trim().toLocaleLowerCase()", page)
-        self.assertIn("e=(s.drivers||[]).find(d=>driverEntryName(d).toLocaleLowerCase()===key)", page)
+        self.assertIn("const driverEntryForResult=(s,raw)=>", page)
         self.assertIn("e.Team??e['Team Name']??e.Constructor??''", page)
         self.assertIn("if(!l.length||(k==='con'&&s.done<0))", page)
         self.assertIn("s.done>=0?(d.vals[s.done]??0):0", page)
@@ -401,6 +401,56 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_team_range_parser_accepts_explicit_round_prefixes(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("R?\\s*\\d*", page)
+
+
+    def test_results_resolve_driver_numbers_and_shared_positions(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("const driverEntryForResult=", page)
+        self.assertIn("const resolveResultDrivers=", page)
+        self.assertIn("split(/\\s*\\/\\s*/)", page)
+        self.assertIn("resultDriverMarkup(s,q,i)", page)
+        self.assertIn("resolveResultDrivers(s,s.res[i].win).forEach", page)
+        self.assertIn("resultDriverText(s,d.name)||d.name", page)
+
+    def test_results_use_race_specific_teams_and_exclude_annulled_podiums(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("entryTeamForRound(s,name,round)", page)
+        self.assertIn("entryTeamForRound(s,name,i)", page)
+        self.assertIn("resultDriverSummary(s,r.pole,i)", page)
+        self.assertIn("tm||r.team", page)
+        self.assertIn("!isAnnulledRound(s.cal[i])", page)
+        self.assertIn("Annulled Rounds", page)
+        self.assertIn("Points retained", page)
+        self.assertIn("isAnnulledRound=c=>/ANN?UL+ED/i", page)
+        self.assertIn("dateCell?.w", page)
+        self.assertIn("dateText+' ANNULED'", page)
+
+    def test_nationality_names_are_normalized_to_three_letter_codes(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("const nationalityCode=value=>", page)
+        self.assertIn("Poland:POL", page)
+        self.assertIn("nationalityCode(d.Nationality)", page)
+        self.assertIn("nationalityCode(e.Nationality)", page)
+
+    def test_boot_screen_is_non_blocking_and_logo_switch_is_crossfaded(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn('id="boot-screen"', page)
+        self.assertIn("boot.classList.add('done')", page)
+        self.assertNotIn("setTimeout(()=>render", page)
+        self.assertIn("L.replaceChildren(canvas)", page)
+        self.assertIn("L.style.opacity='0'", page)
+        self.assertIn("L.style.opacity='1'", page)
+
+    def test_admin_tab_switches_reuse_loaded_applications_data(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("adminRowsLoaded=false", page)
+        self.assertIn("async function adminLoad(force=adminTab==='apps')", page)
+        self.assertIn("if(force||!adminRowsLoaded)", page)
+        self.assertIn("adminLoad(adminTab==='apps')", page)
+
+    def test_mobile_apply_button_has_wider_separation_from_bottom_dock(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("border:5px solid var(--panel)", page)
 
 if __name__ == "__main__":
     unittest.main()
