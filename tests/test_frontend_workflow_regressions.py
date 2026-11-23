@@ -287,5 +287,20 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn(".seg button[aria-pressed=true]{background:var(--gr);color:var(--inverse-ink)}", css)
             self.assertIn(".tower{background:var(--gr);color:var(--inverse-ink)", css)
 
+    def test_theme_mode_has_one_explicit_source_of_truth_and_persists_user_choice(self):
+        for relative in ("src/index.template.html", "index.html"):
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("localStorage.getItem('fiws-theme')", page)
+            self.assertIn("document.documentElement.dataset.theme=theme", page)
+            self.assertNotIn("@media(prefers-color-scheme:dark){:root:not([data-theme=light])", page)
+            self.assertIn(":root[data-theme=dark]{--bg:#09141E;--panel:#0F1F2E", page)
+            self.assertIn("localStorage.setItem('fiws-theme',next)", page)
+            self.assertIn("themeMedia.addEventListener?.('change'", page)
+            self.assertIn("aria-pressed", page)
+            self.assertIn("Switch to light mode", page)
+            self.assertIn("Switch to dark mode", page)
+            self.assertNotIn('id="theme" aria-label="Toggle light and dark theme">Theme</button>', page)
+            self.assertIn(".ib svg{display:block;width:19px;height:19px", page)
+
 if __name__ == "__main__":
     unittest.main()
