@@ -492,7 +492,8 @@ const PAL=['#00AEEF','#E5484D','#F5A524','#2FB67C','#7B61FF','#E056A0','#8A9BA8'
 const TEAM_COLORS={};
 let TCOL=LS.get('tcol',{})||{};const tcol=(n,seasonKey='')=>REMOTE_COLORS[(seasonKey?seasonKey+'::':'')+n]||REMOTE_COLORS[n]||TCOL[n]||TEAM_COLORS[n]||PAL[[...String(n)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%PAL.length];
 const CC={Egypt:'EGY','United Kingdom':'GBR',Singapore:'SGP',Australia:'AUS',Germany:'GER',Romania:'ROU','Hong Kong':'HKG',Indonesia:'IDN',Switzerland:'SUI',International:'INT'};
-const info=(s,n)=>{const e=s.drivers.find(d=>d.Driver===n);if(!e)return{team:'',num:'',nat:''};const t=String(e.Team||'').split(',').pop().replace(/\(.*?\)/g,'').trim();return{team:/^(N\/A|TBD)$/i.test(t)?'':t,num:e.Number||'',nat:CC[e.Nationality]||''}};
+const driverEntryName=d=>String(d?.Driver??d?.['Driver Name']??d?.Name??'').normalize('NFKC').replace(/\s+/g,' ').trim();
+const info=(s,n)=>{const key=String(n??'').normalize('NFKC').replace(/\s+/g,' ').trim().toLocaleLowerCase(),e=(s.drivers||[]).find(d=>driverEntryName(d).toLocaleLowerCase()===key);if(!e)return{team:'',num:'',nat:''};const t=String(e.Team??e['Team Name']??e.Constructor??'').split(',').pop().replace(/\(.*?\)/g,'').trim();return{team:/^(N\/A|TBD)$/i.test(t)?'':t,num:e.Number||'',nat:CC[e.Nationality]||''}};
 const valid=v=>v!=null&&String(v).trim()!==''&&!/^N\/A/i.test(String(v));
 const fd=iso=>/^\d{4}-/.test(iso)?new Date(iso+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}):iso||'TBD';
 const rLabel=(s,i)=>{const c=s.cal[i];return(c?'R'+c.n+' · '+c.name:'Round '+i)+(c&&/CANCEL/i.test(c.date)?' (cancelled)':'')};
