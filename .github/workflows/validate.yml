@@ -97,7 +97,7 @@ jobs:
           name: fiws-preview-pr-${{ github.event.number }}
           path: preview/
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30
 
   commit_generated_site:
     if: github.event_name == 'push'
