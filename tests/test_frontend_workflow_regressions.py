@@ -198,7 +198,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_former_grid_status_starts_after_workbook_exit_round(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("function entryGridExitRound(s,name)", page)
-        self.assertIn(r"/\bR\s*(\d+)\s*-\s*(\d*)\b/gi", page)
+        self.assertIn(r"/\bR\s*(\d+)\s*[-–—]\s*(\d*)/gi", page)
         self.assertIn("return Number(currentRound)>entryExit", page)
         self.assertIn("row.classList.toggle('former-grid',former)", page)
         self.assertIn("formerTag.textContent=formerGridExitLabel(s,d.name)", page)
