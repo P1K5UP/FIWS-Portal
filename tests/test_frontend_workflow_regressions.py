@@ -226,6 +226,10 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_standings_dynamic_entries_are_not_hard_coded_and_zero_point_rows_remain_visible(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("entry.Driver??entry['Driver Name']??entry.Name", page)
+        self.assertIn("const driverEntryName=d=>String(d?.Driver??d?.['Driver Name']??d?.Name??'')", page)
+        self.assertIn("normalize('NFKC').replace(/\\s+/g,' ').trim().toLocaleLowerCase()", page)
+        self.assertIn("e=(s.drivers||[]).find(d=>driverEntryName(d).toLocaleLowerCase()===key)", page)
+        self.assertIn("e.Team??e['Team Name']??e.Constructor??''", page)
         self.assertIn("if(!l.length||(k==='con'&&s.done<0))", page)
         self.assertIn("s.done>=0?(d.vals[s.done]??0):0", page)
         for name in ("Yoshinaran", "29deCesaris", "Mariusz", "Formula B", "Protomango", "Jetto", "Yishmate", "P1K5UP", "BlackDragon", "Endo", "Putra", "Pmoneyspread"):
