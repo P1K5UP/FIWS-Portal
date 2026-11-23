@@ -198,7 +198,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_former_grid_status_starts_after_workbook_exit_round(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("function entryGridExitRound(s,name)", page)
-        self.assertIn(r"/\\bR\\s*(\\d+)\\s*-\\s*(\\d*)\\b/gi", page)
+        self.assertIn(r"/\bR\s*(\d+)\s*-\s*(\d*)\b/gi", page)
         self.assertIn("return Number(currentRound)>entryExit", page)
         self.assertIn("row.classList.toggle('former-grid',former)", page)
         self.assertIn("formerTag.textContent=formerGridExitLabel(s,d.name)", page)
@@ -207,7 +207,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_mobile_interface_uses_no_arrow_glyphs_or_text_chevrons(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn(r"\\u2190-\\u21FF", page)
+        self.assertIn(r"\u2190-\u21FF", page)
         self.assertIn(".home-intro .btn::after{content:none!important}", page)
         self.assertIn('<svg class="chev" viewBox="0 0 16 16"', page)
         self.assertNotIn('>◐</button>', page)
