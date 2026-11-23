@@ -285,7 +285,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("color-scheme:light", css)
             self.assertIn("color-scheme:dark", css)
             self.assertIn(".seg button[aria-pressed=true]{background:var(--gr);color:var(--inverse-ink)}", css)
-            self.assertIn(".tower{background:var(--gr);color:#fff", css)
+            self.assertIn(".tower{background:var(--gr);color:var(--inverse-ink)", css)
 
 if __name__ == "__main__":
     unittest.main()
