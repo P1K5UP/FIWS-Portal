@@ -33,6 +33,7 @@ begin
   if not exists(select 1 from public.fiws_admin_accounts where id=p_actor_id and admin_rank='owner' and disabled=false) then
     raise exception 'Owner permission required';
   end if;
+  perform pg_advisory_xact_lock(80421731);
   select admin_rank into v_old_rank from public.fiws_admin_accounts
    where id=p_target_id and disabled=false for update;
   if not found then return false; end if;
@@ -59,6 +60,7 @@ begin
   if not exists(select 1 from public.fiws_admin_accounts where id=p_actor_id and admin_rank='owner' and disabled=false) then
     raise exception 'Owner permission required';
   end if;
+  perform pg_advisory_xact_lock(80421731);
   select admin_rank into v_rank from public.fiws_admin_accounts where id=p_target_id for update;
   if not found then return false; end if;
   if p_disabled and v_rank='owner' then
