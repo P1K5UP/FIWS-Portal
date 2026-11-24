@@ -579,7 +579,18 @@ body.more-open{overflow:hidden}
 @keyframes admin-panel-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 @media(max-width:700px){.mfa-setup-grid{grid-template-columns:1fr}.mfa-qr-panel{padding:.75rem}.entries-filter-tools{grid-template-columns:1fr 1fr}.entries-filter-tools .entries-quick-search{grid-column:1/-1}.admin-toolbar{position:static}}
 @media(prefers-reduced-motion:reduce){.admin-shell,.admin-content,.admin-content>.panel,.admin-content .admin-card,#adm>.panel,#adm form{animation:none!important;transition:none!important}.admin-content button,.admin-login button,.mfa-setup-card button{transition:none!important}}
-</style><script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script></head><body>
+</style><script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script><style>
+:root{--top4-bg:#dff0f4;--top4-ink:#153b4a;--top4-muted:#426a78;--p1-bg:var(--top4-bg);--p1-accent:transparent}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--top4-bg:#173746;--top4-ink:#edf8fb;--top4-muted:#b8d5df;--p1-bg:var(--top4-bg)}}
+:root[data-theme=dark]{--top4-bg:#173746;--top4-ink:#edf8fb;--top4-muted:#b8d5df;--p1-bg:var(--top4-bg)}
+.tower .tr.leaderboard-top-four,.tower .tr.leaderboard-p1{background:var(--top4-bg)!important;color:var(--top4-ink);box-shadow:none!important}
+.tower .tr.leaderboard-top-four .pos,.tower .tr.leaderboard-p1 .pos{background:color-mix(in srgb,var(--top4-ink) 10%,var(--top4-bg));color:var(--top4-ink)}
+.tower .tr.leaderboard-top-four .who small,.tower .tr.leaderboard-top-four .dl,.tower .tr.leaderboard-p1 .who small,.tower .tr.leaderboard-p1 .dl{color:var(--top4-muted)}
+.playoff-standings{border-color:color-mix(in srgb,#168b9c 38%,var(--line));border-top-color:#168b9c;background:color-mix(in srgb,#168b9c 5%,var(--panel))}
+.playoff-standings .playoff-row td,.playoff-standings .playoff-row.p1-row td{background:var(--top4-bg)!important;color:var(--top4-ink);border-bottom-color:color-mix(in srgb,var(--top4-ink) 12%,transparent)}
+.playoff-standings .playoff-row td:first-child,.playoff-standings .playoff-row.p1-row td:first-child{box-shadow:none!important}
+.playoff-standings .playoff-row td:first-child b,.playoff-standings .playoff-row.p1-row td:first-child b{color:var(--top4-muted)!important}
+</style></head><body>
 <div id="boot-screen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mark" aria-hidden="true"></span><span>Loading FIWS</span></div></div>
 <button class="skip btn" id="skip">Skip to content</button>
 <button class="mobile-brand" type="button" aria-label="FIWS logo"><span id="mobile-logo"></span></button>
@@ -1325,17 +1336,8 @@ try{await initSupabase();await loadSharedData()}catch(e){console.error('FIWS sha
 const pf=LS.get('pref',null);cur.series=series().includes('FIWS')?'FIWS':(series()[0]||'FIWS');cur.key=pf&&publicSeasons().some(s=>s.key===pf.key&&s.sheet===cur.series)?pf.key:defKey(cur.series);
 if(!LS.get('consent',null))cbar();render();
 })();
+
+/* Quiet paddock easter eggs: keyboard sequence + rapid brand taps. */
+(()=>{const sequence=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];let progress=0;document.addEventListener('keydown',event=>{const key=event.key.length===1?event.key.toLowerCase():event.key;progress=key===sequence[progress]?progress+1:(key===sequence[0]?1:0);if(progress===sequence.length){progress=0;if(typeof toast==='function')toast('Secret setup unlocked · lights out and away we go');document.documentElement.classList.add('fiws-easter-egg');setTimeout(()=>document.documentElement.classList.remove('fiws-easter-egg'),1800)}});const brand=document.querySelector('.brand');let taps=0,timer;brand?.addEventListener('click',()=>{taps++;clearTimeout(timer);timer=setTimeout(()=>taps=0,1800);if(taps>=7){taps=0;if(typeof toast==='function')toast('Paddock pass unlocked · thanks for exploring FIWS');document.documentElement.classList.add('fiws-easter-egg');setTimeout(()=>document.documentElement.classList.remove('fiws-easter-egg'),1800)}})})();
 </script></body></html>
 
-<style>
-:root{--top4-bg:#dff0f4;--top4-ink:#153b4a;--top4-muted:#426a78;--p1-bg:var(--top4-bg);--p1-accent:transparent}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--top4-bg:#173746;--top4-ink:#edf8fb;--top4-muted:#b8d5df;--p1-bg:var(--top4-bg)}}
-:root[data-theme=dark]{--top4-bg:#173746;--top4-ink:#edf8fb;--top4-muted:#b8d5df;--p1-bg:var(--top4-bg)}
-.tower .tr.leaderboard-top-four,.tower .tr.leaderboard-p1{background:var(--top4-bg)!important;color:var(--top4-ink);box-shadow:none!important}
-.tower .tr.leaderboard-top-four .pos,.tower .tr.leaderboard-p1 .pos{background:color-mix(in srgb,var(--top4-ink) 10%,var(--top4-bg));color:var(--top4-ink)}
-.tower .tr.leaderboard-top-four .who small,.tower .tr.leaderboard-top-four .dl,.tower .tr.leaderboard-p1 .who small,.tower .tr.leaderboard-p1 .dl{color:var(--top4-muted)}
-.playoff-standings{border-color:color-mix(in srgb,#168b9c 38%,var(--line));border-top-color:#168b9c;background:color-mix(in srgb,#168b9c 5%,var(--panel))}
-.playoff-standings .playoff-row td,.playoff-standings .playoff-row.p1-row td{background:var(--top4-bg)!important;color:var(--top4-ink);border-bottom-color:color-mix(in srgb,var(--top4-ink) 12%,transparent)}
-.playoff-standings .playoff-row td:first-child,.playoff-standings .playoff-row.p1-row td:first-child{box-shadow:none!important}
-.playoff-standings .playoff-row td:first-child b,.playoff-standings .playoff-row.p1-row td:first-child b{color:var(--top4-muted)!important}
-</style>
