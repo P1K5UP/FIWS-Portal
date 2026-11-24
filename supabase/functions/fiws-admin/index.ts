@@ -354,7 +354,7 @@ Deno.serve(async (req) => {
       const username = String(body.username || "").trim().toLowerCase();
       const displayName = String(body.display_name || "").trim();
       const password = String(body.password || "");
-      const rank = ["administrator", "moderator"].includes(body.rank) ? body.rank : "";
+      const rank = ["owner", "administrator", "moderator"].includes(body.rank) ? body.rank : "";
       if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || !displayName || displayName.length > 80 || password.length < 14 || password.length > 128 || !rank) return reply({ error: "Username, display name, rank or password does not meet requirements." }, 400);
       const { data: id, error } = await db.rpc("fiws_owner_create_admin", {
         p_actor_id: auth.admin.id, p_username: username, p_display_name: displayName,
@@ -370,7 +370,7 @@ Deno.serve(async (req) => {
       const auth = await session(req);
       if (!auth || auth.admin.admin_rank !== "owner") return reply({ error: "Owner permission required." }, 403);
       const id = String(body.id || ""), rank = String(body.rank || "");
-      if (!id || id === auth.admin.id || !["administrator", "moderator"].includes(rank)) return reply({ error: "Invalid rank change." }, 400);
+      if (!id || id === auth.admin.id || !["owner", "administrator", "moderator"].includes(rank)) return reply({ error: "Invalid rank change." }, 400);
       const { data: changed, error } = await db.rpc("fiws_owner_change_admin_rank", { p_actor_id: auth.admin.id, p_target_id: id, p_rank: rank });
       if (error) throw error;
       if (!changed) return reply({ error: "Target account not found or cannot be changed." }, 409);
