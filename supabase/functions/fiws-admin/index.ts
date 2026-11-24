@@ -364,7 +364,7 @@ Deno.serve(async (req) => {
         if (/duplicate|unique/i.test(error.message || "")) return reply({ error: "That username is already taken." }, 409);
         throw error;
       }
-      return reply({ success: true, admin: { id, username, admin_rank: rank }, note: "The new administrator must enroll authenticator MFA at first sign-in." }, 201);
+      return reply({ success: true, admin: { id, username, admin_rank: rank }, note: "The new account must enroll authenticator MFA at first sign-in." }, 201);
     }
     if (action === "admin-change-rank") {
       const auth = await session(req);
