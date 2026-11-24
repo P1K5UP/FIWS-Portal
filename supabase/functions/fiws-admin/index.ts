@@ -361,7 +361,14 @@ Deno.serve(async (req) => {
         p_rank: rank, p_password_hash: await hashPassword(password),
       });
       if (error) {
-        if (/duplicate|unique/i.test(error.message || "")) return reply({ error: "That username is already taken." }, 409);
+        const message = [error.message, error.details, error.hint].filter(Boolean).join(" ");
+        if (error.code === "23505" && /fiws_admin_username_lower_uq/i.test(message)) {
+          return reply({ error: "That username is already taken." }, 409);
+        }
+        if (error.code === "23505") {
+          console.error("FIWS admin account uniqueness conflict:", message);
+          return reply({ error: "The account could not be created because another database uniqueness rule was triggered. Please contact support." }, 409);
+        }
         throw error;
       }
       return reply({ success: true, admin: { id, username, admin_rank: rank }, note: "The new account must enroll authenticator MFA at first sign-in." }, 201);
