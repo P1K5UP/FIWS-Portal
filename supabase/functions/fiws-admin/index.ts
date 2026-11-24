@@ -137,7 +137,7 @@ async function logbookAction(action: string, req: Request, body: any) {
   if (action === "logbook-list") {
     const { data, error } = await db.from("fiws_staff_logbook").select("id,category,title,body,related_reference,pinned,created_by,created_at,updated_by,updated_at,archived_at,author:fiws_admin_accounts!fiws_staff_logbook_created_by_fkey(username,display_name)").is("archived_at", null).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(200);
     if (error) return reply({ error: "Could not load staff logbook." }, 500);
-    return reply({ entries: data || [] });
+    return reply({ entries: (data || []).map(entry => ({ ...entry, is_mine: entry.created_by === auth.admin.id })) });
   }
   if (!allowedRank(auth.admin.admin_rank, "moderator")) return reply({ error: "Insufficient permissions." }, 403);
   if (action === "logbook-create") {
@@ -151,6 +151,17 @@ async function logbookAction(action: string, req: Request, body: any) {
     if (error) return reply({ error: "Could not save the logbook entry." }, 500);
     await audit(auth.admin, "logbook.create", "logbook", data.id, { category });
     return reply({ success: true, id: data.id }, 201);
+  }
+  if (action === "logbook-delete") {
+    const id = String(body.id || "");
+    if (!id) return reply({ error: "Log id is required." }, 400);
+    const { data: entry, error: lookupError } = await db.from("fiws_staff_logbook").select("id,created_by").eq("id", id).is("archived_at", null).maybeSingle();
+    if (lookupError) return reply({ error: "Could not find that log." }, 500);
+    if (!entry || entry.created_by !== auth.admin.id) return reply({ error: "You can only delete logs you created." }, 403);
+    const { error: deleteError } = await db.from("fiws_staff_logbook").delete().eq("id", id).eq("created_by", auth.admin.id);
+    if (deleteError) return reply({ error: "Could not delete your log." }, 500);
+    await audit(auth.admin, "logbook.delete", "logbook", id);
+    return reply({ success: true });
   }
   if (action === "logbook-update" || action === "logbook-archive") {
     const id = String(body.id || "");
