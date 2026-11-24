@@ -542,6 +542,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn('["owner", "administrator", "moderator"].includes(body.rank)', api)
         self.assertIn('["owner", "administrator", "moderator"].includes(rank)', api)
         self.assertIn("if v_active_owners<=1 then return false; end if;", migration)
+        self.assertEqual(migration.count("pg_advisory_xact_lock(80421731)"), 2)
         self.assertIn("data-reset", page)
 
     def test_fitc_never_renders_fiws_playoff_panels(self):
