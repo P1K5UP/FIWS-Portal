@@ -529,7 +529,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("Podium finishes", page)
         self.assertIn("Pole positions", page)
         self.assertIn("driverTeamHistoryMarkup(s,d.name)", page)
-        self.assertLess(page.index('<div id="world-champion"></div>'), page.index('<div id="tw"'))
+        standings = page[page.index("V.standings=()"):page.index("V.results=()")]
+        self.assertLess(standings.index('<div id="world-champion"></div>'), standings.index('<div id="tw"'))
         self.assertIn("$('#world-champion').innerHTML=championCardMarkup(s,k)", page)
         self.assertNotIn("P1 LEADER", page)
 
