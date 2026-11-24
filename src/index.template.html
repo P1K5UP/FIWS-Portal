@@ -450,7 +450,7 @@ body.more-open{overflow:hidden}
 .tower .tr.leaderboard-top-four .who small,.tower .tr.leaderboard-top-four .dl{color:var(--top4-muted)}
 .tower .tr.leaderboard-p1{background:var(--p1-bg);box-shadow:inset 4px 0 var(--p1-accent)}
 .tower .tr.leaderboard-p1 .pos{background:color-mix(in srgb,var(--p1-accent) 17%,var(--p1-bg));color:var(--top4-ink)}
-.tower .tr.leaderboard-p1 .who strong::after{content:" · P1 LEADER";font:700 .65rem 'Barlow Condensed';letter-spacing:.07em;color:var(--p1-accent);white-space:nowrap}
+.tower .tr.leaderboard-p1 .who strong::after{content:none}
 .playoff-standings{border:1px solid color-mix(in srgb,#7650a6 34%,var(--line));border-top:3px solid #7650a6;border-radius:10px;padding:.8rem 1rem;background:color-mix(in srgb,#7650a6 4%,var(--panel))}
 .playoff-standings .playoff-head{display:flex;align-items:center;justify-content:space-between;gap:.7rem;flex-wrap:wrap}
 .playoff-standings .playoff-head h2{font-size:clamp(1.25rem,2.6vw,1.75rem)}
@@ -673,14 +673,23 @@ const playoffStandingsMarkup=(s,compact=false)=>{
  return '<section id="playoff-standings" class="sec playoff-standings"><div class="playoff-head"><h2>'+title+'</h2><span class="chip">'+status+'</span></div><p class="playoff-note">Top four after R18 qualify · 500-point start · race and stage bonuses · R19–R23 points.</p><div class="tw"><table class="hm"><thead><tr><th>Pos</th><th>Driver</th><th class="n">Playoff total</th></tr></thead><tbody>'+(rows||'<tr><td colspan="3">No qualifying data yet.</td></tr>')+'</tbody></table></div></section>';
 };
 
-function worldChampionMarkup(s){
- const last=(s.cal||[]).length-1;
- if(last<0||s.done<last)return'';
- const rows=allSeasonDrivers(s).slice().sort((a,b)=>(Number(b.vals?.[last]??0)-Number(a.vals?.[last]??0))||Number(isFormerGridDriver(s,a.name,last))-Number(isFormerGridDriver(s,b.name,last))||driverJoinOrder(s,a.name)-driverJoinOrder(s,b.name));
- const champ=rows[0];if(!champ)return'';
- const score=Number(champ.vals?.[last]??0)||0;
- return '<section class="champion-card" aria-label="World Champion"><div class="champion-cup" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M15 7h18v10c0 8-4 13-9 13s-9-5-9-13V7Z"/><path d="M15 12H7v4c0 7 4 10 11 10M33 12h8v4c0 7-4 10-11 10M24 30v8m-9 3h18m-15-3h12"/><path d="m24 11 1.4 3 3.2.4-2.3 2.2.6 3.2-2.9-1.6-2.9 1.6.6-3.2-2.3-2.2 3.2-.4z"/></svg></div><div><span class="champion-kicker">Season '+esc(s.num)+' · World Champion</span><h3>'+esc(champ.name)+'</h3><p>Championship title secured after '+esc(s.cal[last]?.n??last+1)+' rounds</p></div><div class="champion-points"><b>'+score.toLocaleString('en-GB')+'</b><small>Final points</small></div></section>';
-};
+function championCardMarkup(s,kind='drv'){
+ const last=(s.cal||[]).length-1;if(last<0||s.done<last)return'';
+ const source=kind==='con'?s.con:allSeasonDrivers(s);
+ const rows=source.slice().sort((a,b)=>(Number(b.vals?.[last]??0)-Number(a.vals?.[last]??0))||(kind==='drv'?(Number(isFormerGridDriver(s,a.name,last))-Number(isFormerGridDriver(s,b.name,last))||driverJoinOrder(s,a.name)-driverJoinOrder(s,b.name)):String(a.name).localeCompare(String(b.name))));
+ const champ=rows[0],runner=rows[1];if(!champ)return'';
+ const score=Number(champ.vals?.[last]??0)||0,margin=Math.max(0,score-(Number(runner?.vals?.[last]??0)||0));
+ const stat={wins:0,podiums:0,poles:0,stages:0},key=normalizedDriverName(champ.name);
+ const has=(raw)=>resolveResultDrivers(s,raw).some(name=>normalizedDriverName(name)===key);
+ const teams=(raw,i)=>new Set(resolveResultDrivers(s,raw).map(name=>entryTeamForRound(s,name,i)).filter(Boolean).map(normalizedDriverName));
+ const add=(field,match)=>{if(match)stat[field]++};
+ for(let i=0;i<=last;i++){const r=s.res?.[i]||{},cal=s.cal?.[i];if(isCancelledRound(cal)||isAnnulledRound(cal))continue;
+  if(kind==='drv'){add('wins',has(r.win));add('podiums',has(r.win)||has(r.p2)||has(r.p3));add('poles',has(r.pole));add('stages',has(r.stage))}
+  else{const winner=valid(r.team)?new Set([normalizedDriverName(r.team)]):teams(r.win,i);const podiumTeams=new Set([...teams(r.win,i),...teams(r.p2,i),...teams(r.p3,i)]);add('wins',winner.has(key));add('podiums',podiumTeams.has(key));add('poles',teams(r.pole,i).has(key));add('stages',teams(r.stage,i).has(key))}
+ }
+ const title=kind==='con'?'Constructors Champion':'World Champion',label=kind==='con'?'Constructor':'Driver';
+ return '<section class="champion-card" aria-label="'+title+'"><div class="champion-cup" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M15 7h18v10c0 8-4 13-9 13s-9-5-9-13V7Z"/><path d="M15 12H7v4c0 7 4 10 11 10M33 12h8v4c0 7-4 10-11 10M24 30v8m-9 3h18m-15-3h12"/><path d="m24 11 1.4 3 3.2.4-2.3 2.2.6 3.2-2.9-1.6-2.9 1.6.6-3.2-2.3-2.2 3.2-.4z"/></svg></div><div class="champion-copy"><span class="champion-kicker">Season '+esc(s.num)+' · '+title+'</span><h3>'+esc(champ.name)+'</h3><p>'+label+' title secured after '+esc(s.cal[last]?.n??last+1)+' rounds</p></div><div class="champion-points"><b>'+score.toLocaleString('en-GB')+'</b><small>Final points</small></div><details class="champion-more"><summary>More championship statistics</summary><div class="champion-stat-grid"><div><b>'+stat.wins+'</b><small>Race wins</small></div><div><b>'+stat.podiums+'</b><small>Podium finishes</small></div><div><b>'+stat.poles+'</b><small>Pole positions</small></div><div><b>'+stat.stages+'</b><small>Stage wins</small></div><div><b>'+margin.toLocaleString('en-GB',{maximumFractionDigits:1})+'</b><small>Points margin</small></div><div><b>'+((score/Math.max(1,last+1)).toLocaleString('en-GB',{maximumFractionDigits:1}))+'</b><small>Points per round</small></div></div></details></section>';
+}
 function isFormerGridDriver(s,name,round=s.done){return (s.drivers||[]).length>0&&!entryTeamForRound(s,name,round)}
 function tower(el,s,kind,limit){
  el.classList.add('tower');
@@ -712,9 +721,9 @@ V.home=()=>{const s=seas(),li=s?latest(s):-1,lr=li>=0?s.res[li]:{},lc=li>=0?(s.c
  <section class="community-band sec"><div class="community-copy"><div class="home-kicker">THE FIWS COMMUNITY <span></span></div><h2>The FIWS paddock.</h2><p>Meet the drivers, follow league updates and stay connected between race weekends.</p></div><div class="community-widget"><div class="community-widget-head"><b>FIWS on Discord</b><span class="chip">Community</span></div><div id="discord-slot" class="discord-slot"><iframe class="discord-frame" src="https://discord.com/widget?id=1430272514591817861&amp;theme=dark" width="350" height="500" title="FIWS Discord server members and channels" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts" loading="eager"></iframe><a class="btn discord-join" href="https://discord.gg/9uUdUCVnNN" target="_blank" rel="noopener">Join the server!</a></div></div></section>`,
  after:()=>{if(s&&s.drv.length)tower($('#tw'),{...s,drv:allSeasonDrivers(s)},'drv',8);else $('#tw').innerHTML=empty('Standings','Standings appear after the first round.');}}};
 V.standings=()=>{const s=seas();if(!s)return{html:empty('No data','Load a workbook in Admin.')};
- return{html:`<h1>Standings</h1>${pick()}<div class="seg" role="group" aria-label="Table"><button data-k="drv" aria-pressed="true">Drivers</button><button data-k="con" aria-pressed="false">Constructors</button></div><div id="tw" style="margin-top:1rem"></div><div id="world-champion"></div><div class="sec"><h2>Points per round</h2><div id="hm"></div></div><div id="playoff-standings"></div>`,
+ return{html:`<h1>Standings</h1>${pick()}<div class="seg" role="group" aria-label="Table"><button data-k="drv" aria-pressed="true">Drivers</button><button data-k="con" aria-pressed="false">Constructors</button></div><div id="world-champion"></div><div id="tw" style="margin-top:1rem"></div><div class="sec"><h2>Points per round</h2><div id="hm"></div></div><div id="playoff-standings"></div>`,
  after:()=>{let k='drv';const draw=()=>{cleanup();const standingsSeason=k==='drv'?{...s,drv:allSeasonDrivers(s)}:s;const l=standingsSeason[k];if(!l.length||(k==='con'&&s.done<0)){$('#tw').innerHTML=empty('No standings yet','Points appear after the first completed round.');$('#world-champion').innerHTML='';$('#hm').innerHTML='';$('#playoff-standings').innerHTML='';return}
-  tower($('#tw'),standingsSeason,k,l.length);$('#world-champion').innerHTML=k==='drv'?worldChampionMarkup(s):'';const o=[...l].sort((a,b)=>(b.vals[s.done]??0)-(a.vals[s.done]??0)||(k==='drv'?Number(isFormerGridDriver(s,a.name,s.done))-Number(isFormerGridDriver(s,b.name,s.done)):0)||(k==='drv'?driverJoinOrder(s,a.name)-driverJoinOrder(s,b.name):0)),M=Math.max(1,...l.flatMap(d=>d.vals.map((v,i)=>i?(v??0)-(d.vals[i-1]??0):0)));
+  tower($('#tw'),standingsSeason,k,l.length);$('#world-champion').innerHTML=championCardMarkup(s,k);const o=[...l].sort((a,b)=>(b.vals[s.done]??0)-(a.vals[s.done]??0)||(k==='drv'?Number(isFormerGridDriver(s,a.name,s.done))-Number(isFormerGridDriver(s,b.name,s.done)):0)||(k==='drv'?driverJoinOrder(s,a.name)-driverJoinOrder(s,b.name):0)),M=Math.max(1,...l.flatMap(d=>d.vals.map((v,i)=>i?(v??0)-(d.vals[i-1]??0):0)));
   $('#hm').innerHTML=`<div class="tw"><table class="hm"><thead><tr><th>${k==='drv'?'Driver':'Team'}</th>${s.codes.slice(0,s.done+1).map(c=>`<th>${esc(c)}</th>`).join('')}<th>Total</th></tr></thead><tbody>${o.map(d=>`<tr class="${k==='drv'&&isFormerGridDriver(s,d.name,s.done)?'former-grid-row':''}"><td><b>${esc(d.name)}</b></td>${d.vals.slice(0,s.done+1).map((v,i)=>{const dv=(v??0)-(i?d.vals[i-1]??0:0);return`<td style="${dv>0?`background:color-mix(in srgb,var(--sky) ${Math.round(dv/M*55)}%,transparent)`:''}${dv<0?';color:var(--bad)':''}">${dv||'·'}</td>`}).join('')}<td class="n"><b>${s.done>=0?(d.vals[s.done]??0):0}</b></td></tr>`).join('')}</tbody></table></div>`;$('#playoff-standings').innerHTML=k==='drv'?playoffStandingsMarkup(s):''};
   $$('[data-k]').forEach(b=>b.onclick=()=>{k=b.dataset.k;$$('[data-k]').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()});draw()}}};
 V.results=()=>{const s=seas();if(!s)return{html:empty('No data','')};
