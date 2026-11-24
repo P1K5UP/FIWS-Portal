@@ -192,9 +192,11 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("500+bonus.wins*2+bonus.stages*.5+playoffPoints", page)
             self.assertIn("round>=1&&round<=23", page)
             self.assertIn("playoffsActive?b.total-a.total:b.regularPoints-a.regularPoints", page)
-            self.assertIn("Wins (+2)", page)
-            self.assertIn("Stages (+0.5)", page)
-            self.assertIn("data.playoffsActive?'Playoff total':'Projected total'", page)
+            self.assertIn("playoff-note", page)
+            self.assertIn("Playoff total", page)
+            self.assertIn("500-point start", page)
+            self.assertNotIn("playoff-explainer", page)
+            self.assertNotIn("driverTeamHistoryMarkup(s,d.name)", page)
             self.assertIn("playoffStandingsMarkup(s,true)", page)
             self.assertIn('id="playoff-standings"', page)
             self.assertNotIn("Any reward designated as white", page)
@@ -399,8 +401,12 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_entries_grey_out_drivers_without_a_current_grid_team(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("const active=[],former=[],ranges=new Set()", page)
+        self.assertIn("const driverRows=[...(s.drivers||[])]", page)
+        self.assertIn("teamMap=new Map()", page)
+        self.assertIn("getAssignments=d=>teamAssignments(", page)
+        self.assertIn("isPast=!active", page)
         self.assertIn("data-entry-search=", page)
+        self.assertIn(".entry-member.is-former{opacity:.48", page)
         self.assertIn(".former-grid-row td,.former-grid-row td b{color:var(--mute)!important}", page)
         self.assertIn(".tr.former-grid .pos,.tr.former-grid[data-p=\"0\"] .pos", page)
 
@@ -414,11 +420,14 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("const driverRows=[...(s.drivers||[])]", page)
         self.assertIn("const entryTeamHistory=", page)
-        self.assertIn("groups=teamNames.map(team=>", page)
+        self.assertIn("teamMap=new Map()", page)
+        self.assertIn("getAssignments=d=>teamAssignments(", page)
         self.assertIn('id="entry-grid-search"', page)
         self.assertIn('data-entry-team-card', page)
         self.assertIn("CURRENT DRIVERS", page)
-        self.assertIn("Previous team members", page)
+        self.assertIn("PAST DRIVERS", page)
+        self.assertIn("d._range", page)
+        self.assertIn("view-transition-name:roster-", page)
         self.assertIn("driverJoinOrder(s,list[a].name)-driverJoinOrder(s,list[b].name)", page)
         self.assertNotIn('id="entry-driver-search"', page)
         self.assertNotIn('class="entries-table"', page)
@@ -487,9 +496,10 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_team_cards_show_round_range_tags_and_historical_teams(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("entryTeamHistory(s,d.Driver,round)", page)
-        self.assertIn('class="entry-team-ranges"', page)
+        self.assertIn("entryTeamHistory(s,driverEntryName(d),round)", page)
+        self.assertIn(".entry-team-ranges{display:none!important}", page)
         self.assertIn('class="team-range-tag"', page)
+        self.assertIn("PAST DRIVERS", page)
         self.assertIn('data-entry-team-card', page)
         self.assertIn("roundInfo.teamRound>=0", page)
         self.assertIn("entryTeamHistory(s,driverEntryName(e),round)", page)
@@ -505,7 +515,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_entries_page_has_refined_team_cards_and_range_tag_layout(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn(".entry-team-card{padding:1.15rem 1.2rem 1.25rem", page)
-        self.assertIn(".entry-team-ranges{display:flex;flex-wrap:wrap", page)
+        self.assertIn(".entry-team-ranges{display:none!important}", page)
+        self.assertIn(".entry-member .team-range-tag{flex:0 0 auto", page)
         self.assertIn(".entries-intro{max-width:68ch", page)
 
 if __name__ == "__main__":
