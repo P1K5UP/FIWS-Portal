@@ -196,7 +196,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("Playoff total", page)
             self.assertIn("500-point start", page)
             self.assertNotIn("playoff-explainer", page)
-            self.assertNotIn("driverTeamHistoryMarkup(s,d.name)", page)
+            self.assertIn("driverTeamHistoryMarkup(s,d.name)", page)
             self.assertIn("playoffStandingsMarkup(s,true)", page)
             self.assertIn('id="playoff-standings"', page)
             self.assertNotIn("Any reward designated as white", page)
@@ -518,6 +518,50 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn(".entry-team-ranges{display:none!important}", page)
         self.assertIn(".entry-member .team-range-tag{flex:0 0 auto", page)
         self.assertIn(".entries-intro{max-width:68ch", page)
+
+
+    def test_championship_winner_cards_cover_finished_driver_and_constructor_seasons(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("function championCardMarkup(s,kind='drv')", page)
+        self.assertIn("kind==='con'?s.con:allSeasonDrivers(s)", page)
+        self.assertIn("champion-more", page)
+        self.assertIn("Race wins", page)
+        self.assertIn("Podium finishes", page)
+        self.assertIn("Pole positions", page)
+        self.assertIn("driverTeamHistoryMarkup(s,d.name)", page)
+        self.assertLess(page.index('<div id="world-champion"></div>'), page.index('<div id="tw"'))
+        self.assertIn("$('#world-champion').innerHTML=championCardMarkup(s,k)", page)
+        self.assertNotIn("P1 LEADER", page)
+
+    def test_owner_accounts_support_multiple_owners_and_last_owner_protection(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        api = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
+        migration = next((ROOT / "supabase/migrations").glob("*fiws_multi_owner_account_management.sql")).read_text(encoding="utf-8")
+        self.assertIn('<option value="owner">Owner</option>', page)
+        self.assertIn('["owner", "administrator", "moderator"].includes(body.rank)', api)
+        self.assertIn('["owner", "administrator", "moderator"].includes(rank)', api)
+        self.assertIn("if v_active_owners<=1 then return false; end if;", migration)
+        self.assertIn("data-reset", page)
+
+    def test_fitc_never_renders_fiws_playoff_panels(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("if(!isFiwsSeasonTwo(s))return'';", page)
+        self.assertIn("if(!isFiwsSeasonTwo(s))return null;", page)
+        self.assertIn("k==='drv'?playoffStandingsMarkup(s):''", page)
+
+    def test_driver_directory_filters_by_name_team_and_participation(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn('id="entry-grid-search"', page)
+        self.assertIn('id="entry-team-filter"', page)
+        self.assertIn('id="entry-status-filter"', page)
+        self.assertIn("data-driver-name=", page)
+        self.assertIn("data-driver-status=", page)
+        self.assertIn("Reset filters", page)
+
+    def test_application_header_and_form_share_the_same_width(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn(".application-page{max-width:860px;margin:0 auto}", page)
+        self.assertIn(".application-panel{max-width:none!important;width:100%", page)
 
 if __name__ == "__main__":
     unittest.main()
