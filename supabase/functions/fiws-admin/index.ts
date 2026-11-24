@@ -400,7 +400,7 @@ Deno.serve(async (req) => {
         p_actor_id: auth.admin.id, p_target_id: id, p_disabled: body.disabled !== false,
       });
       if (error) throw error;
-      if (!changed) return reply({ error: "Owner account cannot be disabled here or target not found." }, 409);
+      if (!changed) return reply({ error: "Account cannot be disabled without leaving an active owner, or target not found." }, 409);
       return reply({ success: true });
     }
     if (action === "admin-reset-password") {
@@ -412,8 +412,8 @@ Deno.serve(async (req) => {
         p_actor_id: auth.admin.id, p_target_id: id, p_password_hash: await hashPassword(password),
       });
       if (error) throw error;
-      if (!reset) return reply({ error: "Owner password resets must use the account's recovery codes, or the target account was not found." }, 409);
-      return reply({ success: true, note: "The administrator must enroll MFA again at next sign-in." });
+      if (!reset) return reply({ error: "Account password reset was blocked or the target account was not found." }, 409);
+      return reply({ success: true, note: "The account must enroll MFA again at next sign-in." });
     }
     if (action === "mfa-rotate-recovery") {
       const auth = await session(req);
