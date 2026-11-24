@@ -469,6 +469,7 @@ body.more-open{overflow:hidden}
 .champion-card h3{font-size:clamp(1.35rem,3vw,2rem);margin:.12rem 0}
 .champion-card p{margin:0;color:var(--mute);font-size:.9rem}
 .champion-points{text-align:right;white-space:nowrap}.champion-points b{display:block;font:700 1.7rem 'Barlow Condensed';font-variant-numeric:tabular-nums}.champion-points small{font-size:.7rem;letter-spacing:.08em;color:var(--mute);text-transform:uppercase}
+@media(max-width:600px){.champion-card{grid-template-columns:auto minmax(0,1fr);gap:.7rem;padding:.85rem}.champion-cup{width:44px;height:44px}.champion-points{grid-column:2;text-align:left;display:flex;align-items:baseline;gap:.4rem}}
 .entry-team-ranges{display:none!important}
 .entry-member-list{list-style:none;padding:0;margin:.25rem 0 .8rem;display:grid;gap:.35rem}
 .entry-member{display:flex;align-items:center;gap:.45rem;min-width:0;padding:.42rem .55rem;border:1px solid var(--line);border-radius:6px;background:var(--soft);animation:entry-arrive .32s both;transition:background .22s,border-color .22s,opacity .22s,transform .22s}
