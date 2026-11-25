@@ -655,7 +655,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         playoff = page.split("if(isFiwsSeasonOne(s)){", 1)[1].split("if(!isFiwsSeasonTwo(s))", 1)[0]
         self.assertIn("const scoreAt=(driver,index)=>", playoff)
-        self.assertIn("const regularPoints=r14>=0?scoreAt(driver,Math.min(cutoff,r14)):0", playoff)
+        self.assertIn("const regularPoints=r14>=0?scoreAt(driver,Math.min(cutoff,r14))", playoff)
         self.assertIn("return scoreAt(driver,i)-scoreAt(driver,i-1)", playoff)
         self.assertIn("qualified=regularPoints>=100", playoff)
         # Missing cumulative cells must carry forward the previous non-null score.
