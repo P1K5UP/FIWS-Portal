@@ -584,9 +584,23 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_fitc_never_renders_fiws_playoff_panels(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("if(!isFiwsSeasonTwo(s))return'';", page)
+        self.assertIn("if(!isFiwsSeasonTwo(s)&&!isFiwsSeasonOne(s))return'';", page)
         self.assertIn("if(!isFiwsSeasonTwo(s))return null;", page)
         self.assertIn("k==='drv'?playoffStandingsMarkup(s):''", page)
+
+    def test_season_one_playoff_rules_and_bold_double_points_are_wired(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        for marker in ("isFiwsSeasonOne", "playoffRoundIndex(s,14)", "regularPoints>=100",
+                       "total:200+wins+playoffPoints", "round>=15&&round<=17",
+                       "round===0?0", "cellStyles:true", "special:!!wb.Sheets"):
+            self.assertIn(marker, page)
+
+    def test_driver_dossier_can_filter_a_season_or_all_time(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
+        for marker in ('id="driver-season-select"', 'value="ALL"', "driverSeasonFilter",
+                       "selectedSeasons", "Career snapshot · all published seasons"):
+            self.assertIn(marker, profile)
 
     def test_driver_directory_filters_by_name_team_and_participation(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
