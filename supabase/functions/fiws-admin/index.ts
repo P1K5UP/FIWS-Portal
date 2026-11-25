@@ -50,7 +50,7 @@ function passwordPolicyError(password: string): string | null {
   if (["password", "password123", "123456789012", "qwerty123456", "letmein123456", "welcome123456", "admin123456"].includes(password.toLowerCase())) return 'Choose a less predictable password.';
   const types = [/[a-z]/.test(password), /[A-Z]/.test(password), /[0-9]/.test(password), /[^A-Za-z0-9]/.test(password)].filter(Boolean).length;
   if (types < 3 && password.length < 16) return 'Use at least three character types, or make it a 16+ character passphrase.';
-  if (/(.)\\1{3,}/.test(password)) return 'Avoid repeated characters.';
+  if (/(.)\1{3,}/.test(password)) return 'Avoid repeated characters.';
   return null;
 }
 let dummyPasswordHash: Promise<string> | null = null;
@@ -210,7 +210,8 @@ Deno.serve(async (req) => {
       const username = String(body.username || "").trim().toLowerCase();
       const displayName = String(body.display_name || "").trim();
       const password = String(body.password || "");
-      if (passwordPolicyError(password)) return reply({ error: passwordPolicyError(password) }, 400);\n      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || displayName.length < 1 || displayName.length > 80) return reply({ error: "Username or display name does not meet the required format." }, 400);
+      if (passwordPolicyError(password)) return reply({ error: passwordPolicyError(password) }, 400);
+      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || displayName.length < 1 || displayName.length > 80) return reply({ error: "Username or display name does not meet the required format." }, 400);
       const passwordHash = await hashPassword(password);
       const { data: ownerId, error: bootstrapError } = await db.rpc("fiws_bootstrap_admin", {
         p_username: username, p_display_name: displayName, p_password_hash: passwordHash,
@@ -322,7 +323,7 @@ Deno.serve(async (req) => {
       const supplied = req.headers.get("x-fiws-owner-recovery-secret") || "";
       if (expected.length < 40 || !same(expected, supplied)) return reply({ error: "Owner recovery is unavailable or unauthorized." }, 403);
       const password = String(body.new_password || "");
-      if (password.length < 14 || password.length > 128) return reply({ error: passwordPolicyError(password) || "Choose a stronger password." }, 400);
+      if (passwordPolicyError(password)) return reply({ error: passwordPolicyError(password) }, 400);
       const passwordHash = await hashPassword(password);
       const { data: recovered, error } = await db.rpc("fiws_complete_owner_recovery", { p_password_hash: passwordHash });
       if (error) throw error;
@@ -333,7 +334,7 @@ Deno.serve(async (req) => {
       const username = String(body.username || "").trim().toLowerCase();
       const code = String(body.recovery_code || "").replace(/[^a-f0-9]/gi, "").toUpperCase();
       const password = String(body.new_password || "");
-      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || code.length !== 32 || password.length < 14 || password.length > 128) return reply({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
+      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || code.length !== 32 || passwordPolicyError(password)) return reply({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
       const recoveryPepper = Deno.env.get("FIWS_RATE_LIMIT_PEPPER") || "";
       if (recoveryPepper.length < 32) return reply({ error: "Recovery service is not configured." }, 503);
       const recoveryIp = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() || "unknown";
@@ -375,7 +376,8 @@ Deno.serve(async (req) => {
       const displayName = String(body.display_name || "").trim();
       const password = String(body.password || "");
       const rank = ["owner", "administrator", "moderator"].includes(body.rank) ? body.rank : "";
-      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || !displayName || displayName.length > 80 || password.length < 14 || password.length > 128 || !rank) return reply({ error: passwordPolicyError(password) || "Username, display name or rank does not meet requirements." }, 400);
+      if (passwordPolicyError(password)) return reply({ error: passwordPolicyError(password) }, 400);
+      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || !displayName || displayName.length > 80 || !rank) return reply({ error: "Username, display name or rank does not meet requirements." }, 400);
       const { data: id, error } = await db.rpc("fiws_owner_create_admin", {
         p_actor_id: auth.admin.id, p_username: username, p_display_name: displayName,
         p_rank: rank, p_password_hash: await hashPassword(password),
@@ -427,7 +429,8 @@ Deno.serve(async (req) => {
       const auth = await session(req);
       if (!auth || auth.admin.admin_rank !== "owner") return reply({ error: "Owner permission required." }, 403);
       const id = String(body.id || ""), password = String(body.password || "");
-      if (!id || id === auth.admin.id || password.length < 14 || password.length > 128) return reply({ error: passwordPolicyError(password) || "Select another administrator and provide a stronger password." }, 400);
+      if (passwordPolicyError(password)) return reply({ error: passwordPolicyError(password) }, 400);
+      if (!id || id === auth.admin.id) return reply({ error: "Select another administrator." }, 400);
       const { data: reset, error } = await db.rpc("fiws_owner_reset_admin_password", {
         p_actor_id: auth.admin.id, p_target_id: id, p_password_hash: await hashPassword(password),
       });
