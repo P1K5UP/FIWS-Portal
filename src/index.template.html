@@ -771,9 +771,9 @@ function leaderboardRoundLabel(s,r){const c=s.cal[r],raw=c?'R'+c.n+' · '+c.name
 function paintLeaderboardRound(el,s,r){const label=$('.lb',el);label.textContent=leaderboardRoundLabel(s,r);if(s.cal[r]&&/CANCEL/i.test(s.cal[r].date)){const mark=document.createElement('span');mark.className='cancel-mark';mark.textContent='(C)';label.append(' ',mark)}}
 function allSeasonDrivers(s){const source=[...s.drv],byName=new Map(source.map(d=>[normalizedDriverName(d.name),d])),ordered=[],seen=new Set();(s.drivers||[]).forEach(entry=>{const name=driverEntryName(entry),key=normalizedDriverName(name);if(!name||seen.has(key))return;ordered.push(byName.get(key)||{name,vals:s.codes.map(()=>0)});seen.add(key)});source.forEach(d=>{const key=normalizedDriverName(d.name);if(!seen.has(key)){ordered.push(d);seen.add(key)}});return ordered}
 const normalizedDriverName=name=>String(name??'').normalize('NFKC').replace(/\s+/g,' ').trim().toLocaleLowerCase();
-const isFiwsSeasonTwo=s=>/Formula Imperial Worldwide Series/i.test(String(s?.series||''))&&String(s?.num||'').toUpperCase()==='II';
+const isFiwsSeasonTwo=s=>/Formula Imperial Worldwide Series/i.test(String(s?.series||''))&&['II','2'].includes(String(s?.num||'').toUpperCase());
 const playoffRoundIndex=(s,n)=>(s.cal||[]).findIndex(c=>Number(c?.n)===n);
-const isFiwsSeasonOne=s=>/Formula Imperial Worldwide Series/i.test(String(s?.series||''))&&String(s?.num||'').toUpperCase()==='I';
+const isFiwsSeasonOne=s=>/Formula Imperial Worldwide Series/i.test(String(s?.series||''))&&['I','1'].includes(String(s?.num||'').toUpperCase());
 const playoffStandingsData=s=>{
  if(isFiwsSeasonOne(s)){
   const r14=playoffRoundIndex(s,14),r15=playoffRoundIndex(s,15),r17=playoffRoundIndex(s,17),cutoff=r14>=0?Math.min(s.done,r14):s.done;
