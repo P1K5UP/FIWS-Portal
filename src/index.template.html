@@ -802,7 +802,7 @@ const playoffStandingsData=s=>{
   const addWin=name=>{const key=normalizedDriverName(name);if(key)stats.set(key,(stats.get(key)||0)+1)};
   (s.res||[]).forEach((result,i)=>{const round=Number(s.cal?.[i]?.n);if(round<1||round>14||isCancelledRound(s.cal?.[i])||isAnnulledRound(s.cal?.[i]))return;if(valid(result?.win))resolveResultDrivers(s,result.win).forEach(addWin)});
   const drivers=allSeasonDrivers(s).map(driver=>{
-   const regularPoints=driver.excelTotal!=null&&Number.isFinite(Number(driver.excelTotal))?Number(driver.excelTotal):(r14>=0?scoreAt(driver,Math.min(cutoff,r14)):0);
+   const regularPoints=r14>=0?scoreAt(driver,Math.min(cutoff,r14)):(driver.excelTotal!=null&&Number.isFinite(Number(driver.excelTotal))?Number(driver.excelTotal):0);
    let playoffPoints=0;
    for(let i=0;i<(s.cal||[]).length;i++){const round=Number(s.cal[i]?.n);if(round>=15&&round<=17&&i<=s.done)playoffPoints+=roundPoints(driver,i)}
    const wins=stats.get(normalizedDriverName(driver.name))||0,qualified=regularPoints>=100;
