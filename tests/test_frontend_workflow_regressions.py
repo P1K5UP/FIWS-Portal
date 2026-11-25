@@ -619,7 +619,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
         self.assertIn("publicSeasons().filter(season=>season.sheet===cur.series)", profile)
         self.assertIn("value=\"ALL\"", profile)
-        self.assertIn("Season '+esc(season.num)", profile)
+        self.assertIn("'>S'+esc(String(season.num).toUpperCase()", profile)
         self.assertIn(".driver-season-filter select{min-width:min(100%,240px)", page)
 
     def test_driver_directory_filters_by_name_team_and_participation(self):
