@@ -698,7 +698,7 @@ function parseWB(wb){
    o.entriesConfirmed=!!entryKey&&/CONFIRMED/i.test(entryKey);
    Object.assign(o,{drivers:[],teams:[],cal:[],res:[],codes:[],drv:[],con:[],done:-1});delete o.sec.__;
    if(E){const t=table(E.c,E.end,6);o.drivers=t.rows;let r=t.next;while(r<t.next+12&&cell(r,E.c)!=='Team')r++;if(cell(r,E.c)==='Team')o.teams=table(E.c,E.end,r).rows}
-   if(C){const dateCol=(g[6]||[]).findIndex((v,c)=>c>=C.c&&c<C.end&&String(v??'').trim().toLowerCase()==='date');o.cal=table(C.c,C.end,6).rows.map((x,i)=>{const n=cell(x._r,C.c-1),dateCell=dateCol>=0?wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:dateCol})]:null,dateText=iso(x.Date),date=/ANN?UL+ED/i.test(String(dateCell?.w||''))&&!/ANN?UL+ED/i.test(dateText)?dateText+' ANNULED':dateText;return{n:typeof n==='number'?n:i,special:Array.from({length:Math.max(0,C.end-C.c)},(_,offset)=>wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:C.c+offset})]).some(cell=>!!cell?.s?.font?.bold),name:String(x.Rounds??''),circuit:String(x.Circuit??x.Track??x['Track Name']??''),track:String(x.Track??x['Track Name']??x.Circuit??x.Rounds??''),laps:x['Total Laps']??'',caution:x['Caution Speed']||'',date,notes:x.Notes||''}})}
+   if(C){const dateCol=(g[6]||[]).findIndex((v,c)=>c>=C.c&&c<C.end&&String(v??'').trim().toLowerCase()==='date');o.cal=table(C.c,C.end,6).rows.map((x,i)=>{const n=cell(x._r,C.c-1),dateCell=dateCol>=0?wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:dateCol})]:null,dateText=iso(x.Date),date=/ANN?UL+ED/i.test(String(dateCell?.w||''))&&!/ANN?UL+ED/i.test(dateText)?dateText+' ANNULED':dateText;return{n:typeof n==='number'?n:i,special:Array.from({length:Math.max(0,C.end-C.c)},(_,offset)=>wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:C.c+offset})]).some(cell=>!!cell?.s?.font?.bold),name:String(x.Rounds??''),circuit:String(x.Circuit||x.Track||x['Track Name']||''),track:String(x.Track||x['Track Name']||x.Circuit||x.Rounds||''),laps:x['Total Laps']??'',caution:x['Caution Speed']||'',date,notes:x.Notes||''}})}
    if(R){o.res=table(R.c,R.end,6).rows.map(x=>({...x,pole:x['Driver on Pole'],stage:x['Stage Winner'],win:x['Winning Driver'],p2:x['2nd Place Driver'],p3:x['3rd Place Driver'],team:x['Winning Team'],cautions:x.Cautions}))}
    if(P){for(let k=P.c+1;k<P.end&&typeof cell(6,k)==='string'&&cell(6,k).trim();k++)o.codes.push(cell(6,k).trim());
     const rowsOf=r0=>{const a=[];let r=r0;while(r<g.length&&!blank(cell(r,P.c))&&cell(r,P.c)!=='Constructors'&&cell(r,P.c)!=='Key'){a.push({name:String(cell(r,P.c)).trim(),vals:o.codes.map((_,i)=>num(cell(r,P.c+1+i)))});r++}return{a,r}};
@@ -764,11 +764,11 @@ const resolveResultDrivers=(s,raw)=>String(raw??'').split(/\s*\/\s*/).map(part=>
 const resultDriverText=(s,raw)=>resolveResultDrivers(s,raw).join(' / ');
 const driverRacePosition=(s,result,name)=>{
  const positionForKey=key=>{
-  const k=String(key??'').normalize('NFKC').replace(/[_-]+/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();
+  const k=String(key??'').normalize('NFKC').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
   if(['win','winner','winning driver','p1','p1 driver','1st','1st place','1st place driver','1st position','1st position driver'].includes(k))return 1;
-  let m=k.match(/^(?:p\\s*(\\d+)|(\\d+)(?:st|nd|rd|th)?(?:\\s+(?:place|position))?)(?:\\s+driver)?$/i);
-  if(!m)m=k.match(/^(?:place|position)\\s*(\\d+)(?:\\s+driver)?$/i);
-  if(!m)m=k.match(/^driver\\s*(\\d+)$/i);
+  let m=k.match(/^(?:p\s*(\d+)|(\d+)(?:st|nd|rd|th)?(?:\s+(?:place|position))?)(?:\s+driver)?$/i);
+  if(!m)m=k.match(/^(?:place|position)\s*(\d+)(?:\s+driver)?$/i);
+  if(!m)m=k.match(/^driver\s*(\d+)$/i);
   return m?Number(m[1]||m[2]||m[3]):0;
  };
  let best=0;
