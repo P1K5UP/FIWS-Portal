@@ -1291,7 +1291,7 @@ function setLogo(){
  const k=cur.series,L=$('#logo'),T=$('.brand b'),M=$('#mobile-logo');if(!L)return;
  const syncMobileLogo=()=>{if(!M)return;M.replaceChildren(...Array.from(L.childNodes,node=>{const copy=node.cloneNode(true);if(node instanceof HTMLCanvasElement&&copy instanceof HTMLCanvasElement){copy.width=node.width;copy.height=node.height;copy.getContext('2d')?.drawImage(node,0,0)}return copy}))};
  if(!L.childNodes.length){L.innerHTML=mark;syncMobileLogo()}
- T.hidden=false;T.textContent=k;T.style.opacity='1';L.style.opacity='0';if(M)M.style.opacity='0';setIcon();
+ T.hidden=false;T.style.opacity='0';T.textContent=k;L.style.opacity='0';if(M)M.style.opacity='0';setIcon();requestAnimationFrame(()=>{if(cur.series===k)T.style.opacity='1'});
  const configured=(REMOTE_LOGOS[k]||((LS.get('logos',{})||{})[k])||'');
  const localFallback=new URL(LOGO[k]||LOGO.FIWS,document.baseURI).href;
  const img=new Image();let usingLocal=true,finished=false;
@@ -1304,7 +1304,7 @@ function setLogo(){
    const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),p=pixels.data;
    const dark=document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
    const ink=getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()||(dark?'#E7F2FB':'#0B2239');
-   const match=ink.match(/^#([\\da-f]{3}|[\\da-f]{6})$/i);
+   const match=ink.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
    const tint=match?(match[1].length===3?match[1].split('').map(x=>parseInt(x+x,16)):[0,2,4].map(i=>parseInt(match[1].slice(i,i+2),16))):null;
    if(tint)for(let i=0;i<p.length;i+=4){
     if(!p[i+3])continue;const hi=Math.max(p[i],p[i+1],p[i+2]),lo=Math.min(p[i],p[i+1],p[i+2]);
