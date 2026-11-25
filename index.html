@@ -782,6 +782,7 @@ const normalizedDriverName=name=>String(name??'').normalize('NFKC').replace(/\s+
 const isFiwsSeasonTwo=s=>/Formula Imperial Worldwide Series/i.test(String(s?.series||''))&&['II','2'].includes(String(s?.num||'').toUpperCase());
 const playoffRoundIndex=(s,n)=>(s.cal||[]).findIndex(c=>Number(c?.n)===n);
 const isFiwsSeasonOne=s=>/Formula Imperial Worldwide Series/i.test(String(s?.series||''))&&['I','1'].includes(String(s?.num||'').toUpperCase());
+const seasonOnePlayoffQualifierNames=new Set(['29decesaris','tenooji','formula b']);
 const playoffStandingsData=s=>{
  if(isFiwsSeasonOne(s)){
   const r14=playoffRoundIndex(s,14),r15=playoffRoundIndex(s,15),r17=playoffRoundIndex(s,17),cutoff=r14>=0?Math.min(s.done,r14):s.done;
@@ -795,7 +796,7 @@ const playoffStandingsData=s=>{
    const regularPoints=r14>=0?scoreAt(driver,Math.min(cutoff,r14)):0;
    let playoffPoints=0;
    for(let i=0;i<(s.cal||[]).length;i++){const round=Number(s.cal[i]?.n);if(round>=15&&round<=17&&i<=s.done)playoffPoints+=roundPoints(driver,i)}
-   const wins=stats.get(normalizedDriverName(driver.name))||0,qualified=regularPoints>=100;
+   const wins=stats.get(normalizedDriverName(driver.name))||0,qualified=regularPoints>100&&seasonOnePlayoffQualifierNames.has(normalizedDriverName(driver.name));
    return{...driver,regularPoints,wins,playoffPoints,total:200+wins+playoffPoints,qualified};
   }).filter(driver=>driver.qualified);
   const regularComplete=r14>=0&&s.done>=r14;
