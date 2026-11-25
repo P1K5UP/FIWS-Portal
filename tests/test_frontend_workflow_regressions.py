@@ -268,6 +268,23 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("driverLink(name)", page)
         self.assertIn("!k.startsWith('_')", page)
 
+    def test_driver_history_includes_all_finishing_positions_and_does_not_confuse_pole_with_race_result(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
+        self.assertIn("const driverRacePosition=(s,result,name,round=-1)=>", page)
+        self.assertIn("driverRacePosition(season,result,name,i)", profile)
+        self.assertIn("P'+position", profile)
+        self.assertIn("pole&&position?'POLE'", profile)
+        self.assertIn("const recent=selectedSeasons.flatMap", profile)
+        self.assertIn("driverEntryParticipated(entry,round)", profile)
+        self.assertIn("const driverEntryParticipated=(entry,round)=>", page)
+        self.assertIn("o.statsRows=table(T.c,T.end,8).rows", page)
+        self.assertIn("detail?.Race", page)
+        self.assertIn("Race history · all results", profile)
+        self.assertNotIn(".slice(-12)", profile)
+        self.assertIn("calendar.circuit||calendar.track||calendar.name||'Track not listed'", profile)
+
+
     def test_entries_driver_cards_are_full_click_targets_and_team_tinted(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         entries = page.split("V.entries=()=>", 1)[1].split("V.rules=()=>", 1)[0]
