@@ -63,6 +63,11 @@ jobs:
           for required_asset in ("manifest.webmanifest", "assets/og-image.png", "assets/apple-touch-icon.png"):
               if required_asset not in html:
                   raise SystemExit(f"Generated HTML does not reference {required_asset}")
+          for logo_asset in ("assets/fiws-logo.png", "assets/fitc-logo.png"):
+              if not (root / logo_asset).is_file():
+                  raise SystemExit(f"Required local fallback logo is missing: {logo_asset}")
+              if logo_asset not in html:
+                  raise SystemExit(f"Generated HTML does not configure local fallback logo: {logo_asset}")
           PY
       - name: Check generated site is synchronized
         if: github.event_name == 'pull_request'
