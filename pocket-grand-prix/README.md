@@ -1,32 +1,32 @@
 # FIWS Pocket Grand Prix
 
-An isolated FIWS-only top-down open-wheel arcade racing prototype.
+A hidden FIWS-only, top-down open-wheel arcade time-trial game.
 
-## Local preview
+## Preview locally
 
-Open `index.html` directly in a modern browser, or serve this folder with a static server:
+Serve the repository root with a static server:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then visit `http://localhost:8000/pocket-grand-prix/` from the repository root.
+Open `http://localhost:8000/pocket-grand-prix/`.
 
-## Current prototype scope
+## Current playtest build
 
-- Standalone page intended for `/pocket-grand-prix/`.
-- One fictional Grand Prix circuit: Vantage Park.
-- Canvas-rendered top-down circuit and open-wheel car.
-- Time Trial driving prototype with acceleration, braking, steering, lateral grip, off-track slowdown and lap timing.
-- Keyboard controls and touch controls.
-- Responsive layout, pause/resume, visibility pause and local personal-best storage.
-- Grand Prix mode, AI, nine-track random selection, current-season team colours and online leaderboard are planned follow-up work.
+- A redesigned standalone arcade shell with a screen-filling race view and compact HUD.
+- Vantage Park circuit with layered asphalt, painted kerbs, start/finish stripe, trackside scenery and circuit markings.
+- Detailed top-down open-wheel car silhouette with exposed tyres, wings, cockpit and shadow.
+- Camera follows the car on narrow/portrait screens and frames the full circuit on wider screens.
+- More responsive acceleration, steering, grip and off-track slowdown, plus tyre-mark feedback when pushing the car.
+- Keyboard and multi-touch controls, pause/resume, restart, lap timing and locally stored personal best.
+- Landscape and portrait layouts, safe-area spacing and controls overlaid on the track to preserve usable screen space.
 
 ## Controls
 
 - Desktop: WASD or arrow keys.
-- Mobile: left/right steering and brake/go touch buttons. Landscape is recommended.
+- Touch: left/right steering, brake and throttle. The race camera follows the car in portrait orientation.
 
-## Important
+## Known scope limits
 
-This is an early handling prototype, not a release candidate. Tune the handling and verify on real phones before adding AI, all nine circuits, live FIWS team data or a server-validated three-character leaderboard. It does not read or write official championship data.
+This remains a visual/handling playtest, not the finished game. Grand Prix AI, nine randomly selected circuits, team selection/current-season liveries, sound and the server-validated three-letter online leaderboard are not implemented yet. It does not read or write official championship data. Real-device testing is still required; the automated checks do not replace phone/browser playtesting.
