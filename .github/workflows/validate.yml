@@ -22,6 +22,8 @@ jobs:
         with:
           node-version: "22"
       - name: Build self-contained site
+        env:
+          SITE_URL: https://fiws.devs.surf/
         run: python3 build.py
       - name: Validate generated site metadata and assets
         run: |
@@ -49,6 +51,15 @@ jobs:
           if f"Sitemap: {urls[0].rstrip('/')}/sitemap.xml" not in robots:
               raise SystemExit("robots.txt sitemap URL does not match the generated site URL")
           html = (root / "index.html").read_text(encoding="utf-8")
+          expected_site = "https://fiws.devs.surf/"
+          if f'<link rel="canonical" href="{expected_site}">' not in html:
+              raise SystemExit("Canonical URL must use the FIWS custom domain")
+          if f'<meta property="og:url" content="{expected_site}">' not in html:
+              raise SystemExit("Open Graph URL must use the FIWS custom domain")
+          if f'<meta property="og:image" content="{expected_site}assets/og-image.png">' not in html:
+              raise SystemExit("Open Graph image must use the FIWS custom domain")
+          if urls != [expected_site]:
+              raise SystemExit(f"Sitemap must contain only the FIWS custom domain URL: {urls}")
           for required_asset in ("manifest.webmanifest", "assets/og-image.png", "assets/apple-touch-icon.png"):
               if required_asset not in html:
                   raise SystemExit(f"Generated HTML does not reference {required_asset}")
