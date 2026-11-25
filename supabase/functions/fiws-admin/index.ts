@@ -4,6 +4,7 @@ import { argon2id, argon2Verify } from "npm:hash-wasm@4.13.0";
 
 const ALLOWED_ORIGINS = new Set([
   "https://p1k5up.github.io",
+  "https://fiws.devs.surf",
   "http://localhost:8000",
 ]);
 const cors = {
