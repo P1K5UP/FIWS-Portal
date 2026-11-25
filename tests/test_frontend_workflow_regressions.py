@@ -253,8 +253,27 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("return 'R'+c.n+' - '+code", page)
         self.assertIn("function leaderboardPhoneText(s)", page)
         self.assertIn(r"/\p{Extended_Pictographic}/gu", page)
-        self.assertIn("esc(leaderboardPhoneText(resultDriverText(s,d.name)||d.name))", page)
+        self.assertIn("driverLink(d.name,leaderboardPhoneText(resultDriverText(s,d.name)||d.name))", page)
         self.assertIn("leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · '))", page)
+
+    def test_driver_dossiers_are_linked_and_group_workbook_fields(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("const driverHref=name=>'#driver/'+encodeURIComponent(String(name||''))", page)
+        self.assertIn("V.driver=()=>", page)
+        self.assertIn("group('Identity'", page)
+        self.assertIn("group('Team & entry'", page)
+        self.assertIn("group('Other workbook fields'", page)
+        self.assertIn("driverLink(driverEntryName(d))", page)
+        self.assertIn("driverLink(name)", page)
+        self.assertIn("!k.startsWith('_')", page)
+
+    def test_admin_password_policy_is_consistent_in_ui_and_edge_function(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        edge = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
+        for rule in ("p.length<10", "/[a-z]/", "/[A-Z]/", "/[0-9]/", "/[^A-Za-z0-9]/"):
+            self.assertIn(rule, page)
+        for rule in ("password.length < 10", "/[a-z]/", "/[A-Z]/", "/[0-9]/", "/[^A-Za-z0-9]/"):
+            self.assertIn(rule, edge)
 
     def test_round_by_round_team_ranges_drive_driver_status_and_team_switches(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
