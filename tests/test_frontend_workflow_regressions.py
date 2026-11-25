@@ -598,7 +598,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_driver_dossier_can_filter_a_season_or_all_time(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
-        for marker in ('id="driver-season-trigger"', 'value="ALL"', "driverSeasonFilter",
+        for marker in ('id="driver-season-trigger"', "value:'ALL'", "driverSeasonFilter",
                        "selectedSeasons", "Career snapshot · all published seasons"):
             self.assertIn(marker, profile)
 
