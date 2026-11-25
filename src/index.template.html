@@ -700,24 +700,34 @@ function parseWB(wb){
    if(E){const t=table(E.c,E.end,6);o.drivers=t.rows;let r=t.next;while(r<t.next+12&&cell(r,E.c)!=='Team')r++;if(cell(r,E.c)==='Team')o.teams=table(E.c,E.end,r).rows}
    if(C){const dateCol=(g[6]||[]).findIndex((v,c)=>c>=C.c&&c<C.end&&String(v??'').trim().toLowerCase()==='date');o.cal=table(C.c,C.end,6).rows.map((x,i)=>{const n=cell(x._r,C.c-1),dateCell=dateCol>=0?wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:dateCol})]:null,dateText=iso(x.Date),date=/ANN?UL+ED/i.test(String(dateCell?.w||''))&&!/ANN?UL+ED/i.test(dateText)?dateText+' ANNULED':dateText;return{n:typeof n==='number'?n:i,special:Array.from({length:Math.max(0,C.end-C.c)},(_,offset)=>wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:C.c+offset})]).some(cell=>!!cell?.s?.font?.bold),name:String(x.Rounds??''),circuit:x.Circuit||'',laps:x['Total Laps']??'',caution:x['Caution Speed']||'',date,notes:x.Notes||''}})}
    if(R){o.res=table(R.c,R.end,6).rows.map(x=>({...x,pole:x['Driver on Pole'],stage:x['Stage Winner'],win:x['Winning Driver'],p2:x['2nd Place Driver'],p3:x['3rd Place Driver'],team:x['Winning Team'],cautions:x.Cautions}))}
-   if(P){for(let k=P.c+1;k<P.end&&typeof cell(6,k)==='string'&&cell(6,k).trim();k++)o.codes.push(cell(6,k).trim());
-    const rowsOf=r0=>{const a=[];let r=r0;while(r<g.length&&!blank(cell(r,P.c))&&cell(r,P.c)!=='Constructors'&&cell(r,P.c)!=='Key'){a.push({name:String(cell(r,P.c)).trim(),vals:o.codes.map((_,i)=>num(cell(r,P.c+1+i)))});r++}return{a,r}};
+   if(P){
+    o.totalColumn=null;o.roundCols=[];
+    for(let k=P.c+1;k<P.end;k++){
+     const header=cell(6,k);if(blank(header))continue;
+     const label=String(header).trim();
+     if(/^total$/i.test(label)){o.totalColumn=k;continue}
+     if(o.roundCols.length<o.cal.length)o.roundCols.push({label,col:k});
+    }
+    o.codes=o.roundCols.map(x=>x.label);
+    const rowsOf=r0=>{const a=[];let r=r0;while(r<g.length&&!blank(cell(r,P.c))&&cell(r,P.c)!=='Constructors'&&cell(r,P.c)!=='Key'){
+     a.push({name:String(cell(r,P.c)).trim(),vals:o.roundCols.map(x=>num(cell(r,x.col))),excelTotal:o.totalColumn==null?null:num(cell(r,o.totalColumn))});r++
+    }return{a,r}};
     const d=rowsOf(7);o.drv=d.a;let r=d.r;while(r<d.r+8&&cell(r,P.c)!=='Constructors')r++;if(cell(r,P.c)==='Constructors')o.con=rowsOf(r+1).a;
     o.drv.forEach(d=>d.vals.forEach((v,i)=>{if(v!=null&&i>o.done)o.done=i}));
-   if(isFiwsSeasonOne(o)){
-    const scoreTables=[...o.drv,...o.con];
-    scoreTables.forEach(d=>{
-     let rawPrevious=0,adjustedTotal=0;
-     d.vals=d.vals.map((value,i)=>{
-      if(value==null)return null;
-      const raw=Number(value),round=Number(o.cal?.[i]?.n),delta=raw-rawPrevious;
-      rawPrevious=raw;
-      const awarded=round===0?0:delta*(o.cal?.[i]?.special?2:1);
-      adjustedTotal+=Number.isFinite(awarded)?awarded:0;
-      return adjustedTotal;
+    if(isFiwsSeasonOne(o)){
+     const scoreTables=[...o.drv,...o.con];
+     scoreTables.forEach(d=>{
+      let adjustedTotal=0;
+      d.vals=d.vals.map((value,i)=>{
+       if(value==null)return null;
+       const round=Number(o.cal?.[i]?.n);
+       const awarded=round===0?0:Number(value)*(o.cal?.[i]?.special?2:1);
+       adjustedTotal+=Number.isFinite(awarded)?awarded:0;
+       return adjustedTotal;
+      });
      });
-    });
-   }}
+    }
+   }
    if(['UPCOMING','PLANNED','PRIVATE','UNCONFIRMED'].includes(o.status))o.status='FUTURE';
    if(['PAST','COMPLETE','COMPLETED'].includes(o.status))o.status='FINISHED';
    if(['LIVE','ACTIVE','CURRENT'].includes(o.status))o.status='ONGOING';
@@ -792,7 +802,7 @@ const playoffStandingsData=s=>{
   const addWin=name=>{const key=normalizedDriverName(name);if(key)stats.set(key,(stats.get(key)||0)+1)};
   (s.res||[]).forEach((result,i)=>{const round=Number(s.cal?.[i]?.n);if(round<1||round>14||isCancelledRound(s.cal?.[i])||isAnnulledRound(s.cal?.[i]))return;if(valid(result?.win))resolveResultDrivers(s,result.win).forEach(addWin)});
   const drivers=allSeasonDrivers(s).map(driver=>{
-   const regularPoints=r14>=0?scoreAt(driver,Math.min(cutoff,r14)):0;
+   const regularPoints=driver.excelTotal!=null&&Number.isFinite(Number(driver.excelTotal))?Number(driver.excelTotal):(r14>=0?scoreAt(driver,Math.min(cutoff,r14)):0);
    let playoffPoints=0;
    for(let i=0;i<(s.cal||[]).length;i++){const round=Number(s.cal[i]?.n);if(round>=15&&round<=17&&i<=s.done)playoffPoints+=roundPoints(driver,i)}
    const wins=stats.get(normalizedDriverName(driver.name))||0,qualified=regularPoints>=100;
