@@ -598,7 +598,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_season_one_playoff_rules_and_bold_double_points_are_wired(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        for marker in ("isFiwsSeasonOne", "playoffRoundIndex(s,14)", "regularPoints>=100",
+        for marker in ("isFiwsSeasonOne", "playoffRoundIndex(s,14)", "qualified=regularPoints>100&&seasonOnePlayoffQualifierNames.has(normalizedDriverName(driver.name))",
                        "total:200+wins+playoffPoints", "round>=15&&round<=17",
                        "round===0?0", "cellStyles:true", "special:Array.from("):
             self.assertIn(marker, page)
@@ -616,7 +616,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             playoff = page.split("if(isFiwsSeasonOne(s)){", 1)[1].split("if(!isFiwsSeasonTwo(s))", 1)[0]
             self.assertIn("round>14", playoff)
             self.assertIn("total:200+wins+playoffPoints", playoff)
-            self.assertIn("regularPoints>=100", playoff)
+            self.assertIn("qualified=regularPoints>100&&seasonOnePlayoffQualifierNames.has(normalizedDriverName(driver.name))", playoff)
             self.assertIn("seasonOne&&v>100", page)
             self.assertIn("season-one-qualified", page)
             self.assertIn("special:Array.from({length:Math.max(0,C.end-C.c)}", page)
@@ -651,7 +651,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("const scoreAt=(driver,index)=>", playoff)
         self.assertIn("const regularPoints=r14>=0?scoreAt(driver,Math.min(cutoff,r14)):0", playoff)
         self.assertIn("return scoreAt(driver,i)-scoreAt(driver,i-1)", playoff)
-        self.assertIn("qualified=regularPoints>=100", playoff)
+        self.assertIn("qualified=regularPoints>100&&seasonOnePlayoffQualifierNames.has(normalizedDriverName(driver.name))", playoff)
         # Missing cumulative cells must carry forward the previous non-null score.
         scores = [0, 34, None, 72, None, 116]
         carried = 0
@@ -659,7 +659,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             if value is not None:
                 carried = value
         self.assertEqual(carried, 116)
-        self.assertGreaterEqual(carried, 100)
+        self.assertGreater(carried, 100)
 
     def test_season_one_completed_playoffs_do_not_show_underway_or_in_progress(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
