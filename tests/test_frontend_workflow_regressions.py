@@ -588,6 +588,19 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("if(!isFiwsSeasonTwo(s))return null;", page)
         self.assertIn("k==='drv'?playoffStandingsMarkup(s):''", page)
 
+    def test_season_one_qualification_uses_workbook_total_column_generically(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        parser = page.split("if(P){", 1)[1].split("if(['UPCOMING'", 1)[0]
+        self.assertIn("if(/^total$/i.test(label)){o.totalColumn=k;continue}", parser)
+        self.assertIn("o.roundCols.map(x=>num(cell(r,x.col)))", parser)
+        self.assertIn("excelTotal:o.totalColumn==null?null:num(cell(r,o.totalColumn))", parser)
+        self.assertIn("Number(value)*(o.cal?.[i]?.special?2:1)", parser)
+        self.assertNotIn("rawPrevious", parser)
+        self.assertIn("driver.excelTotal!=null&&Number.isFinite(Number(driver.excelTotal))", page)
+        self.assertIn("regularPoints>=100", page)
+        for name in ("Formula B", "29deCesaris", "Tenooji"):
+            self.assertNotIn(name, page)
+
     def test_season_one_playoff_rules_and_bold_double_points_are_wired(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         for marker in ("isFiwsSeasonOne", "playoffRoundIndex(s,14)", "regularPoints>=100",
