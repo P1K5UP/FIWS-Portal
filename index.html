@@ -700,7 +700,8 @@ function parseWB(wb){
     const d=rowsOf(7);o.drv=d.a;let r=d.r;while(r<d.r+8&&cell(r,P.c)!=='Constructors')r++;if(cell(r,P.c)==='Constructors')o.con=rowsOf(r+1).a;
     o.drv.forEach(d=>d.vals.forEach((v,i)=>{if(v!=null&&i>o.done)o.done=i}));
    if(isFiwsSeasonOne(o)){
-    o.drv.forEach(d=>{
+    const scoreTables=[...o.drv,...o.con];
+    scoreTables.forEach(d=>{
      let rawPrevious=0,adjustedTotal=0;
      d.vals=d.vals.map((value,i)=>{
       if(value==null)return null;
@@ -886,8 +887,8 @@ V.home=()=>{const s=seas(),li=s?latest(s):-1,lr=li>=0?s.res[li]:{},lc=li>=0?(s.c
  <section class="community-band sec"><div class="community-copy"><div class="home-kicker">THE FIWS COMMUNITY <span></span></div><h2>The FIWS paddock.</h2><p>Meet the drivers, follow league updates and stay connected between race weekends.</p></div><div class="community-widget"><div class="community-widget-head"><b>FIWS on Discord</b><span class="chip">Community</span></div><div id="discord-slot" class="discord-slot"><iframe class="discord-frame" src="https://discord.com/widget?id=1430272514591817861&amp;theme=dark" width="350" height="500" title="FIWS Discord server members and channels" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts" loading="eager"></iframe><a class="btn discord-join" href="https://discord.gg/9uUdUCVnNN" target="_blank" rel="noopener">Join the server!</a></div></div></section>`,
  after:()=>{if(s&&s.drv.length)tower($('#tw'),{...s,drv:allSeasonDrivers(s)},'drv',8);else $('#tw').innerHTML=empty('Standings','Standings appear after the first round.');}}};
 V.driver=()=>{
-const current=seas(),raw=decodeURIComponent((location.hash||'').slice('#driver/'.length)),available=publicSeasons().filter(season=>season.series===cur.series),selectedKey=driverSeasonFilter||cur.key||current?.key||'ALL',allTime=selectedKey==='ALL',s=allTime?(current||available[0]):(available.find(season=>season.key===selectedKey)||current),selectedSeasons=allTime?available:(s?[s]:[]);
-const entry=selectedSeasons.map(season=>driverEntryForResult(season,raw)).find(Boolean)||available.map(season=>driverEntryForResult(season,raw)).find(Boolean);
+const current=seas(),raw=decodeURIComponent((location.hash||'').slice('#driver/'.length)),available=publicSeasons().filter(season=>season.series===cur.series),selectedKey=driverSeasonFilter==='ALL'||available.some(season=>season.key===driverSeasonFilter)?driverSeasonFilter:(cur.key||current?.key||'ALL'),allTime=selectedKey==='ALL',s=allTime?(current||available[0]):(available.find(season=>season.key===selectedKey)||current),selectedSeasons=allTime?available:(s?[s]:[]);
+const entry=driverEntryForResult(s,raw)||selectedSeasons.map(season=>driverEntryForResult(season,raw)).find(Boolean)||available.map(season=>driverEntryForResult(season,raw)).find(Boolean);
 if(!s||!entry)return{html:'<h1>Driver not found</h1><a href="#entries">Back to entries</a>'};
 const name=driverEntryName(entry),team=entryTeamForRound(s,name,Math.max(0,s.done)),history=entryTeamHistory(s,name,Math.max(0,s.done)),displayTeam=team||history.team||'',teamColor=displayTeam?tcol(displayTeam,s.key):'var(--sky)',fields=Object.entries(entry).filter(([k,v])=>!k.startsWith('_')&&valid(v));
 const hasNameIn=(season,value)=>resolveResultDrivers(season,value).some(driver=>normalizedDriverName(driver)===normalizedDriverName(name));
