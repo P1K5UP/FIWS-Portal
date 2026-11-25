@@ -694,12 +694,13 @@ function parseWB(wb){
    return{rows,next:r}};
   Object.values(S).forEach(o=>{
    const entryKey=Object.keys(o.sec).find(k=>/^ENTRIES(?:\s*(?:\(\s*CONFIRMED\s*\)|[-–:]\s*CONFIRMED))?$/i.test(k));
-   const E=entryKey?o.sec[entryKey]:null,C=o.sec['CALENDAR'],R=o.sec['STANDINGS (RACE BY RACE)'],P=o.sec['STANDINGS (POINTS)'];
+   const E=entryKey?o.sec[entryKey]:null,C=o.sec['CALENDAR'],R=o.sec['STANDINGS (RACE BY RACE)'],P=o.sec['STANDINGS (POINTS)'],T=o.sec['STATS (POINTS)'];
    o.entriesConfirmed=!!entryKey&&/CONFIRMED/i.test(entryKey);
    Object.assign(o,{drivers:[],teams:[],cal:[],res:[],codes:[],drv:[],con:[],done:-1});delete o.sec.__;
    if(E){const t=table(E.c,E.end,6);o.drivers=t.rows;let r=t.next;while(r<t.next+12&&cell(r,E.c)!=='Team')r++;if(cell(r,E.c)==='Team')o.teams=table(E.c,E.end,r).rows}
    if(C){const dateCol=(g[6]||[]).findIndex((v,c)=>c>=C.c&&c<C.end&&String(v??'').trim().toLowerCase()==='date');o.cal=table(C.c,C.end,6).rows.map((x,i)=>{const n=cell(x._r,C.c-1),dateCell=dateCol>=0?wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:dateCol})]:null,dateText=iso(x.Date),date=/ANN?UL+ED/i.test(String(dateCell?.w||''))&&!/ANN?UL+ED/i.test(dateText)?dateText+' ANNULED':dateText;return{n:typeof n==='number'?n:i,special:Array.from({length:Math.max(0,C.end-C.c)},(_,offset)=>wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:C.c+offset})]).some(cell=>!!cell?.s?.font?.bold),name:String(x.Rounds??''),circuit:String(x.Circuit||x.Track||x['Track Name']||''),track:String(x.Track||x['Track Name']||x.Circuit||x.Rounds||''),laps:x['Total Laps']??'',caution:x['Caution Speed']||'',date,notes:x.Notes||''}})}
    if(R){o.res=table(R.c,R.end,6).rows.map(x=>({...x,pole:x['Driver on Pole'],stage:x['Stage Winner'],win:x['Winning Driver'],p2:x['2nd Place Driver'],p3:x['3rd Place Driver'],team:x['Winning Team'],cautions:x.Cautions}))}
+   if(T){o.statsTitle=String(cell(6,T.c)??'').trim();o.statsRows=table(T.c,T.end,8).rows}
    if(P){for(let k=P.c+1;k<P.end&&typeof cell(6,k)==='string'&&cell(6,k).trim();k++)o.codes.push(cell(6,k).trim());
     const rowsOf=r0=>{const a=[];let r=r0;while(r<g.length&&!blank(cell(r,P.c))&&cell(r,P.c)!=='Constructors'&&cell(r,P.c)!=='Key'){a.push({name:String(cell(r,P.c)).trim(),vals:o.codes.map((_,i)=>num(cell(r,P.c+1+i)))});r++}return{a,r}};
     const d=rowsOf(7);o.drv=d.a;let r=d.r;while(r<d.r+8&&cell(r,P.c)!=='Constructors')r++;if(cell(r,P.c)==='Constructors')o.con=rowsOf(r+1).a;
@@ -776,7 +777,29 @@ const driverRacePosition=(s,result,name)=>{
   const position=positionForKey(key);
   if(position>0&&resolveResultDrivers(s,value).some(driver=>normalizedDriverName(driver)===normalizedDriverName(name)))best=best?Math.min(best,position):position;
  }
+ if(!best&&Number.isInteger(round)&&round===driverDetailedResultRound(s)){
+  const detail=(s.statsRows||[]).find(row=>normalizedDriverName(row.Entries??row.Driver)===normalizedDriverName(name));
+  const finish=String(detail?.Race??'').trim().match(/^(\\d+)(?:st|nd|rd|th)$/i);
+  if(finish)best=Number(finish[1]);
+ }
  return best;
+};
+const driverDetailedResultRound=s=>{
+ const tokens=value=>String(value??'').toLowerCase().match(/[a-z0-9]+/g)?.filter(token=>token.length>1&&!['grand','prix','of','the','mobility','resort','circuit','speedway','race','series','fiws'].includes(token))||[];
+ const wanted=tokens(s.statsTitle);if(!wanted.length)return-1;
+ let best=-1,bestScore=0;
+ (s.cal||[]).forEach((calendar,i)=>{
+  const candidates=[calendar.name,calendar.circuit,calendar.track];
+  const score=Math.max(0,...candidates.map(value=>{const have=tokens(value),overlap=wanted.filter(token=>have.includes(token)).length;return overlap/Math.max(1,Math.min(wanted.length,have.length))}));
+  if(score>bestScore){bestScore=score;best=i}
+ });
+ return bestScore>=.45?best:-1;
+};
+const driverEntryParticipated=(entry,round)=>{
+ const raw=String(entry?.Races??'').trim();if(!raw)return false;if(/^all$/i.test(raw))return true;
+ const exclude=/^all\\s+but\\s+/i.test(raw),list=raw.replace(/^all\\s+but\\s+/i,'').replace(/\\s*\\+\\s*/g,',');
+ const matches=list.split(/[,;]+/).some(part=>{const m=part.trim().match(/^R?\\s*(\\d+)\\s*(?:[-–—]\\s*R?\\s*(\\d*))?$/i);if(!m)return false;const start=Number(m[1]),end=m[2]===undefined?start:(m[2]===''?Infinity:Number(m[2]));return Number(round)>=start&&Number(round)<=end});
+ return exclude?!matches:matches;
 };
 const resultDriverSummary=(s,raw,round)=>resolveResultDrivers(s,raw).map(name=>{const team=entryTeamForRound(s,name,round);return team?name+' ('+team+')':name}).join(' / ');
 const resultDriverMarkup=(s,raw,round)=>resolveResultDrivers(s,raw).map(name=>{const team=entryTeamForRound(s,name,round);return`<span class="result-driver">${driverLink(name)}${team?`<small>${esc(team)}</small>`:''}</span>`}).join('<span class="result-driver-separator">/</span>');
@@ -922,17 +945,17 @@ const hasNameIn=(season,value)=>resolveResultDrivers(season,value).some(driver=>
 const stats={points:0,wins:0,podiums:0,poles:0,stages:0,starts:0};
 selectedSeasons.forEach(season=>{
  const row=(season.drv||[]).find(driver=>normalizedDriverName(driver.name)===normalizedDriverName(name));if(row)stats.points+=Number(row.vals?.[season.done]||0);
- for(let i=0;i<(season.res||[]).length;i++){const result=season.res[i]||{},calendar=season.cal?.[i],position=driverRacePosition(season,result,name);if(isCancelledRound(calendar)||isAnnulledRound(calendar))continue;if(position>0||hasNameIn(season,result.pole)||hasNameIn(season,result.stage))stats.starts++;if(position===1||hasNameIn(season,result.win))stats.wins++;if((position>=1&&position<=3)||hasNameIn(season,result.win)||hasNameIn(season,result.p2)||hasNameIn(season,result.p3))stats.podiums++;if(hasNameIn(season,result.pole))stats.poles++;if(hasNameIn(season,result.stage))stats.stages++;}
+ for(let i=0;i<(season.res||[]).length;i++){const result=season.res[i]||{},calendar=season.cal?.[i],position=driverRacePosition(season,result,name,i);if(isCancelledRound(calendar)||isAnnulledRound(calendar))continue;if(position>0||driverEntryParticipated(driverEntryForResult(season,name),Number(calendar?.n??i+1))||hasNameIn(season,result.pole)||hasNameIn(season,result.stage))stats.starts++;if(position===1||hasNameIn(season,result.win))stats.wins++;if((position>=1&&position<=3)||hasNameIn(season,result.win)||hasNameIn(season,result.p2)||hasNameIn(season,result.p3))stats.podiums++;if(hasNameIn(season,result.pole))stats.poles++;if(hasNameIn(season,result.stage))stats.stages++;}
 });
 const career={seasons:0,wins:0,podiums:0,poles:0,stages:0,points:0};
 available.forEach(season=>{
  const row=(season.drv||[]).find(driver=>normalizedDriverName(driver.name)===normalizedDriverName(name));if(row){career.seasons++;career.points+=Number(row.vals?.[season.done]||0)}
- for(let i=0;i<(season.res||[]).length;i++){const result=season.res[i]||{},calendar=season.cal?.[i],position=driverRacePosition(season,result,name);if(isCancelledRound(calendar)||isAnnulledRound(calendar))continue;if(position===1||hasNameIn(season,result.win))career.wins++;if((position>=1&&position<=3)||hasNameIn(season,result.win)||hasNameIn(season,result.p2)||hasNameIn(season,result.p3))career.podiums++;if(hasNameIn(season,result.pole))career.poles++;if(hasNameIn(season,result.stage))career.stages++;}
+ for(let i=0;i<(season.res||[]).length;i++){const result=season.res[i]||{},calendar=season.cal?.[i],position=driverRacePosition(season,result,name,i);if(isCancelledRound(calendar)||isAnnulledRound(calendar))continue;if(position===1||hasNameIn(season,result.win))career.wins++;if((position>=1&&position<=3)||hasNameIn(season,result.win)||hasNameIn(season,result.p2)||hasNameIn(season,result.p3))career.podiums++;if(hasNameIn(season,result.pole))career.poles++;if(hasNameIn(season,result.stage))career.stages++;}
 });
 const usedFields=new Set(),group=(title,keys)=>{const rows=fields.filter(([key])=>keys.test(key)&&!usedFields.has(key)&&usedFields.add(key));return rows.length?'<article class="driver-info-card"><h3>'+title+'</h3><dl>'+rows.map(([key,value])=>'<div><dt>'+esc(key)+'</dt><dd>'+esc(value)+'</dd></div>').join('')+'</dl></article>':''};
-const recent=selectedSeasons.flatMap(season=>season.res.map((result,i)=>({result,i,season})).filter(({result,i,season})=>!isCancelledRound(season.cal?.[i])&&!isAnnulledRound(season.cal?.[i])&&(driverRacePosition(season,result,name)>0||hasNameIn(season,result.pole)||hasNameIn(season,result.stage)))).reverse();
-const winRounds=selectedSeasons.flatMap(season=>season.res.map((result,i)=>({result,i,season})).filter(({result,i,season})=>!isCancelledRound(season.cal?.[i])&&!isAnnulledRound(season.cal?.[i])&&(driverRacePosition(season,result,name)===1||hasNameIn(season,result.win)))).reverse();
-const resultBadge=({result,i,season})=>{const has=value=>hasNameIn(season,value),position=driverRacePosition(season,result,name),pole=has(result.pole),stage=has(result.stage),calendar=season.cal?.[i]||{},track=calendar.circuit||calendar.track||calendar.name||'Track not listed',label=position?'P'+position:pole?'POLE':stage?'STAGE WIN':'RESULT',extras=[pole&&position?'POLE':'',stage?'STAGE WIN':''].filter(Boolean);return '<div class="'+(position===1?'driver-result-win':'')+'"><span>Season '+esc(season.num)+' · R'+esc(calendar.n??i+1)+' · '+esc(track)+(calendar.name&&calendar.name!==track?' · '+esc(calendar.name):'')+'</span><b>'+(position===1?'<span class="driver-trophy">P1 · VICTORY</span>':label)+'</b>'+(extras.length?'<small>'+extras.join(' · ')+'</small>':'')+'</div>'};
+const recent=selectedSeasons.flatMap(season=>season.res.map((result,i)=>({result,i,season})).filter(({result,i,season})=>{const round=Number(season.cal?.[i]?.n??i+1),entry=driverEntryForResult(season,name);return !isCancelledRound(season.cal?.[i])&&!isAnnulledRound(season.cal?.[i])&&(driverRacePosition(season,result,name,i)>0||driverEntryParticipated(entry,round)||hasNameIn(season,result.pole)||hasNameIn(season,result.stage))})).reverse();
+const winRounds=selectedSeasons.flatMap(season=>season.res.map((result,i)=>({result,i,season})).filter(({result,i,season})=>!isCancelledRound(season.cal?.[i])&&!isAnnulledRound(season.cal?.[i])&&(driverRacePosition(season,result,name,i)===1||hasNameIn(season,result.win)))).reverse();
+const resultBadge=({result,i,season})=>{const has=value=>hasNameIn(season,value),position=driverRacePosition(season,result,name,i),pole=has(result.pole),stage=has(result.stage),calendar=season.cal?.[i]||{},track=calendar.circuit||calendar.track||calendar.name||'Track not listed',label=position?'P'+position:'RESULT NOT LISTED',extras=[pole&&position?'POLE':'',stage?'STAGE WIN':''].filter(Boolean);const pointsRow=(season.drv||[]).find(driver=>normalizedDriverName(driver.name)===normalizedDriverName(name)),scoreAt=index=>{let value=0;for(let k=0;k<=index;k++)if(pointsRow?.vals?.[k]!=null)value=Number(pointsRow.vals[k])||0;return value},roundPoints=scoreAt(i)-scoreAt(i-1),participated=driverEntryParticipated(driverEntryForResult(season,name),Number(calendar.n??i+1));if(participated&&!position)extras.unshift('RACE ENTRY');if(roundPoints>0)extras.push('+'+roundPoints+' PTS');return '<div class="'+(position===1?'driver-result-win':'')+'"><span>Season '+esc(season.num)+' · R'+esc(calendar.n??i+1)+' · '+esc(track)+(calendar.name&&calendar.name!==track?' · '+esc(calendar.name):'')+'</span><b>'+(position===1?'<span class="driver-trophy">P1 · VICTORY</span>':label)+'</b>'+(extras.length?'<small>'+extras.join(' · ')+'</small>':'')+'</div>'};
 const seasonLabel=season=> 'S'+esc(String(season.num).toUpperCase()==='I'?'1':String(season.num).toUpperCase()==='II'?'2':season.num);
 const options=[{value:'ALL',label:'All time'},...available.map(season=>({value:season.key,label:seasonLabel(season)}))];
 const selectedOption=options.find(option=>option.value===selectedKey)||options[0];
