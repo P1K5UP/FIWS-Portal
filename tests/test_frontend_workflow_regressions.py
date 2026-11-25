@@ -267,6 +267,23 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("driverLink(name)", page)
         self.assertIn("!k.startsWith('_')", page)
 
+    def test_entries_driver_cards_are_full_click_targets_and_team_tinted(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        entries = page.split("V.entries=()=>", 1)[1].split("V.rules=()=>", 1)[0]
+        self.assertIn('class="entry-member-card-link" href="'+ "'+driverHref(name)+'" +'"', entries)
+        self.assertIn("style=\"--team:'+color", entries)
+        self.assertNotIn("driverLink(driverEntryName(d))", entries)
+
+    def test_driver_dossier_uses_team_palette_and_highlights_wins(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
+        self.assertIn("tcol(displayTeam,s.key)", profile)
+        self.assertIn("driver-stat-win", profile)
+        self.assertIn("Victory lane", profile)
+        self.assertIn("Career snapshot · all published seasons", profile)
+        self.assertIn("driver-result-win", profile)
+        self.assertIn("prefers-reduced-motion:reduce", page)
+
     def test_admin_password_policy_is_consistent_in_ui_and_edge_function(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         edge = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
