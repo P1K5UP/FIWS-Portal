@@ -1312,7 +1312,7 @@ function setLogo(){
    ctx.putImageData(pixels,0,0);canvas.setAttribute('role','img');canvas.setAttribute('aria-label',k+' logo');canvas.style.maxWidth='200px';L.style.opacity='0';if(M)M.style.opacity='0';requestAnimationFrame(()=>{if(cur.series!==k)return;L.replaceChildren(canvas);syncMobileLogo();L.style.opacity='1';if(M)M.style.opacity='1';T.hidden=true});
   }catch(e){console.warn('Logo theme processing unavailable',e)}
  };
- img.onerror=()=>{if(img.src!==LOGO[k]){img.onerror=()=>{L.innerHTML=mark;T.hidden=false;syncMobileLogo()};img.src=LOGO[k];return}L.innerHTML=mark;T.hidden=false;syncMobileLogo()};img.src=src;
+ const localFallback=new URL(LOGO[k],document.baseURI).href;let triedLocalFallback=img.src===localFallback;img.onerror=()=>{if(!triedLocalFallback){triedLocalFallback=true;img.src=localFallback;return}L.innerHTML=mark;T.hidden=false;syncMobileLogo()};img.src=src;
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(!document.documentElement.dataset.theme)setLogo()});
 
@@ -1367,7 +1367,7 @@ const NAV_ICONS={home:'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z',standings:'M4 19V9h4v
 $('#nav').innerHTML=NAV.map(([k,l])=>`<a href="#${k}" data-nav="${k}" aria-label="${l}"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${NAV_ICONS[k]||'M12 3v18'}"/></svg><span class="nav-label">${l}</span></a>`).join('');
 const mark=`<svg viewBox="0 0 54 48" role="img" aria-label="FIWS logo"><rect width="36" height="8" style="fill:var(--sky)"/><rect x="42" width="12" height="8" style="fill:var(--sky)"/><rect y="16" width="12" height="32" fill="currentColor"/><rect x="12" y="16" width="22" height="12" fill="currentColor"/><rect x="42" y="16" width="12" height="32" fill="currentColor"/></svg>`;
 // Official published logos also serve as defaults when no season-specific logo is configured.
-const LOGO={FIWS:'https://yipzokjzqltxcufixrsv.supabase.co/storage/v1/object/public/fiws-public/logos/FIWS.png',FITC:'https://yipzokjzqltxcufixrsv.supabase.co/storage/v1/object/public/fiws-public/logos/FITC.png'};
+const LOGO={FIWS:'assets/fiws-logo.png',FITC:'assets/fitc-logo.png'};
 const iconSvg=c=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="13" fill="#0B2239"/><g transform="translate(10.5 12.8) scale(.8)"><rect width="36" height="8" fill="${c}"/><rect x="42" width="12" height="8" fill="${c}"/><g fill="#fff"><rect y="16" width="12" height="32"/><rect x="12" y="16" width="22" height="12"/><rect x="42" y="16" width="12" height="32"/></g></g></svg>`;
 function setIcon(){const l=$('link[rel=icon][type="image/svg+xml"]');if(l)l.href='data:image/svg+xml,'+encodeURIComponent(iconSvg(cur.series==='FITC'?'#e2716f':'#00AEEF'))}
 function setLogoLegacy(){const k=cur.series,L=$('#logo'),T=$('.brand b');L.innerHTML=mark;T.hidden=false;T.textContent=k;setIcon();const im=new Image();im.alt=k+' logo';im.onload=()=>{if(cur.series!==k)return;L.innerHTML='';L.append(im);T.hidden=true};im.src=((LS.get('logos',{})||{})[k])||LOGO[k]||LOGO.FIWS}
