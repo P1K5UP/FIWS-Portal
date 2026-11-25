@@ -351,8 +351,16 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("e.Team??e['Team Name']??e.Constructor??''", page)
         self.assertIn("if(!l.length||(k==='con'&&s.done<0))", page)
         self.assertIn("s.done>=0?(d.vals[s.done]??0):0", page)
-        for name in ("Yoshinaran", "29deCesaris", "Mariusz", "Formula B", "Protomango", "Jetto", "Yishmate", "P1K5UP", "BlackDragon", "Endo", "Putra", "Pmoneyspread"):
+        self.assertIn("const seasonOnePlayoffQualifierNames=new Set(['29decesaris','tenooji','formula b'])", page)
+        for name in ("Yoshinaran", "Mariusz", "Protomango", "Jetto", "Yishmate", "P1K5UP", "BlackDragon", "Endo", "Putra", "Pmoneyspread"):
             self.assertNotIn(name, page)
+
+    def test_season_one_playoffs_are_limited_to_the_three_named_drivers_over_100_points(self):
+        for relative in ("src/index.template.html", "index.html"):
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("const seasonOnePlayoffQualifierNames=new Set(['29decesaris','tenooji','formula b'])", page)
+            self.assertIn("qualified=regularPoints>100&&seasonOnePlayoffQualifierNames.has(normalizedDriverName(driver.name))", page)
+            self.assertNotIn("qualified=regularPoints>=100", page)
 
     def test_homepage_ctas_have_distinct_but_coordinated_interactions(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
