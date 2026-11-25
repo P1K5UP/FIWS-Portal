@@ -68,6 +68,9 @@
     ctx.save();ctx.globalAlpha=.18;ctx.strokeStyle="#b9d69a";ctx.lineWidth=3;
     for(let x=-500;x<2200;x+=42){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+560,WORLD.h);ctx.stroke();}
     ctx.restore();
+    // Stylised trees and spectator islands give the circuit a stronger sense of place.
+    const trees=[[95,170],[185,190],[355,115],[690,115],[850,130],[1180,120],[1500,190],[1515,820],[1330,980],[1080,1010],[500,1010],[180,1010],[90,760],[470,460],[920,470],[1170,480],[700,650]];
+    for(let i=0;i<trees.length;i++){const [x,y]=trees[i];ctx.save();ctx.translate(x,y);ctx.fillStyle="#102d27";ctx.beginPath();ctx.ellipse(5,8,23,17,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=i%2?"#397b50":"#4b8957";ctx.beginPath();ctx.arc(0,0,18,0,Math.PI*2);ctx.fill();ctx.fillStyle="#75a96b";ctx.beginPath();ctx.arc(-5,-6,8,0,Math.PI*2);ctx.fill();ctx.restore();}
     ctx.save();ctx.strokeStyle="#172f2a";ctx.lineWidth=TRACK.width+48;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
     ctx.save();ctx.strokeStyle="#e9e5d7";ctx.lineWidth=TRACK.width+25;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
     ctx.save();ctx.strokeStyle="#dc5149";ctx.lineWidth=TRACK.width+17;ctx.setLineDash([24,24]);ctx.lineCap="butt";ctx.stroke(path);ctx.restore();
