@@ -263,7 +263,8 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("group('Identity'", page)
         self.assertIn("group('Team & entry'", page)
         self.assertIn("group('Other workbook fields'", page)
-        self.assertIn("driverLink(driverEntryName(d))", page)
+        self.assertIn("entry-member-card-link", page)
+        self.assertIn("driverHref(name)", page)
         self.assertIn("driverLink(name)", page)
         self.assertIn("!k.startsWith('_')", page)
 
