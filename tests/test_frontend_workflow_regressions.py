@@ -267,6 +267,21 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("driverHref(name)", page)
         self.assertIn("driverLink(name)", page)
         self.assertIn("!k.startsWith('_')", page)
+        self.assertIn("const driverRacePosition=(s,result,name)=>", page)
+        self.assertIn("result,i,season})=>!isCancelledRound(season.cal?.[i])", page)
+        self.assertIn("calendar.circuit||calendar.track||calendar.name||'Track not listed'", page)
+
+    def test_driver_history_includes_all_finishing_positions_and_does_not_confuse_pole_with_race_result(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
+        self.assertIn("driverRacePosition(season,result,name)", page)
+        self.assertIn("P'+position", profile)
+        self.assertIn("pole&&position?'POLE'", profile)
+        self.assertIn("const recent=selectedSeasons.flatMap", profile)
+        self.assertNotIn(".slice(-12)", profile)
+        self.assertNotIn("i<=season.done&&[result.win,result.p2,result.p3,result.pole,result.stage]", profile)
+        self.assertIn("calendar.circuit||calendar.track||calendar.name||'Track not listed'", profile)
+
 
     def test_entries_driver_cards_are_full_click_targets_and_team_tinted(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
