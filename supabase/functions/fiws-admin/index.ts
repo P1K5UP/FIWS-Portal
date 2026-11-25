@@ -45,12 +45,12 @@ async function passwordOK(password: string, hash: string) {
   try { return await argon2Verify({ password, hash }); } catch { return false; }
 }
 function passwordPolicyError(password: string): string | null {
-  if (password.length < 12) return 'Use at least 12 characters.';
+  if (password.length < 10) return 'Use at least 10 characters.';
   if (password.length > 128) return 'Use no more than 128 characters.';
-  if (["password", "password123", "123456789012", "qwerty123456", "letmein123456", "welcome123456", "admin123456"].includes(password.toLowerCase())) return 'Choose a less predictable password.';
-  const types = [/[a-z]/.test(password), /[A-Z]/.test(password), /[0-9]/.test(password), /[^A-Za-z0-9]/.test(password)].filter(Boolean).length;
-  if (types < 3 && password.length < 16) return 'Use at least three character types, or make it a 16+ character passphrase.';
-  if (/(.)\1{3,}/.test(password)) return 'Avoid repeated characters.';
+  if (!/[a-z]/.test(password)) return 'Include at least one lowercase letter.';
+  if (!/[A-Z]/.test(password)) return 'Include at least one uppercase letter.';
+  if (!/[0-9]/.test(password)) return 'Include at least one number.';
+  if (!/[^A-Za-z0-9]/.test(password)) return 'Include at least one symbol.';
   return null;
 }
 let dummyPasswordHash: Promise<string> | null = null;
