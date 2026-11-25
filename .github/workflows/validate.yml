@@ -98,6 +98,24 @@ jobs:
           Path("/tmp/fiws-inline.js").write_text(scripts[0], encoding="utf-8")
           PY
           node --check /tmp/fiws-inline.js
+      - name: Check Pocket Grand Prix JavaScript syntax
+        run: node --check pocket-grand-prix/game.js
+      - name: Validate Pocket Grand Prix standalone files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          game = Path("pocket-grand-prix")
+          for required in ("index.html", "game.css", "game.js", "README.md"):
+              path = game / required
+              if not path.is_file() or not path.stat().st_size:
+                  raise SystemExit(f"Pocket Grand Prix file missing or empty: {path}")
+          html = (game / "index.html").read_text(encoding="utf-8")
+          for asset in ('href="./game.css"', 'src="./game.js"'):
+              if asset not in html:
+                  raise SystemExit(f"Pocket Grand Prix HTML is missing {asset}")
+          if 'name="robots" content="noindex, nofollow, noarchive"' not in html:
+              raise SystemExit("Pocket Grand Prix preview must discourage search indexing")
+          PY
       - name: Package isolated preview
         if: github.event_name == 'pull_request'
         run: |
@@ -105,6 +123,7 @@ jobs:
           cp index.html manifest.webmanifest preview/
           cp robots.txt sitemap.xml preview/
           cp -R assets data preview/
+          cp -R pocket-grand-prix preview/
           touch preview/.nojekyll
       - name: Upload isolated preview
         if: github.event_name == 'pull_request'
