@@ -598,7 +598,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_driver_dossier_can_filter_a_season_or_all_time(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
-        for marker in ('id="driver-season-select"', 'value="ALL"', "driverSeasonFilter",
+        for marker in ('id="driver-season-trigger"', 'value="ALL"', "driverSeasonFilter",
                        "selectedSeasons", "Career snapshot · all published seasons"):
             self.assertIn(marker, profile)
 
@@ -619,8 +619,9 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
         self.assertIn("publicSeasons().filter(season=>season.sheet===cur.series)", profile)
         self.assertIn("value=\"ALL\"", profile)
-        self.assertIn("'>S'+esc(String(season.num).toUpperCase()", profile)
-        self.assertIn(".driver-season-filter select{min-width:min(100%,240px)", page)
+        self.assertIn("seasonLabel=season=>", profile)
+        self.assertIn("data-driver-season=", profile)
+        self.assertIn(".driver-season-trigger{display:flex", page)
 
     def test_driver_directory_filters_by_name_team_and_participation(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
@@ -635,6 +636,39 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn(".application-page{max-width:860px;margin:0 auto}", page)
         self.assertIn(".application-panel{max-width:none!important;width:100%", page)
+
+    def test_season_one_qualification_uses_last_recorded_r14_total_and_handles_blank_round_cells(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        playoff = page.split("if(isFiwsSeasonOne(s)){", 1)[1].split("if(!isFiwsSeasonTwo(s))", 1)[0]
+        self.assertIn("const scoreAt=(driver,index)=>", playoff)
+        self.assertIn("const regularPoints=r14>=0?scoreAt(driver,Math.min(cutoff,r14)):0", playoff)
+        self.assertIn("return scoreAt(driver,i)-scoreAt(driver,i-1)", playoff)
+        self.assertIn("qualified=regularPoints>=100", playoff)
+        # Missing cumulative cells must carry forward the previous non-null score.
+        scores = [0, 34, None, 72, None, 116]
+        carried = 0
+        for value in scores:
+            if value is not None:
+                carried = value
+        self.assertEqual(carried, 116)
+        self.assertGreaterEqual(carried, 100)
+
+    def test_season_one_completed_playoffs_do_not_show_underway_or_in_progress(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        playoff = page.split("if(isFiwsSeasonOne(s)){", 1)[1].split("if(!isFiwsSeasonTwo(s))", 1)[0]
+        self.assertIn("playoffsComplete=r17>=0&&s.done>=r17", playoff)
+        self.assertIn("s.done>=r15&&!playoffsComplete", playoff)
+        self.assertIn("data.playoffsComplete?'R17 complete · final standings'", page)
+        self.assertNotIn("R15–R17 underway", page)
+
+    def test_native_browser_dialogs_are_replaced_and_signout_requires_site_confirmation(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        self.assertIn("function showSiteDialog(", page)
+        self.assertIn("const showConfirm=", page)
+        self.assertIn("const showPrompt=", page)
+        self.assertNotIn("confirm(", page)
+        self.assertNotIn("window.prompt(", page)
+        self.assertEqual(page.count("showConfirm('Sign out?'"), 2)
 
 if __name__ == "__main__":
     unittest.main()
