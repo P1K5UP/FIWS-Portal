@@ -592,7 +592,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         for marker in ("isFiwsSeasonOne", "playoffRoundIndex(s,14)", "regularPoints>=100",
                        "total:200+wins+playoffPoints", "round>=15&&round<=17",
-                       "round===0?0", "cellStyles:true", "special:!!wb.Sheets"):
+                       "round===0?0", "cellStyles:true", "special:!!(wb.Sheets"):
             self.assertIn(marker, page)
 
     def test_driver_dossier_can_filter_a_season_or_all_time(self):
