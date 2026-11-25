@@ -618,7 +618,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
         self.assertIn("publicSeasons().filter(season=>season.sheet===cur.series)", profile)
-        self.assertIn("value=\"ALL\"", profile)
+        self.assertIn("value:'ALL'", profile)
         self.assertIn("seasonLabel=season=>", profile)
         self.assertIn("data-driver-season=", profile)
         self.assertIn(".driver-season-trigger{display:flex", page)
