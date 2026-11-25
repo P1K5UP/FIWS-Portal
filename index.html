@@ -888,7 +888,7 @@ V.home=()=>{const s=seas(),li=s?latest(s):-1,lr=li>=0?s.res[li]:{},lc=li>=0?(s.c
  after:()=>{if(s&&s.drv.length)tower($('#tw'),{...s,drv:allSeasonDrivers(s)},'drv',8);else $('#tw').innerHTML=empty('Standings','Standings appear after the first round.');}}};
 V.driver=()=>{
 const current=seas(),raw=decodeURIComponent((location.hash||'').slice('#driver/'.length)),available=publicSeasons().filter(season=>season.series===cur.series),selectedKey=driverSeasonFilter==='ALL'||available.some(season=>season.key===driverSeasonFilter)?driverSeasonFilter:(cur.key||current?.key||'ALL'),allTime=selectedKey==='ALL',s=allTime?(current||available[0]):(available.find(season=>season.key===selectedKey)||current),selectedSeasons=allTime?available:(s?[s]:[]);
-const entry=driverEntryForResult(s,raw)||selectedSeasons.map(season=>driverEntryForResult(season,raw)).find(Boolean)||available.map(season=>driverEntryForResult(season,raw)).find(Boolean);
+const entry=(s&&driverEntryForResult(s,raw))||selectedSeasons.map(season=>driverEntryForResult(season,raw)).find(Boolean)||available.map(season=>driverEntryForResult(season,raw)).find(Boolean);
 if(!s||!entry)return{html:'<h1>Driver not found</h1><a href="#entries">Back to entries</a>'};
 const name=driverEntryName(entry),team=entryTeamForRound(s,name,Math.max(0,s.done)),history=entryTeamHistory(s,name,Math.max(0,s.done)),displayTeam=team||history.team||'',teamColor=displayTeam?tcol(displayTeam,s.key):'var(--sky)',fields=Object.entries(entry).filter(([k,v])=>!k.startsWith('_')&&valid(v));
 const hasNameIn=(season,value)=>resolveResultDrivers(season,value).some(driver=>normalizedDriverName(driver)===normalizedDriverName(name));
