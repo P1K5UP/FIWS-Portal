@@ -698,7 +698,20 @@ function parseWB(wb){
    if(P){for(let k=P.c+1;k<P.end&&typeof cell(6,k)==='string'&&cell(6,k).trim();k++)o.codes.push(cell(6,k).trim());
     const rowsOf=r0=>{const a=[];let r=r0;while(r<g.length&&!blank(cell(r,P.c))&&cell(r,P.c)!=='Constructors'&&cell(r,P.c)!=='Key'){a.push({name:String(cell(r,P.c)).trim(),vals:o.codes.map((_,i)=>num(cell(r,P.c+1+i)))});r++}return{a,r}};
     const d=rowsOf(7);o.drv=d.a;let r=d.r;while(r<d.r+8&&cell(r,P.c)!=='Constructors')r++;if(cell(r,P.c)==='Constructors')o.con=rowsOf(r+1).a;
-    o.drv.forEach(d=>d.vals.forEach((v,i)=>{if(v!=null&&i>o.done)o.done=i}))}
+    o.drv.forEach(d=>d.vals.forEach((v,i)=>{if(v!=null&&i>o.done)o.done=i}));
+   if(isFiwsSeasonOne(o)){
+    o.drv.forEach(d=>{
+     let rawPrevious=0,adjustedTotal=0;
+     d.vals=d.vals.map((value,i)=>{
+      if(value==null)return null;
+      const raw=Number(value),round=Number(o.cal?.[i]?.n),delta=raw-rawPrevious;
+      rawPrevious=raw;
+      const awarded=round===0?0:delta*(o.cal?.[i]?.special?2:1);
+      adjustedTotal+=Number.isFinite(awarded)?awarded:0;
+      return adjustedTotal;
+     });
+    });
+   }}
    if(['UPCOMING','PLANNED','PRIVATE','UNCONFIRMED'].includes(o.status))o.status='FUTURE';
    if(['PAST','COMPLETE','COMPLETED'].includes(o.status))o.status='FINISHED';
    if(['LIVE','ACTIVE','CURRENT'].includes(o.status))o.status='ONGOING';
@@ -765,7 +778,7 @@ const playoffStandingsData=s=>{
   const r14=playoffRoundIndex(s,14),r15=playoffRoundIndex(s,15),r17=playoffRoundIndex(s,17),cutoff=r14>=0?Math.min(s.done,r14):s.done;
   const throughRound=cutoff>=0?Number(s.cal?.[cutoff]?.n??cutoff):0;
   const delta=(driver,i)=>{const current=Number(driver.vals?.[i]??0);if(!Number.isFinite(current))return 0;const previous=i>0?Number(driver.vals?.[i-1]??0):0;return current-(Number.isFinite(previous)?previous:0)};
-  const roundPoints=(driver,i)=>{const round=Number(s.cal?.[i]?.n);if(round===0||!Number.isFinite(round))return 0;const points=delta(driver,i);return s.cal?.[i]?.special?points*2:points};
+  const roundPoints=(driver,i)=>{const round=Number(s.cal?.[i]?.n);if(round===0||!Number.isFinite(round))return 0;const points=delta(driver,i);return points};
   const stats=new Map();
   const addWin=name=>{const key=normalizedDriverName(name);if(key)stats.set(key,(stats.get(key)||0)+1)};
   (s.res||[]).forEach((result,i)=>{const round=Number(s.cal?.[i]?.n);if(round<1||round>17||isCancelledRound(s.cal?.[i])||isAnnulledRound(s.cal?.[i]))return;if(valid(result?.win))resolveResultDrivers(s,result.win).forEach(addWin)});
@@ -827,7 +840,7 @@ function championCardMarkup(s,kind='drv'){
  const last=(s.cal||[]).length-1;if(last<0||s.done<last)return'';
  const playoff=kind==='drv'&&isFiwsSeasonOne(s)&&playoffRoundIndex(s,17)>=0&&s.done>=playoffRoundIndex(s,17)?playoffStandingsData(s):null;
  const source=kind==='con'?s.con:(playoff?.rows||allSeasonDrivers(s));
- const rows=source.slice().sort((a,b)=>(Number(b.vals?.[last]??0)-Number(a.vals?.[last]??0))||(kind==='drv'?(Number(isFormerGridDriver(s,a.name,last))-Number(isFormerGridDriver(s,b.name,last))||driverJoinOrder(s,a.name)-driverJoinOrder(s,b.name)):String(a.name).localeCompare(String(b.name))));
+ const rows=source.slice().sort((a,b)=>(playoff?Number(b.total??0)-Number(a.total??0):(Number(b.vals?.[last]??0)-Number(a.vals?.[last]??0)))||(kind==='drv'?(Number(isFormerGridDriver(s,a.name,last))-Number(isFormerGridDriver(s,b.name,last))||driverJoinOrder(s,a.name)-driverJoinOrder(s,b.name)):String(a.name).localeCompare(String(b.name))));
  const champ=rows[0],runner=rows[1];if(!champ)return'';
  const score=Number(playoff?champ.total:champ.vals?.[last]??0)||0,margin=Math.max(0,score-(Number(playoff?runner?.total:runner?.vals?.[last]??0)||0));
  const stat={wins:0,podiums:0,poles:0,stages:0},key=normalizedDriverName(champ.name);
