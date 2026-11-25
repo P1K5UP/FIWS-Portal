@@ -763,7 +763,7 @@ const driverHref=name=>'#driver/'+encodeURIComponent(String(name||''));const dri
 const driverEntryForResult=(s,raw)=>{const value=String(raw??'').normalize('NFKC').replace(/\s+/g,' ').trim(),key=value.toLocaleLowerCase();let entry=(s.drivers||[]).find(d=>driverEntryName(d).toLocaleLowerCase()===key);if(entry)return entry;const number=value.match(/^#?\s*(\d+)$/);if(number)entry=(s.drivers||[]).find(d=>String(d.Number??'').replace(/^#\s*/,'').trim()===number[1]);return entry||null};
 const resolveResultDrivers=(s,raw)=>String(raw??'').split(/\s*\/\s*/).map(part=>{const entry=driverEntryForResult(s,part);return entry?driverEntryName(entry):part.trim().replace(/^#\s*/,'')}).filter(Boolean);
 const resultDriverText=(s,raw)=>resolveResultDrivers(s,raw).join(' / ');
-const driverRacePosition=(s,result,name)=>{
+const driverRacePosition=(s,result,name,round=-1)=>{
  const positionForKey=key=>{
   const k=String(key??'').normalize('NFKC').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
   if(['win','winner','winning driver','p1','p1 driver','1st','1st place','1st place driver','1st position','1st position driver'].includes(k))return 1;
@@ -779,7 +779,7 @@ const driverRacePosition=(s,result,name)=>{
  }
  if(!best&&Number.isInteger(round)&&round===driverDetailedResultRound(s)){
   const detail=(s.statsRows||[]).find(row=>normalizedDriverName(row.Entries??row.Driver)===normalizedDriverName(name));
-  const finish=String(detail?.Race??'').trim().match(/^(\\d+)(?:st|nd|rd|th)$/i);
+  const finish=String(detail?.Race??'').trim().match(/^(\d+)(?:st|nd|rd|th)$/i);
   if(finish)best=Number(finish[1]);
  }
  return best;
@@ -797,8 +797,8 @@ const driverDetailedResultRound=s=>{
 };
 const driverEntryParticipated=(entry,round)=>{
  const raw=String(entry?.Races??'').trim();if(!raw)return false;if(/^all$/i.test(raw))return true;
- const exclude=/^all\\s+but\\s+/i.test(raw),list=raw.replace(/^all\\s+but\\s+/i,'').replace(/\\s*\\+\\s*/g,',');
- const matches=list.split(/[,;]+/).some(part=>{const m=part.trim().match(/^R?\\s*(\\d+)\\s*(?:[-–—]\\s*R?\\s*(\\d*))?$/i);if(!m)return false;const start=Number(m[1]),end=m[2]===undefined?start:(m[2]===''?Infinity:Number(m[2]));return Number(round)>=start&&Number(round)<=end});
+ const exclude=/^all\s+but\s+/i.test(raw),list=raw.replace(/^all\s+but\s+/i,'').replace(/\s*\+\s*/g,',');
+ const matches=list.split(/[,;]+/).some(part=>{const m=part.trim().match(/^R?\s*(\d+)\s*(?:[-–—]\s*R?\s*(\d*))?$/i);if(!m)return false;const start=Number(m[1]),end=m[2]===undefined?start:(m[2]===''?Infinity:Number(m[2]));return Number(round)>=start&&Number(round)<=end});
  return exclude?!matches:matches;
 };
 const resultDriverSummary=(s,raw,round)=>resolveResultDrivers(s,raw).map(name=>{const team=entryTeamForRound(s,name,round);return team?name+' ('+team+')':name}).join(' / ');
