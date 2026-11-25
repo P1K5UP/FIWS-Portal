@@ -592,7 +592,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         for marker in ("isFiwsSeasonOne", "playoffRoundIndex(s,14)", "regularPoints>=100",
                        "total:200+wins+playoffPoints", "round>=15&&round<=17",
-                       "round===0?0", "cellStyles:true", "special:!!(wb.Sheets"):
+                       "round===0?0", "cellStyles:true", "special:Array.from("):
             self.assertIn(marker, page)
 
     def test_driver_dossier_can_filter_a_season_or_all_time(self):
@@ -601,6 +601,26 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         for marker in ('id="driver-season-select"', 'value="ALL"', "driverSeasonFilter",
                        "selectedSeasons", "Career snapshot · all published seasons"):
             self.assertIn(marker, profile)
+
+    def test_season_one_uses_regular_season_wins_for_bonus_and_only_tints_over_100(self):
+        for relative in ("src/index.template.html", "index.html"):
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            playoff = page.split("if(isFiwsSeasonOne(s)){", 1)[1].split("if(!isFiwsSeasonTwo(s))", 1)[0]
+            self.assertIn("round>14", playoff)
+            self.assertIn("total:200+wins+playoffPoints", playoff)
+            self.assertIn("regularPoints>=100", playoff)
+            self.assertIn("seasonOne&&v>100", page)
+            self.assertIn("season-one-qualified", page)
+            self.assertIn("special:Array.from({length:Math.max(0,C.end-C.c)}", page)
+            self.assertIn("round>=15&&round<=17", playoff)
+
+    def test_driver_season_filter_lists_all_available_fiws_seasons(self):
+        page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
+        profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
+        self.assertIn("publicSeasons().filter(season=>season.sheet===cur.series)", profile)
+        self.assertIn("value=\"ALL\"", profile)
+        self.assertIn("'>S'+esc(String(season.num).toUpperCase()", profile)
+        self.assertIn(".driver-season-filter select{min-width:min(100%,240px)", page)
 
     def test_driver_directory_filters_by_name_team_and_participation(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
