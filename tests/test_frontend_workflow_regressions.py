@@ -596,6 +596,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("excelTotal:o.totalColumn==null?null:num(cell(r,o.totalColumn))", parser)
         self.assertIn("Number(value)*(o.cal?.[i]?.special?2:1)", parser)
         self.assertNotIn("rawPrevious", parser)
+        self.assertIn("const regularPoints=r14>=0?scoreAt(driver,Math.min(cutoff,r14))", page)
         self.assertIn("driver.excelTotal!=null&&Number.isFinite(Number(driver.excelTotal))", page)
         self.assertIn("regularPoints>=100", page)
         for name in ("Formula B", "29deCesaris", "Tenooji"):
