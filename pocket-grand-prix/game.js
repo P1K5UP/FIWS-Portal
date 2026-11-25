@@ -87,7 +87,7 @@
     ctx.fillStyle="#a7b6a6";ctx.font="9px monospace";ctx.fillText("PADDOCK",475,390);
   }
   function drawCar(x,y,angle,color="#42d6df",ghost=false) {
-    ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+    ctx.save();ctx.translate(x,y);ctx.rotate(angle + Math.PI/2);
     ctx.globalAlpha=ghost?.55:1;
     ctx.fillStyle="#071017";ctx.shadowColor="#0009";ctx.shadowBlur=ghost?0:9;ctx.shadowOffsetY=4;
     ctx.fillRect(-18,-15,37,30);ctx.shadowBlur=0;ctx.shadowOffsetY=0;
