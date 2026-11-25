@@ -3,15 +3,16 @@
   const $ = (id) => document.getElementById(id);
   const menu = $("menu-screen"), race = $("race-screen"), canvas = $("race-canvas");
   const ctx = canvas.getContext("2d", { alpha: false });
-  const WORLD = { w: 1200, h: 820 };
+  const WORLD = { w: 1600, h: 1100 };
   const TRACK = {
     name: "VANTAGE PARK",
-    subtitle: "GRAND PRIX · TECHNICAL FLOW",
-    width: 146,
+    subtitle: "GRAND PRIX · HIGH-SPEED FLOW",
+    width: 184,
     points: [
-      [205, 525], [210, 300], [335, 190], [525, 170],
-      [710, 225], [905, 185], [1030, 295], [1010, 475],
-      [875, 610], [680, 595], [515, 675], [315, 650]
+      [280, 760], [280, 430], [390, 285], [610, 245],
+      [830, 315], [1030, 225], [1270, 270], [1430, 440],
+      [1390, 655], [1230, 820], [1010, 875], [820, 780],
+      [600, 880], [390, 850]
     ]
   };
   const controls = { left:false, right:false, throttle:false, brake:false };
@@ -20,7 +21,7 @@
   let running = false, paused = false, countdown = 0, lastFrame = 0, raf = 0;
   let elapsed = 0, lapElapsed = 0, lapCount = 0, lapStarted = false, lastCrossY = null, toastTimer = 0;
   let soundOn = false;
-  const car = { x:210, y:465, vx:0, vy:-10, angle:-Math.PI/2, speed:0, steer:0 };
+  const car = { x:280, y:650, vx:0, vy:-18, angle:-Math.PI/2, speed:0, steer:0 };
   let best = Number(localStorage.getItem("fiws-pgp-vantage-best") || 0);
 
   function buildTrack() {
@@ -63,46 +64,59 @@
     return min;
   }
   function drawGround() {
-    ctx.fillStyle="#315d45";ctx.fillRect(0,0,WORLD.w,WORLD.h);
-    ctx.save();ctx.globalAlpha=.14;ctx.strokeStyle="#b1d28b";ctx.lineWidth=2;
-    for(let x=-500;x<1600;x+=34){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+430,WORLD.h);ctx.stroke();}
+    ctx.fillStyle="#234b3d";ctx.fillRect(0,0,WORLD.w,WORLD.h);
+    ctx.save();ctx.globalAlpha=.18;ctx.strokeStyle="#b9d69a";ctx.lineWidth=3;
+    for(let x=-500;x<2200;x+=42){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+560,WORLD.h);ctx.stroke();}
     ctx.restore();
-    ctx.save();ctx.strokeStyle="#254c3b";ctx.lineWidth=TRACK.width+38;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
-    ctx.save();ctx.strokeStyle="#e8e5d7";ctx.lineWidth=TRACK.width+18;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
-    ctx.save();ctx.strokeStyle="#d94b43";ctx.lineWidth=TRACK.width+13;ctx.setLineDash([22,22]);ctx.lineCap="butt";ctx.stroke(path);ctx.restore();
-    ctx.save();ctx.strokeStyle="#f4f0df";ctx.lineWidth=TRACK.width+13;ctx.setLineDash([22,22]);ctx.lineDashOffset=22;ctx.lineCap="butt";ctx.stroke(path);ctx.restore();
-    ctx.save();ctx.strokeStyle="#343d43";ctx.lineWidth=TRACK.width;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
-    ctx.save();ctx.strokeStyle="#424c51";ctx.lineWidth=TRACK.width-12;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
-    ctx.save();ctx.strokeStyle="#ffffff";ctx.globalAlpha=.12;ctx.lineWidth=2;ctx.setLineDash([20,28]);ctx.stroke(path);ctx.restore();
+    // Stylised trees and spectator islands give the circuit a stronger sense of place.
+    const trees=[[95,170],[185,190],[355,115],[690,115],[850,130],[1180,120],[1500,190],[1515,820],[1330,980],[1080,1010],[500,1010],[180,1010],[90,760],[470,460],[920,470],[1170,480],[700,650]];
+    for(let i=0;i<trees.length;i++){const [x,y]=trees[i];ctx.save();ctx.translate(x,y);ctx.fillStyle="#102d27";ctx.beginPath();ctx.ellipse(5,8,23,17,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=i%2?"#397b50":"#4b8957";ctx.beginPath();ctx.arc(0,0,18,0,Math.PI*2);ctx.fill();ctx.fillStyle="#75a96b";ctx.beginPath();ctx.arc(-5,-6,8,0,Math.PI*2);ctx.fill();ctx.restore();}
+    ctx.save();ctx.strokeStyle="#172f2a";ctx.lineWidth=TRACK.width+48;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
+    ctx.save();ctx.strokeStyle="#e9e5d7";ctx.lineWidth=TRACK.width+25;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
+    ctx.save();ctx.strokeStyle="#dc5149";ctx.lineWidth=TRACK.width+17;ctx.setLineDash([24,24]);ctx.lineCap="butt";ctx.stroke(path);ctx.restore();
+    ctx.save();ctx.strokeStyle="#f4f0df";ctx.lineWidth=TRACK.width+17;ctx.setLineDash([24,24]);ctx.lineDashOffset=22;ctx.lineCap="butt";ctx.stroke(path);ctx.restore();
+    ctx.save();ctx.strokeStyle="#29343b";ctx.lineWidth=TRACK.width;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
+    ctx.save();ctx.strokeStyle="#3b4850";ctx.lineWidth=TRACK.width-16;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke(path);ctx.restore();
+    ctx.save();ctx.strokeStyle="#ffffff";ctx.globalAlpha=.18;ctx.lineWidth=3;ctx.setLineDash([28,34]);ctx.stroke(path);ctx.restore();
     // Start/finish gantry and timing line.
-    ctx.save();ctx.translate(210,410);ctx.fillStyle="#e8ece6";ctx.fillRect(-5,-74,10,148);
-    for(let i=0;i<8;i++){ctx.fillStyle=i%2?"#17232b":"#f4f4e9";ctx.fillRect(-5,-74+i*18,10,18);}
-    ctx.fillStyle="#101c24";ctx.fillRect(-9,-91,18,15);ctx.fillStyle="#d8f7f5";ctx.font="bold 9px monospace";ctx.textAlign="center";ctx.fillText("FIWS",0,-80);ctx.restore();
-    // Small trackside boards add scale and identity.
-    const boards=[[430,104,"VANTAGE"],[810,130,"FIWS"],[1080,410,"RACE"],[720,690,"PIT"],[150,660,"FIWS"]];
-    for(const [x,y,label] of boards){ctx.save();ctx.translate(x,y);ctx.fillStyle="#0c202b";ctx.fillRect(-31,-9,62,18);ctx.fillStyle="#49d5dc";ctx.fillRect(-31,-9,3,18);ctx.fillStyle="#e9f1ed";ctx.font="bold 8px monospace";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,2,1);ctx.restore();}
-    // Infield service buildings.
-    ctx.fillStyle="#263e3a";ctx.fillRect(430,350,155,70);ctx.fillRect(620,360,92,54);
-    ctx.fillStyle="#3a5148";ctx.fillRect(440,359,135,52);ctx.fillRect(630,368,72,38);
-    ctx.fillStyle="#a7b6a6";ctx.font="9px monospace";ctx.fillText("PADDOCK",475,390);
+    // Horizontal start/finish stripe across the full racing surface.
+    ctx.save();ctx.translate(280,565);ctx.fillStyle="#e8ece6";ctx.fillRect(-TRACK.width/2,-5,TRACK.width,10);
+    for(let i=0;i<10;i++){ctx.fillStyle=i%2?"#17232b":"#f4f4e9";ctx.fillRect(-TRACK.width/2+i*TRACK.width/10,-5,TRACK.width/10,10);}
+    ctx.fillStyle="#e8ece6";ctx.fillRect(-TRACK.width/2,-TRACK.width/2-18,8,TRACK.width+36);ctx.fillRect(TRACK.width/2-8,-TRACK.width/2-18,8,TRACK.width+36);
+    ctx.fillStyle="#101c24";ctx.fillRect(-30,-TRACK.width/2-37,60,18);ctx.fillStyle="#d8f7f5";ctx.font="bold 11px monospace";ctx.textAlign="center";ctx.fillText("FIWS",0,-TRACK.width/2-24);ctx.restore();
+    // Trackside advertising, grandstands and paddock blocks.
+    const boards=[[540,135,"VANTAGE"],[1040,125,"FIWS"],[1500,535,"RACE"],[940,990,"PIT LANE"],[125,930,"FIWS"],[760,480,"POCKET GP"]];
+    for(const [x,y,label] of boards){ctx.save();ctx.translate(x,y);ctx.fillStyle="#0b2029";ctx.fillRect(-46,-12,92,24);ctx.fillStyle="#49d5dc";ctx.fillRect(-46,-12,4,24);ctx.fillStyle="#e9f1ed";ctx.font="bold 10px monospace";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(label,2,1);ctx.restore();}
+    ctx.fillStyle="#263e3a";ctx.fillRect(520,470,170,82);ctx.fillRect(740,450,120,66);ctx.fillRect(1030,520,170,90);
+    ctx.fillStyle="#3a5148";ctx.fillRect(531,480,148,60);ctx.fillRect(750,459,100,48);ctx.fillRect(1041,531,148,68);
+    ctx.fillStyle="#b7c8b9";ctx.font="bold 11px monospace";ctx.fillText("PADDOCK",555,514);ctx.fillText("PIT CONTROL",1055,570);
+    // Grandstand rows along the outer straight.
+    for(let i=0;i<9;i++){ctx.fillStyle=i%2?"#263c45":"#344f58";ctx.fillRect(450+i*24,155,18,48);}
   }
   function drawCar(x,y,angle,color="#42d6df",ghost=false) {
     ctx.save();ctx.translate(x,y);ctx.rotate(angle + Math.PI/2);
-    ctx.globalAlpha=ghost?.55:1;
-    ctx.fillStyle="#071017";ctx.shadowColor="#0009";ctx.shadowBlur=ghost?0:9;ctx.shadowOffsetY=4;
-    ctx.fillRect(-18,-15,37,30);ctx.shadowBlur=0;ctx.shadowOffsetY=0;
-    // Four exposed wheels.
+    ctx.globalAlpha=ghost?.58:1;
+    // Soft ground shadow and wide exposed slicks.
+    ctx.fillStyle="#071017";ctx.shadowColor="#000b";ctx.shadowBlur=ghost?0:16;ctx.shadowOffsetY=8;
+    ctx.beginPath();ctx.ellipse(0,0,24,39,0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.shadowOffsetY=0;
     ctx.fillStyle="#101519";
-    ctx.fillRect(-13,-20,10,9);ctx.fillRect(7,-20,10,9);ctx.fillRect(-13,11,10,9);ctx.fillRect(7,11,10,9);
-    ctx.fillStyle="#69757a";ctx.fillRect(-12,-19,8,2);ctx.fillRect(8,-19,8,2);ctx.fillRect(-12,17,8,2);ctx.fillRect(8,17,8,2);
-    // Front and rear wings.
-    ctx.fillStyle="#151e23";ctx.fillRect(-17,-23,34,5);ctx.fillRect(-19,18,38,5);
-    ctx.fillStyle=color;ctx.fillRect(-15,-22,30,2);ctx.fillRect(-17,20,34,2);
-    // Monocoque and nose.
-    ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(-8,17);ctx.lineTo(-7,-12);ctx.lineTo(-4,-22);ctx.lineTo(0,-28);ctx.lineTo(4,-22);ctx.lineTo(7,-12);ctx.lineTo(8,17);ctx.closePath();ctx.fill();
-    ctx.fillStyle="#eaf2ec";ctx.globalAlpha=ghost?.7:.9;ctx.fillRect(-2,-22,4,8);
-    ctx.globalAlpha=ghost?.55:1;ctx.fillStyle="#17242c";ctx.beginPath();ctx.ellipse(0,2,5,8,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle="#f1c48e";ctx.beginPath();ctx.arc(0,1,3,0,Math.PI*2);ctx.fill();
+    ctx.fillRect(-23,-25,12,22);ctx.fillRect(11,-25,12,22);
+    ctx.fillRect(-23,18,12,22);ctx.fillRect(11,18,12,22);
+    ctx.fillStyle="#52616a";ctx.fillRect(-22,-23,2,17);ctx.fillRect(20,-23,2,17);ctx.fillRect(-22,20,2,17);ctx.fillRect(20,20,2,17);
+    // Sculpted front wing, endplates and rear wing.
+    ctx.fillStyle="#111b22";ctx.fillRect(-28,-34,56,7);ctx.fillRect(-30,29,60,8);
+    ctx.fillStyle=color;ctx.fillRect(-25,-33,50,2);ctx.fillRect(-27,34,54,2);
+    ctx.fillStyle="#d9e4e6";ctx.fillRect(-28,-35,3,9);ctx.fillRect(25,-35,3,9);
+    // Narrow monocoque and tapered nose.
+    ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(-10,29);ctx.lineTo(-9,-16);ctx.lineTo(-6,-29);ctx.lineTo(-3,-42);ctx.lineTo(0,-48);ctx.lineTo(3,-42);ctx.lineTo(6,-29);ctx.lineTo(9,-16);ctx.lineTo(10,29);ctx.closePath();ctx.fill();
+    ctx.fillStyle="#f4f7f4";ctx.fillRect(-2,-44,4,18);
+    // Sidepods, cockpit halo and driver.
+    ctx.fillStyle="#17252d";ctx.beginPath();ctx.moveTo(-10,8);ctx.lineTo(-19,-5);ctx.lineTo(-17,17);ctx.lineTo(-9,23);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(10,8);ctx.lineTo(19,-5);ctx.lineTo(17,17);ctx.lineTo(9,23);ctx.closePath();ctx.fill();
+    ctx.fillStyle="#08131b";ctx.beginPath();ctx.ellipse(0,-3,7,13,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#d8e5e5";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-5,9,Math.PI,Math.PI*2);ctx.stroke();
+    ctx.fillStyle="#e9bd8c";ctx.beginPath();ctx.arc(0,-5,3.4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#fff";ctx.globalAlpha=ghost?.6:.9;ctx.fillRect(-4,25,8,2);
     ctx.restore();
   }
   function draw() {
@@ -123,14 +137,14 @@
     $("lap-time").textContent=formatTime(lapStarted?lapElapsed:0);
     $("best-time").textContent=formatTime(best);
     $("menu-best").textContent=formatTime(best);
-    $("speed-value").textContent=String(Math.round(Math.hypot(car.vx,car.vy)*1.65)).padStart(3,"0");
+    $("speed-value").textContent=String(Math.round(Math.hypot(car.vx,car.vy)*1.15)).padStart(3,"0");
   }
   function showToast(message) {
     const el=$("toast");el.textContent=message;el.classList.remove("hidden");
     clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add("hidden"),1800);
   }
   function resetCar() {
-    car.x=210;car.y=465;car.vx=0;car.vy=-12;car.speed=0;car.angle=-Math.PI/2;car.steer=0;
+    car.x=280;car.y=650;car.vx=0;car.vy=-18;car.speed=0;car.angle=-Math.PI/2;car.steer=0;
     elapsed=0;lapElapsed=0;lapCount=0;lapStarted=false;lastCrossY=car.y;
     updateHud();
   }
@@ -161,22 +175,22 @@
     const throttle=input("throttle"),brake=input("brake"),left=input("left"),right=input("right");
     const onRoad=nearestTrackDistance(car.x,car.y)<TRACK.width/2-5;
     const speed=Math.hypot(car.vx,car.vy);
-    const maxSteer=1.0, steerTarget=(right?1:0)-(left?1:0);
-    car.steer+=(steerTarget-car.steer)*Math.min(1,dt*9);
-    const grip=onRoad?5.6:1.3;
+    const maxSteer=2.05, steerTarget=(right?1:0)-(left?1:0);
+    car.steer+=(steerTarget-car.steer)*Math.min(1,dt*16);
+    const grip=onRoad?13.5:2.0;
     const forwardX=Math.cos(car.angle),forwardY=Math.sin(car.angle);
     const forwardSpeed=car.vx*forwardX+car.vy*forwardY;
-    const steeringEffect=Math.min(1.15,Math.abs(forwardSpeed)/105);
+    const steeringEffect=Math.min(1.15,Math.abs(forwardSpeed)/72);
     car.angle+=car.steer*maxSteer*steeringEffect*dt*(forwardSpeed>=0?1:-1);
-    if(throttle) {car.vx+=Math.cos(car.angle)*205*dt;car.vy+=Math.sin(car.angle)*205*dt;}
+    if(throttle) {car.vx+=Math.cos(car.angle)*390*dt;car.vy+=Math.sin(car.angle)*390*dt;}
     if(brake){car.vx*=Math.pow(.16,dt);car.vy*=Math.pow(.16,dt);}
     const fx=Math.cos(car.angle),fy=Math.sin(car.angle);
     const longitudinal=car.vx*fx+car.vy*fy;
     const lateralX=car.vx-longitudinal*fx,lateralY=car.vy-longitudinal*fy;
     car.vx-=lateralX*Math.min(1,grip*dt);car.vy-=lateralY*Math.min(1,grip*dt);
-    const drag=onRoad?.986:.94;
+    const drag=onRoad?.994:.965;
     car.vx*=Math.pow(drag,dt*60);car.vy*=Math.pow(drag,dt*60);
-    const maxSpeed=onRoad?235:82;
+    const maxSpeed=onRoad?430:125;
     const current=Math.hypot(car.vx,car.vy);
     if(current>maxSpeed){car.vx*=maxSpeed/current;car.vy*=maxSpeed/current;}
     car.x+=car.vx*dt;car.y+=car.vy*dt;
@@ -184,9 +198,9 @@
     if(car.x<25||car.x>WORLD.w-25||car.y<25||car.y>WORLD.h-25){car.vx*=-.32;car.vy*=-.32;car.x=Math.max(25,Math.min(WORLD.w-25,car.x));car.y=Math.max(25,Math.min(WORLD.h-25,car.y));}
     if(!onRoad&&speed>65&&Math.random()<dt*2)showToast("OFF THE RACING LINE");
     // Timing line: a northbound crossing starts the clock and completes subsequent laps.
-    if(lastCrossY!==null&&lastCrossY>410&&car.y<=410&&Math.abs(car.x-210)<72&&car.vy<0){
+    if(lastCrossY!==null&&lastCrossY>565&&car.y<=565&&Math.abs(car.x-280)<92&&car.vy<0){
       if(!lapStarted){lapStarted=true;lapElapsed=0;showToast("LAP STARTED");}
-      else if(lapElapsed>8000){lapCount++;if(!best||lapElapsed<best){best=lapElapsed;localStorage.setItem("fiws-pgp-vantage-best",String(best));showToast("PERSONAL BEST  //  "+formatTime(best));}else showToast("LAP "+lapCount+"  //  "+formatTime(lapElapsed));lapElapsed=0;}
+      else if(lapElapsed>5000){lapCount++;if(!best||lapElapsed<best){best=lapElapsed;localStorage.setItem("fiws-pgp-vantage-best",String(best));showToast("PERSONAL BEST  //  "+formatTime(best));}else showToast("LAP "+lapCount+"  //  "+formatTime(lapElapsed));lapElapsed=0;}
     }
     lastCrossY=car.y;
   }

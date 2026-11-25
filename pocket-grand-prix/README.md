@@ -15,9 +15,9 @@ Then visit `http://localhost:8000/pocket-grand-prix/` from the repository root.
 ## Current prototype scope
 
 - Standalone page intended for `/pocket-grand-prix/`.
-- One fictional Grand Prix circuit: Vantage Park.
-- Canvas-rendered top-down circuit and open-wheel car.
-- Time Trial driving prototype with acceleration, braking, steering, lateral grip, off-track slowdown and lap timing.
+- One enlarged Vantage Park circuit with a wider, more flowing layout and horizontal start/finish stripe.
+- Canvas-rendered circuit with added trackside scenery and a more detailed open-wheel car silhouette.
+- Time Trial driving prototype with substantially increased acceleration, steering response, lateral grip, speed ceiling and more immediate braking.
 - Keyboard controls and touch controls.
 - Responsive layout, pause/resume, visibility pause and local personal-best storage.
 - Grand Prix mode, AI, nine-track random selection, current-season team colours and online leaderboard are planned follow-up work.
@@ -29,4 +29,4 @@ Then visit `http://localhost:8000/pocket-grand-prix/` from the repository root.
 
 ## Important
 
-This is an early handling prototype, not a release candidate. Tune the handling and verify on real phones before adding AI, all nine circuits, live FIWS team data or a server-validated three-character leaderboard. It does not read or write official championship data.
+This is still a playtest build, not a release candidate. The current pass responds to initial playtest feedback, but it must be tested in a real browser and on phones before release or before adding AI, all nine circuits, live FIWS team data or a server-validated three-character leaderboard. It does not read or write official championship data.
