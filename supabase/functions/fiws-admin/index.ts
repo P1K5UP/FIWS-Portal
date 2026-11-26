@@ -352,6 +352,8 @@ Deno.serve(async (req) => {
       if (expected.length < 40 || !same(expected, supplied)) return reply({ error: "Owner recovery is unavailable or unauthorized." }, 403);
       const password = String(body.new_password || "");
       if (passwordPolicyError(password)) return reply({ error: passwordPolicyError(password) }, 400);
+      const breachError = await passwordBreachError(password);
+      if (breachError) return reply({ error: "Owner recovery is temporarily unavailable or the chosen password cannot be used." }, breachError.status);
       const passwordHash = await hashPassword(password);
       const { data: recovered, error } = await db.rpc("fiws_complete_owner_recovery", { p_password_hash: passwordHash });
       if (error) throw error;

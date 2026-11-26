@@ -22,7 +22,7 @@ class AdminPasswordBreachScreeningTests(unittest.TestCase):
         self.assertNotIn("range/${hash}", helper)
 
     def test_every_password_set_path_checks_breached_passwords(self):
-        actions = ("bootstrap", "recover-password", "admin-create", "password-change", "admin-reset-password")
+        actions = ("bootstrap", "recover-password", "admin-create", "password-change", "admin-reset-password", "owner-recover")
         for action in actions:
             start = SOURCE.index(f'if (action === "{action}")')
             next_action = SOURCE.find('if (action === "', start + 1)
