@@ -1,0 +1,10 @@
+project_id = "yipzokjzqltxcufixrsv"
+
+[functions.bootstrap-fiws-admins]
+verify_jwt = true
+
+[functions.fiws-admin]
+verify_jwt = false
+
+[functions.submit-application]
+verify_jwt = false

@@ -737,5 +737,28 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertNotIn("window.prompt(", page)
         self.assertEqual(page.count("showConfirm('Sign out?'"), 2)
 
+
+    def test_application_and_admin_functions_allow_the_canonical_domain(self):
+        admin = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
+        submit = (ROOT / "supabase/functions/submit-application/index.ts").read_text(encoding="utf-8")
+        for source in (admin, submit):
+            self.assertIn('"https://fiws.devs.surf"', source)
+            self.assertIn('"https://p1k5up.github.io"', source)
+
+
+    def test_edge_function_jwt_settings_are_explicit_and_match_production(self):
+        config = (ROOT / "supabase/config.toml").read_text(encoding="utf-8")
+        self.assertIn('[functions.fiws-admin]\nverify_jwt = false', config)
+        self.assertIn('[functions.submit-application]\nverify_jwt = false', config)
+        self.assertIn('[functions.bootstrap-fiws-admins]\nverify_jwt = true', config)
+
+    def test_championship_animation_has_a_replayable_open_close_controller(self):
+        for relative in ("src/index.template.html", "index.html"):
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("document.addEventListener('click'", page)
+            self.assertIn("requestAnimationFrame(()=>{clip.style.height=clip.scrollHeight+'px'", page)
+            self.assertIn("data-closing", page)
+            self.assertIn("prefers-reduced-motion: reduce", page)
+
 if __name__ == "__main__":
     unittest.main()

@@ -79,6 +79,25 @@ jobs:
         run: deno check --no-lock supabase/functions/fiws-admin/index.ts
       - name: Check application submission Edge Function
         run: deno check --no-lock supabase/functions/submit-application/index.ts
+      - name: Check retired administrator bootstrap Edge Function
+        run: deno check --no-lock supabase/functions/bootstrap-fiws-admins/index.ts
+      - name: Verify spreadsheet parser against the production workbook
+        run: |
+          curl -fsSL https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js -o /tmp/xlsx.full.min.js
+          node - <<'JS'
+          const fs = require("node:fs");
+          const XLSX = require("/tmp/xlsx.full.min.js");
+          if (XLSX.version !== "0.20.3") throw new Error(`Unexpected SheetJS version: ${XLSX.version}`);
+          const workbook = XLSX.read(fs.readFileSync("data/Formula_Imperial_Worldwide_Series.xlsx"), {
+            type: "buffer", cellDates: true, cellStyles: true
+          });
+          if (!workbook.SheetNames.length) throw new Error("The production workbook contains no worksheets.");
+          for (const name of workbook.SheetNames) {
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1, defval: null });
+            if (!Array.isArray(rows)) throw new Error(`Could not parse worksheet: ${name}`);
+          }
+          console.log(`SheetJS ${XLSX.version} parsed ${workbook.SheetNames.length} workbook sheets.`);
+          JS
       - name: Run administrator recovery regression tests
         run: python3 -m unittest discover -s tests -v
       - name: Check template and generated JavaScript syntax

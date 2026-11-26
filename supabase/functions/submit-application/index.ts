@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.119.2";
-const ALLOWED_ORIGINS=new Set(["https://p1k5up.github.io","http://localhost:8000"]);
+const ALLOWED_ORIGINS=new Set(["https://p1k5up.github.io","https://fiws.devs.surf","http://localhost:8000"]);
 const corsHeaders={"Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Vary":"Origin"};
 const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,{auth:{persistSession:false,autoRefreshToken:false}});
 const enc=new TextEncoder();
