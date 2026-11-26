@@ -103,7 +103,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           source = Path("src/index.template.html").read_text(encoding="utf-8")
-          for marker in ("isFiwsSeasonOne", "R15–R17", "driver-season-select", "cellStyles:true"):
+          for marker in ("isFiwsSeasonOne", "playoffStartRound", "driver-season-select", "cellStyles:true"):
               if marker not in source:
                   raise SystemExit(f"Missing expected feature marker: {marker}")
           if Path("pocket-grand-prix").exists():
