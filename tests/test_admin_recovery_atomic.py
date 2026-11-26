@@ -5,10 +5,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FUNCTION = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
-MIGRATION = (ROOT / "supabase/migrations/20261122183000_fiws_atomic_admin_recovery.sql").read_text(encoding="utf-8")
-BOOTSTRAP = (ROOT / "supabase/migrations/20261122184500_fiws_atomic_owner_bootstrap.sql").read_text(encoding="utf-8")
-MFA_MIGRATION = (ROOT / "supabase/migrations/20261122190000_fiws_atomic_mfa_enrollment.sql").read_text(encoding="utf-8")
-LIFECYCLE_MIGRATION = (ROOT / "supabase/migrations/20261122191500_fiws_atomic_admin_account_lifecycle.sql").read_text(encoding="utf-8")
+MIGRATION = (ROOT / "supabase/migrations/20261122185242_fiws_atomic_admin_recovery.sql").read_text(encoding="utf-8")
+BOOTSTRAP = (ROOT / "supabase/migrations/20261122185244_fiws_atomic_owner_bootstrap.sql").read_text(encoding="utf-8")
+MFA_MIGRATION = (ROOT / "supabase/migrations/20261122185246_fiws_atomic_mfa_enrollment.sql").read_text(encoding="utf-8")
+LIFECYCLE_MIGRATION = (ROOT / "supabase/migrations/20261122185248_fiws_atomic_admin_account_lifecycle.sql").read_text(encoding="utf-8")
 
 
 class AdminRecoveryAtomicityTests(unittest.TestCase):
@@ -49,12 +49,12 @@ class AdminRecoveryAtomicityTests(unittest.TestCase):
         self.assertIn('db.rpc("fiws_confirm_admin_mfa"', FUNCTION)
         self.assertIn('db.rpc("fiws_rotate_admin_recovery_codes"', FUNCTION)
         self.assertNotIn('.delete().eq("admin_id", account.id)', FUNCTION.split('action === "mfa-confirm"')[1].split('action === "session"')[0])
-        self.assertIn("for update", (ROOT / "supabase/migrations/20261122190000_fiws_atomic_mfa_enrollment.sql").read_text(encoding="utf-8").lower())
+        self.assertIn("for update", (ROOT / "supabase/migrations/20261122185246_fiws_atomic_mfa_enrollment.sql").read_text(encoding="utf-8").lower())
 
     def test_account_lifecycle_uses_atomic_database_procedures(self):
         for action in ("fiws_owner_create_admin", "fiws_owner_change_admin_rank", "fiws_owner_set_admin_disabled", "fiws_owner_reset_admin_password", "fiws_change_own_admin_password"):
             self.assertIn(f'db.rpc("{action}"', FUNCTION)
-        sql = (ROOT / "supabase/migrations/20261122191500_fiws_atomic_admin_account_lifecycle.sql").read_text(encoding="utf-8").lower()
+        sql = (ROOT / "supabase/migrations/20261122185248_fiws_atomic_admin_account_lifecycle.sql").read_text(encoding="utf-8").lower()
         self.assertIn("security definer", sql)
         self.assertIn("to service_role", sql)
         self.assertIn("revoke all on function", sql)

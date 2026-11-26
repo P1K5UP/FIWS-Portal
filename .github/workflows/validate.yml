@@ -76,11 +76,11 @@ jobs:
         with:
           deno-version: v2.x
       - name: Check FIWS administrator Edge Function
-        run: deno check --no-lock supabase/functions/fiws-admin/index.ts
+        run: deno check --no-lock --config supabase/functions/fiws-admin/deno.json supabase/functions/fiws-admin/index.ts
       - name: Check application submission Edge Function
-        run: deno check --no-lock supabase/functions/submit-application/index.ts
+        run: deno check --no-lock --config supabase/functions/submit-application/deno.json supabase/functions/submit-application/index.ts
       - name: Check retired administrator bootstrap Edge Function
-        run: deno check --no-lock supabase/functions/bootstrap-fiws-admins/index.ts
+        run: deno check --no-lock --config supabase/functions/bootstrap-fiws-admins/deno.json supabase/functions/bootstrap-fiws-admins/index.ts
       - name: Verify spreadsheet parser against the production workbook
         run: |
           curl -fsSL https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js -o /tmp/xlsx.full.min.js
@@ -98,6 +98,12 @@ jobs:
           }
           console.log(`SheetJS ${XLSX.version} parsed ${workbook.SheetNames.length} workbook sheets.`);
           JS
+      - name: Install pinned Chromium browser-test dependencies
+        run: |
+          npm install --no-save --package-lock=false --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Run Chromium browser and accessibility smoke tests
+        run: npx playwright test
       - name: Run administrator recovery regression tests
         run: python3 -m unittest discover -s tests -v
       - name: Check template and generated JavaScript syntax

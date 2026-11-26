@@ -1,7 +1,7 @@
 # FIWS Portal — project-wide quality audit
 
 **Audit date:** 26 November 2026  
-**Repository baseline:** `main` at `72ce4896ecb1749eb67f80f18962777df9f63b7d`  
+**Repository baseline:** `main` at merged release `92a8312976c5b9af500ccea8cce491c77d0ab0e6`  
 **Scope:** GitHub repository, static-site build and CI, frontend structure/styles/animations, Supabase production schema and migration history, deployed Edge Functions, Supabase advisors and recent service logs.
 
 This is a code/configuration and live-backend audit. It is **not** a claim of exhaustive browser/device QA: no interactive browser session, mobile-device matrix, screen-reader run or visual screenshot comparison was available during this pass.
@@ -10,7 +10,7 @@ This is a code/configuration and live-backend audit. It is **not** a claim of ex
 
 FIWS is a feature-rich and operationally active static portal. The core architecture is viable for a small league: a single-page frontend, workbook-driven results, GitHub Pages hosting, and a Supabase backend for shared settings, applications and custom administrator workflows. The backend has several good security controls: RLS is enabled, privileged tables are not client-readable, administrator passwords are Argon2id-hashed, TOTP secrets are encrypted, recovery/session tokens are hashed, and critical recovery/account operations use database transactions.
 
-The biggest weakness is not a single broken page. It is **operational drift and verification depth**: production contains migration/function state that is not fully represented by the repository, while CI checks syntax and static contracts but does not exercise the real UI in a browser.
+The biggest remaining weakness is **verification depth**: the migration history is now represented in source, but reconstructed SQL still needs disposable-branch validation; browser coverage is now present but remains a focused Chromium smoke suite rather than full cross-browser and admin-flow coverage.
 
 ## Findings and actions
 
@@ -23,26 +23,20 @@ The biggest weakness is not a single broken page. It is **operational drift and 
 5. **Missing project onboarding documentation.** A root README now documents architecture, local preview, tests, deployment and the migration-drift warning.
 6. **Untracked Edge Function authentication settings.** Production has `verify_jwt=false` for the two custom-auth/public functions and `true` for the retired bootstrap function, but the repository had no `supabase/config.toml`. The explicit project/function configuration is now checked in and covered by a regression test, preventing accidental default-JWT behavior on redeploy.
 
-### Production migration history — unresolved, high priority
+### Production migration history — reconciled in source; disposable-branch verification remains
 
-The production database reports 24 applied migrations. The repository contains 21 migration files, and the versions do not match one-to-one. Production-only history entries absent from the repository include:
+The live production ledger contains 24 migration versions. The follow-up branch restores the repository's production-version filenames and adds the two previously missing migration records. The 24 production versions now have matching checked-in SQL files:
 
-- `20261122175630 fiws_totp_replay_protection`
-- `20261122193044 grant_service_role_application_workflow_access`
-- `20261124211457 fix_multi_owner_unique_owner_index`
+- `20261122193044` restores the verified service-role CRUD grants on `public.applications` and `public.application_ip_limits`.
+- `20261124211457` removes the old `fiws_single_owner_uq` partial unique index. The current production catalog has no such index, and the original admin-identity migration creates it; the later multi-owner migration therefore needs this explicit drop.
+- Six checked-in filenames were corrected to their production-applied versions: `183000 → 185242`, `184500 → 185244`, `190000 → 185246`, `191500 → 185248`, `194031 → 194105`, and `24220000 → 24210752`.
+- The TOTP replay-protection migration `20261122175630` was already present in the repository and matches production; it is not a missing migration.
 
-Several checked-in migration files also have different timestamps from the applied production versions despite sharing migration names:
+One additional, intentionally pending local migration, `20261126162000_grant_service_role_execute_fiws_admin_check.sql`, records the service-role EXECUTE grant for `private.is_fiws_admin()`. The live catalog already has this privilege, but it was not represented in the production migration ledger. The migration is idempotent and is versioned after the production history so the next deliberate migration push can record it without replaying older timestamps.
 
-| Checked-in version | Production version |
-|---|---|
-| `20261122183000` | `20261122185242` |
-| `20261122184500` | `20261122185244` |
-| `20261122190000` | `20261122185246` |
-| `20261122191500` | `20261122185248` |
-| `20261122194031` | `20261122194105` |
-| `20261124220000` | `20261124210752` |
+The two restored production migrations are reconstructed from the live catalog and current application access model; they are not claimed to be byte-for-byte copies of the original historical SQL. The reconciliation test now locks the exact 24 production versions plus the one pending local migration and checks the critical grant/index statements. **Before any production `supabase db push`, validate the reconstructed SQL against a disposable Supabase branch/database and inspect the resulting schema diff.** No production SQL, schema, or data was changed during this reconciliation.
 
-This may reflect manual migration repair, renamed files, or migrations applied outside the current source history. The live schema is healthy, but the repository cannot yet be treated as a fully reproducible database history. **Do not blindly run `supabase db push` or replay these migrations in a fresh environment.** First reconcile each production version to its exact SQL, restore missing migration files, determine whether the local newer migration was ever applied, then validate the migration list in a disposable Supabase branch/database before changing production.
+See [the migration reconciliation record](MIGRATION_RECONCILIATION.md) for the version map, evidence, and safe rollout sequence.
 
 ### Verification results from the live Supabase project
 
@@ -61,9 +55,9 @@ This may reflect manual migration repair, renamed files, or migrations applied o
 - The main application template is approximately 385 KB, with roughly 107 KB of inline CSS and 261 KB of inline application JavaScript. This is manageable at present, but the single-file application is becoming difficult to review and safely extend.
 - The source template and generated page are both committed. CI checks generated output on pull requests and compares the inline application script.
 - Static inspection found 21 declared CSS keyframes, all referenced by styles, and 12 reduced-motion media-query blocks. That is a good baseline, but it does not prove every animation is visible or replayable in every browser/state.
-- The recent championship dropdown required a dedicated repeatable open/close controller. This illustrates why CSS-only source assertions are insufficient for animation QA.
+- The recent championship dropdown required a dedicated repeatable open/close controller. Chromium browser tests now exercise repeated open/close/reopen behavior with a deterministic championship-details fixture, plus the driver-season picker when the workbook exposes a driver profile link.
 - The site has viewport/description/Open Graph/canonical/PWA metadata, a visible keyboard focus style, a skip link, and reduced-motion handling.
-- There is no automated cross-browser visual regression, accessibility audit (axe), or viewport interaction suite. Responsive layouts, dropdowns, dialogs, admin flows, empty/error states and motion should be covered with browser-level tests.
+- CI now runs a Chromium browser suite against the generated static site, covering primary navigation, repeated championship dropdown motion, the driver-season picker when available, common viewport overflow, and critical axe accessibility violations. This is a focused smoke suite, not a full visual-regression or admin-authentication test matrix; Firefox/WebKit, screenshot baselines, keyboard-only flows and the complete admin lifecycle remain follow-ups.
 - Some dynamic views are built with `innerHTML`. Continue using the shared escaping helper for every workbook, application and administrator-provided value; a future component/template layer would make this easier to enforce.
 
 ## Priority graph
@@ -79,8 +73,8 @@ xychart-beta
 
 ## Recommended next improvements
 
-1. **Reconcile migration history before any schema release.** This is the most important operational task.
-2. **Add Playwright browser tests** for navigation, standings/driver history, dropdown open-close replay, reduced motion, dialogs, application submit/status, admin sign-in/MFA and responsive layouts at narrow/mobile/tablet/desktop widths.
+1. **Validate the reconstructed migration history in a disposable Supabase branch before any schema release.** Source version parity is now restored, but the two recovered SQL files need a clean-branch schema-diff check before production use.
+2. **Expand Playwright coverage** to Firefox/WebKit, reduced-motion assertions, dialogs, application submit/status, admin sign-in/MFA, keyboard-only flows and screenshot baselines.
 3. **Add automated accessibility checks** (axe-core) and keyboard-only smoke tests; review contrast and accessible names for icon-only controls.
 4. **Split the frontend into maintainable modules** (data/workbook parsing, rendering, navigation, admin, forms, theme and motion) while preserving the static deployment model. Add a bundler only if modularization justifies it.
 5. **Harden custom admin password screening** with breached-password detection and review the password policy/session expiry periodically.
@@ -90,8 +84,8 @@ xychart-beta
 
 ## Limits and items not changed
 
-- No database schema or production data was modified.
+- No database schema or production data was modified. Migration source files were reconciled against read-only production catalog evidence.
 - No production Edge Function was redeployed; only repository source was synchronized to the already-deployed implementation.
 - No stale PR or branch was closed/deleted.
-- No live visual/browser/device test was performed, so the report does not claim that every layout or animation has been visually verified.
+- CI now performs Chromium browser interaction and axe smoke tests against the generated site. No independent live-site browser/device inspection or screenshot comparison was performed, so the report does not claim every deployed layout or animation has been visually verified.
 - GitHub branch-protection settings could not be read with the current repository integration permissions.
