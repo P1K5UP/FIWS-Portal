@@ -78,7 +78,7 @@ jobs:
       - name: Check FIWS administrator Edge Function
         run: deno check --no-lock --config supabase/functions/fiws-admin/deno.json supabase/functions/fiws-admin/index.ts
       - name: Check application submission Edge Function
-        run: deno check --no-lock supabase/functions/submit-application/index.ts
+        run: deno check --no-lock --config supabase/functions/submit-application/deno.json supabase/functions/submit-application/index.ts
       - name: Check retired administrator bootstrap Edge Function
         run: deno check --no-lock supabase/functions/bootstrap-fiws-admins/index.ts
       - name: Verify spreadsheet parser against the production workbook
