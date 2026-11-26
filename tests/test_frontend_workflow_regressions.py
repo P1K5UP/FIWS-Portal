@@ -217,6 +217,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("requestAnimationFrame(()=>{clip.style.height=clip.scrollHeight+'px'", page)
             self.assertIn("data-closing", page)
             self.assertIn("prefers-reduced-motion: reduce", page)
+            self.assertIn("clip.style.height", page)
             self.assertNotIn("grid-template-rows:0fr", page)
             self.assertIn("playoffStandingsMarkup(s,true)", page)
             self.assertIn("playoff-mobile-total", page)
