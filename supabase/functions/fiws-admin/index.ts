@@ -68,7 +68,7 @@ async function passwordBreachError(password: string): Promise<{ error: string; s
       return { error: "Password screening is temporarily unavailable. Please try again shortly.", status: 503 };
     }
     const rows = await response.text();
-    const compromised = rows.split(/\\r?\\n/).some(line => {
+    const compromised = rows.split(/\r?\n/).some(line => {
       const [candidate, count] = line.trim().split(":");
       return candidate?.toUpperCase() === suffix && Number(count) > 0;
     });
