@@ -1,5 +1,5 @@
 const { test, expect } = require("playwright/test");
-const AxeBuilder = require("@axe-core/playwright").default;
+const { AxeBuilder } = require("@axe-core/playwright");
 
 async function openPortal(page, hash = "#home") {
   await page.goto(`/${hash}`);
