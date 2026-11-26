@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 // Retired legacy FIWS administrator bootstrap endpoint.
-// The custom fiws-admin authentication system is authoritative.
+// The custom fiws-admin authentication system is now authoritative.
 Deno.serve((_req: Request) => {
   return new Response(
     JSON.stringify({
