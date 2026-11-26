@@ -98,6 +98,12 @@ jobs:
           }
           console.log(`SheetJS ${XLSX.version} parsed ${workbook.SheetNames.length} workbook sheets.`);
           JS
+      - name: Install pinned Chromium browser-test dependencies
+        run: |
+          npm install --no-save --package-lock=false --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Run Chromium browser and accessibility smoke tests
+        run: npx playwright test
       - name: Run administrator recovery regression tests
         run: python3 -m unittest discover -s tests -v
       - name: Check template and generated JavaScript syntax
