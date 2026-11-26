@@ -531,11 +531,11 @@ body.more-open{overflow:hidden}
 .champion-more summary::-webkit-details-marker{display:none}
 .champion-more summary::after{content:"";width:.48rem;height:.48rem;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .champion-more[open] summary::after{transform:rotate(225deg) translate(-1px,-1px)}
-.champion-stats-clip{display:grid;grid-template-rows:0fr;overflow:hidden;animation:champion-stats-drop .42s cubic-bezier(.2,.8,.2,1) both}
-.champion-stats-clip>.champion-stat-grid{min-height:0;transform-origin:top;animation:champion-stats-expand .38s cubic-bezier(.2,.8,.2,1) both}
-@keyframes champion-stats-drop{from{grid-template-rows:0fr}to{grid-template-rows:1fr}}
-@keyframes champion-stats-expand{from{opacity:0;transform:translateY(-9px);filter:blur(2px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
-@media(prefers-reduced-motion:reduce){.champion-more summary,.champion-more summary::after{transition:none!important}.champion-more[open] .champion-stats-clip{animation:none!important;grid-template-rows:1fr}.champion-more[open] .champion-stat-grid{animation:none!important}}
+.champion-stats-clip{display:grid;grid-template-rows:0fr;overflow:hidden;transition:grid-template-rows .42s cubic-bezier(.2,.8,.2,1)}
+.champion-stats-clip>.champion-stat-grid{min-height:0;transform-origin:top;opacity:0;transform:translateY(-9px);filter:blur(2px);transition:opacity .32s ease,transform .38s cubic-bezier(.2,.8,.2,1),filter .32s ease}
+.champion-more[open] .champion-stats-clip{grid-template-rows:1fr}
+.champion-more[open] .champion-stats-clip>.champion-stat-grid{opacity:1;transform:translateY(0);filter:blur(0)}
+@media(prefers-reduced-motion:reduce){.champion-more summary,.champion-more summary::after,.champion-stats-clip,.champion-stats-clip>.champion-stat-grid{transition:none!important}}
 .champion-stat-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.55rem;margin-top:.7rem}
 .champion-stat-grid>div{display:grid;gap:.08rem;padding:.55rem .65rem;border:1px solid var(--line);border-radius:7px;background:color-mix(in srgb,var(--champ-gold) 5%,var(--panel))}
 .champion-stat-grid b{font:700 1.15rem 'Barlow Condensed';font-variant-numeric:tabular-nums}
