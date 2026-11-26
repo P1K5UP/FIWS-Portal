@@ -737,7 +737,7 @@ function adminPasswordError(p){if(p.length<10)return 'Use at least 10 characters
 /*PARSE*/
 function parseWB(wb){
  const res=[];const num=v=>typeof v==='number'&&isFinite(v)?v:(typeof v==='string'&&v.trim()!==''&&isFinite(+v)?+v:null);
- const iso=v=>v instanceof Date?new Date(v.getTime()+432e5).toISOString().slice(0,10):(v==null?'':String(v).trim());
+ const iso=(v,raw)=>{if(v instanceof Date){const t=v.getTime();if(!Number.isFinite(t)){const formatted=typeof raw?.w==='string'?raw.w.trim():'';return formatted&&!/^#+$/.test(formatted)?formatted:''}const shifted=new Date(t+432e5);return Number.isFinite(shifted.getTime())?shifted.toISOString().slice(0,10):''}return v==null?'':String(v).trim()};
  const tc=s=>s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
  for(const sn of wb.SheetNames){
   const g=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:null});
@@ -762,7 +762,7 @@ function parseWB(wb){
    o.entriesConfirmed=!!entryKey&&/CONFIRMED/i.test(entryKey);
    Object.assign(o,{drivers:[],teams:[],cal:[],res:[],codes:[],drv:[],con:[],done:-1});delete o.sec.__;
    if(E){const t=table(E.c,E.end,6);o.drivers=t.rows;let r=t.next;while(r<t.next+12&&cell(r,E.c)!=='Team')r++;if(cell(r,E.c)==='Team')o.teams=table(E.c,E.end,r).rows}
-   if(C){const dateCol=(g[6]||[]).findIndex((v,c)=>c>=C.c&&c<C.end&&String(v??'').trim().toLowerCase()==='date');o.cal=table(C.c,C.end,6).rows.map((x,i)=>{const n=cell(x._r,C.c-1),dateCell=dateCol>=0?wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:dateCol})]:null,dateText=iso(x.Date),date=/ANN?UL+ED/i.test(String(dateCell?.w||''))&&!/ANN?UL+ED/i.test(dateText)?dateText+' ANNULED':dateText;return{n:typeof n==='number'?n:i,special:Array.from({length:Math.max(0,C.end-C.c)},(_,offset)=>wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:C.c+offset})]).some(cell=>!!cell?.s?.font?.bold),name:String(x.Rounds??''),circuit:String(x.Circuit||x.Track||x['Track Name']||''),track:String(x.Track||x['Track Name']||x.Circuit||x.Rounds||''),laps:x['Total Laps']??'',caution:x['Caution Speed']||'',date,notes:x.Notes||''}})}
+   if(C){const dateCol=(g[6]||[]).findIndex((v,c)=>c>=C.c&&c<C.end&&String(v??'').trim().toLowerCase()==='date');o.cal=table(C.c,C.end,6).rows.map((x,i)=>{const n=cell(x._r,C.c-1),dateCell=dateCol>=0?wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:dateCol})]:null,dateText=iso(x.Date,dateCell),date=/ANN?UL+ED/i.test(String(dateCell?.w||''))&&!/ANN?UL+ED/i.test(dateText)?dateText+' ANNULED':dateText;return{n:typeof n==='number'?n:i,special:Array.from({length:Math.max(0,C.end-C.c)},(_,offset)=>wb.Sheets[sn][XLSX.utils.encode_cell({r:x._r,c:C.c+offset})]).some(cell=>!!cell?.s?.font?.bold),name:String(x.Rounds??''),circuit:String(x.Circuit||x.Track||x['Track Name']||''),track:String(x.Track||x['Track Name']||x.Circuit||x.Rounds||''),laps:x['Total Laps']??'',caution:x['Caution Speed']||'',date,notes:x.Notes||''}})}
    if(R){o.res=table(R.c,R.end,6).rows.map(x=>({...x,pole:x['Driver on Pole'],stage:x['Stage Winner'],win:x['Winning Driver'],p2:x['2nd Place Driver'],p3:x['3rd Place Driver'],team:x['Winning Team'],cautions:x.Cautions}))}
    if(T){
     const statBlocks=[];
