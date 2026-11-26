@@ -748,9 +748,9 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_edge_function_jwt_settings_are_explicit_and_match_production(self):
         config = (ROOT / "supabase/config.toml").read_text(encoding="utf-8")
-        self.assertIn('[functions.fiws-admin]\\nverify_jwt = false', config)
-        self.assertIn('[functions.submit-application]\\nverify_jwt = false', config)
-        self.assertIn('[functions.bootstrap-fiws-admins]\\nverify_jwt = true', config)
+        self.assertIn('[functions.fiws-admin]\nverify_jwt = false', config)
+        self.assertIn('[functions.submit-application]\nverify_jwt = false', config)
+        self.assertIn('[functions.bootstrap-fiws-admins]\nverify_jwt = true', config)
 
     def test_championship_animation_has_a_replayable_open_close_controller(self):
         for relative in ("src/index.template.html", "index.html"):
