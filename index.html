@@ -525,6 +525,13 @@ body.more-open{overflow:hidden}
 .champion-cup{animation:champion-cup-in .55s .08s cubic-bezier(.2,.8,.2,1) both}
 .champion-more{grid-column:1/-1;border-top:1px solid color-mix(in srgb,var(--champ-gold) 24%,var(--line));padding-top:.6rem}
 .champion-more summary{width:max-content;max-width:100%;cursor:pointer;color:var(--acc);font:700 .78rem 'Barlow Condensed';letter-spacing:.08em;text-transform:uppercase}
+.champion-more summary{display:flex;align-items:center;gap:.45rem;list-style:none;transition:color .2s ease}
+.champion-more summary::-webkit-details-marker{display:none}
+.champion-more summary::after{content:"";width:.48rem;height:.48rem;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.champion-more[open] summary::after{transform:rotate(225deg) translate(-1px,-1px)}
+.champion-more .champion-stat-grid{transform-origin:top;animation:champion-stats-expand .38s cubic-bezier(.2,.8,.2,1) both}
+@keyframes champion-stats-expand{from{opacity:0;transform:translateY(-9px) scaleY(.94);filter:blur(2px)}to{opacity:1;transform:translateY(0) scaleY(1);filter:blur(0)}}
+@media(prefers-reduced-motion:reduce){.champion-more summary,.champion-more summary::after{transition:none!important}.champion-more[open] .champion-stat-grid{animation:none!important}}
 .champion-stat-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.55rem;margin-top:.7rem}
 .champion-stat-grid>div{display:grid;gap:.08rem;padding:.55rem .65rem;border:1px solid var(--line);border-radius:7px;background:color-mix(in srgb,var(--champ-gold) 5%,var(--panel))}
 .champion-stat-grid b{font:700 1.15rem 'Barlow Condensed';font-variant-numeric:tabular-nums}
