@@ -41,6 +41,7 @@ The default build expects exactly one `.xlsx` file in `data/`. Pass a workbook p
 
 ```sh
 python3 -m unittest discover -s tests -v
+python3 -c "import re,pathlib; s=pathlib.Path('src/index.template.html').read_text(); m=re.search(r'<script>(.*?)</script>', s, re.S); pathlib.Path('/tmp/fiws-inline.js').write_text(m.group(1))"
 node --check /tmp/fiws-inline.js
 deno check --no-lock supabase/functions/fiws-admin/index.ts
 deno check --no-lock supabase/functions/submit-application/index.ts
