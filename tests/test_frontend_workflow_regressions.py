@@ -663,7 +663,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("startPoints=basePoints+startingBonus.wins*bonusPerWin+startingBonus.stages*bonusPerStage", playoff)
             self.assertIn("sourceScores[index+1]", playoff)
             self.assertNotIn("workbookStart", playoff)
-            self.assertIn("total:completedRounds?Number(playoffRoundTotals[rounds[completedRounds-1]]??running):startPoints", playoff)
+            self.assertIn("const total=completedRounds?Number(playoffRoundTotals[rounds[completedRounds-1]]??running):startPoints", playoff)
             self.assertIn("scoreMismatch", playoff)
             self.assertIn("seasonOne&&v>100", page)
             self.assertIn("season-one-qualified", page)
