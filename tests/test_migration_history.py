@@ -38,12 +38,12 @@ class MigrationHistoryTests(unittest.TestCase):
 
     def test_application_workflow_grants_match_live_service_role_access(self):
         migration = next(MIGRATIONS.glob("20261122193044_*.sql")).read_text(encoding="utf-8")
-        self.assertIn("GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.applications TO service_role", migration)
-        self.assertIn("GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.application_ip_limits TO service_role", migration)
+        self.assertIn("GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.applications TO SERVICE_ROLE", migration.upper())
+        self.assertIn("GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.APPLICATION_IP_LIMITS TO SERVICE_ROLE", migration.upper())
 
     def test_multi_owner_migration_removes_the_single_owner_index(self):
         migration = next(MIGRATIONS.glob("20261124211457_*.sql")).read_text(encoding="utf-8")
-        self.assertIn("DROP INDEX IF EXISTS public.fiws_single_owner_uq", migration)
+        self.assertIn("DROP INDEX IF EXISTS PUBLIC.FIWS_SINGLE_OWNER_UQ", migration.upper())
 
     def test_pending_function_grant_is_idempotent_and_versioned_after_production(self):
         migration = next(MIGRATIONS.glob("20261126162000_*.sql")).read_text(encoding="utf-8")

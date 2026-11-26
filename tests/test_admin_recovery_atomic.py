@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FUNCTION = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
-MIGRATION = (ROOT / "supabase/migrations/20261122183000_fiws_atomic_admin_recovery.sql").read_text(encoding="utf-8")
+MIGRATION = (ROOT / "supabase/migrations/20261122185242_fiws_atomic_admin_recovery.sql").read_text(encoding="utf-8")
 BOOTSTRAP = (ROOT / "supabase/migrations/20261122184500_fiws_atomic_owner_bootstrap.sql").read_text(encoding="utf-8")
 MFA_MIGRATION = (ROOT / "supabase/migrations/20261122190000_fiws_atomic_mfa_enrollment.sql").read_text(encoding="utf-8")
 LIFECYCLE_MIGRATION = (ROOT / "supabase/migrations/20261122191500_fiws_atomic_admin_account_lifecycle.sql").read_text(encoding="utf-8")
