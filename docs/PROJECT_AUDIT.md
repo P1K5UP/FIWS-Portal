@@ -52,7 +52,7 @@ This may reflect manual migration repair, renamed files, or migrations applied o
 - The security advisor also reports leaked-password protection disabled for Supabase Auth. FIWS administrator accounts currently use a custom password system rather than Supabase Auth, so this setting does not automatically protect those custom passwords. Consider a breached-password check for the custom admin flow or migrate it to Supabase Auth.
 - The performance advisor reports four unused indexes. Given the current small tables, this is informational; do not drop them without query-volume and query-plan evidence.
 - The health advisor returned no findings.
-- Recent function-edge logs showed 153 HTTP 200 responses, one HTTP 201 and two HTTP 401 responses. No 4xx/5xx statuses appeared in that sample.
+- Recent function-edge logs showed 153 HTTP 200 responses, one HTTP 201 and two HTTP 401 responses. No 403, 429 or 5xx statuses appeared in that sample; the two 401 responses were unauthorized requests.
 - Recent Postgres error-log query and function error-log query returned no entries.
 
 ### Frontend and visual quality
