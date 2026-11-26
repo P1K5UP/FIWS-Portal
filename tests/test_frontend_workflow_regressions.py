@@ -636,13 +636,13 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         for relative in ("src/index.template.html", "index.html"):
             page = (ROOT / relative).read_text(encoding="utf-8")
             playoff = page.split("const playoffStandingsData=s=>", 1)[1].split("const playoffStandingsMarkup=", 1)[0]
-            self.assertIn("basePoints+regularWins*bonusPerWin", playoff)
+            self.assertIn("startPoints=basePoints+startingBonus.wins*bonusPerWin+startingBonus.stages*bonusPerStage", playoff)
             self.assertIn("sourceScores[index+1]", playoff)
             self.assertIn("workbookStart", playoff)
             self.assertIn("scoreMismatch", playoff)
             self.assertIn("seasonOne&&v>100", page)
             self.assertIn("season-one-qualified", page)
-            self.assertIn("special:Array.from({length:Math.max(0,C.end-C.c)}", page)
+            self.assertIn("if(o.cal.some(calendar=>calendar.special))", page)
             self.assertIn("rounds=Array.from({length:playoffEnd-playoffStart+1}", playoff)
     def test_driver_season_filter_lists_all_available_fiws_seasons(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
