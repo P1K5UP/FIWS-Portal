@@ -13,6 +13,7 @@ The public portal for the Formula Imperial Worldwide Series (FIWS). The site is 
 - `assets/` — local brand, PWA and social-preview assets.
 - `supabase/functions/fiws-admin/` — custom administrator authentication, MFA, account management, settings and staff workflows.
 - `supabase/functions/submit-application/` — public application submission and reference-code status lookup.
+- `supabase/config.toml` — explicit per-function JWT verification settings matching production.
 - `supabase/functions/bootstrap-fiws-admins/` — retired compatibility endpoint; intentionally returns HTTP 410.
 - `supabase/migrations/` — database schema and policy history.
 - `tests/` — Python regression tests for frontend contracts and administrator recovery atomicity.
