@@ -612,8 +612,11 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_fitc_never_renders_fiws_playoff_panels(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         playoff = page.split("const playoffStandingsData=s=>", 1)[1].split("function championCardMarkup", 1)[0]
-        self.assertIn("if(!isFiwsSeasonTwo(s)&&!isFiwsSeasonOne(s))return null", playoff)
-        self.assertIn("const isFiwsSeasonOne=s=>", page)
+        self.assertIn("const rules=s?.playoffRules||{}", playoff)
+        self.assertIn("if(!Number.isFinite(regularEnd)", playoff)
+        self.assertIn("const hasExplicitRoster=Array.isArray(s.playoffSlots)", playoff)
+        self.assertNotIn("isFiwsSeasonOne(s)", playoff)
+        self.assertNotIn("isFiwsSeasonTwo(s)", playoff)
     def test_season_one_playoff_rules_and_bold_double_points_are_wired(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         for marker in ("isFiwsSeasonOne", "playoffRoundIndex(s,regularEnd)", "regularSeasonEndRound",
