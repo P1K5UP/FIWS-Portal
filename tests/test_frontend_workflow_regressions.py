@@ -23,12 +23,26 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             "$$('[data-e]',f).forEach",
             "$$('[data-app]',P).forEach",
             "$$('[data-state]',card).forEach",
-            "$$('[data-col]',P).forEach",
             "$$('[data-reset]',P).forEach",
             "$$('[data-logo]',P).forEach",
             "$$('[data-logo-remove]',P).forEach",
         ):
             self.assertIn(selector, source)
+
+    def test_admin_colour_studio_supports_separate_selectors_copy_and_custom_rgb_hex_picker(self):
+        for relative in ("src/index.template.html", "index.html"):
+            source = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("colour-select-trigger", source)
+            self.assertIn("target-series", source)
+            self.assertIn("target-season", source)
+            self.assertIn("source-series", source)
+            self.assertIn("source-season", source)
+            self.assertIn("copy-season-colours", source)
+            self.assertIn("data-colour-hex", source)
+            self.assertIn("data-colour-rgb", source)
+            self.assertIn("data-colour-hsl", source)
+            self.assertNotRegex(source, r"<input[^>]+type=['\"]color['\"]")
+            self.assertIn("@media(prefers-reduced-motion:reduce)", source)
 
     def test_shared_xlsx_import_parses_before_upload_and_publishes_shared_path(self):
         source = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
