@@ -182,26 +182,25 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         ):
             self.assertIn(phrase, rules)
 
-    def test_playoff_standings_use_r18_qualifiers_and_season_wide_bonuses(self):
+    def test_playoff_standings_are_derived_from_workbook_rules_and_entries(self):
         for relative in ("src/index.template.html", "index.html"):
             page = (ROOT / relative).read_text(encoding="utf-8")
             self.assertIn("playoffStandingsData", page)
-            self.assertIn("playoffRoundIndex(s,18)", page)
-            self.assertIn("result?.win", page)
-            self.assertIn("result?.stage", page)
-            self.assertIn("500+bonus.wins*2+bonus.stages*.5+playoffPoints", page)
-            self.assertIn("round>=1&&round<=23", page)
-            self.assertIn("playoffsActive?b.total-a.total:b.regularPoints-a.regularPoints", page)
-            self.assertIn("playoff-note", page)
-            self.assertIn("Playoff total", page)
-            self.assertIn("500-point start", page)
-            self.assertNotIn("playoff-explainer", page)
-            self.assertIn("driverTeamHistoryMarkup(s,d.name)", page)
+            self.assertIn("o.playoffSlots=[]", page)
+            self.assertIn("o.playoffRules=rules", page)
+            self.assertIn("regularSeasonEndRound", page)
+            self.assertIn("qualificationThreshold", page)
+            self.assertIn("qualifierCount", page)
+            self.assertIn("playoffStartRound", page)
+            self.assertIn("bonusPerWin", page)
+            self.assertIn("bonusPerStage", page)
+            self.assertIn("driverBonus.wins", page)
+            self.assertIn("Excel-listed entrants", page)
             self.assertIn("playoffStandingsMarkup(s,true)", page)
             self.assertIn('id="playoff-standings"', page)
-            self.assertNotIn("Any reward designated as white", page)
-            self.assertNotIn("Specials</b> award", page)
-
+            self.assertNotIn("seasonOnePlayoffQualifierNames", page)
+            self.assertNotIn("29decesaris','tenooji','formula b", page)
+            self.assertNotIn("playoff-explainer", page)
     def test_phone_navigation_is_an_icon_only_bottom_dock_and_footer_is_reachable(self):
         for relative in ("src/index.template.html", "index.html"):
             page = (ROOT / relative).read_text(encoding="utf-8")
@@ -256,35 +255,34 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("driverLink(d.name,leaderboardPhoneText(resultDriverText(s,d.name)||d.name))", page)
         self.assertIn("leaderboardPhoneText([i.num,i.nat,i.team].filter(Boolean).join(' · '))", page)
 
-    def test_driver_dossiers_are_linked_and_group_workbook_fields(self):
+    def test_driver_dossiers_are_linked_and_avoid_dumping_unfiltered_workbook_fields(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         self.assertIn("const driverHref=name=>'#driver/'+encodeURIComponent(String(name||''))", page)
         self.assertIn("V.driver=()=>", page)
-        self.assertIn("group('Identity'", page)
-        self.assertIn("group('Team & entry'", page)
-        self.assertIn("group('Other workbook fields'", page)
+        self.assertNotIn("group('Identity'", page)
+        self.assertNotIn("group('Team & entry'", page)
+        self.assertNotIn("group('Other workbook fields'", page)
+        self.assertNotIn("!k.startsWith('_')", page)
         self.assertIn("entry-member-card-link", page)
         self.assertIn("driverHref(name)", page)
         self.assertIn("driverLink(name)", page)
-        self.assertIn("!k.startsWith('_')", page)
-
-    def test_driver_history_includes_all_finishing_positions_and_does_not_confuse_pole_with_race_result(self):
+    def test_driver_history_reads_every_detailed_event_and_keeps_pole_separate(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
-        self.assertIn("const driverRacePosition=(s,result,name,round=-1)=>", page)
+        self.assertIn("o.statsEvents=statBlocks.map", page)
+        self.assertIn("driverDetailedEventsForRound", page)
+        self.assertIn("driverDetailedRaceRecord", page)
+        self.assertIn("driverDetailedPosition(raceLabel)", profile)
         self.assertIn("driverRacePosition(season,result,name,i)", profile)
         self.assertIn("P'+position", profile)
         self.assertIn("pole&&position?'POLE'", profile)
         self.assertIn("const recent=selectedSeasons.flatMap", profile)
-        self.assertIn("driverEntryParticipated(entry,round)", profile)
-        self.assertIn("const driverEntryParticipated=(entry,round)=>", page)
-        self.assertIn("o.statsRows=table(T.c,T.end,8).rows", page)
-        self.assertIn("detail?.Race", page)
-        self.assertIn("Race history · all results", profile)
+        self.assertIn("driverEntryParticipated", profile)
         self.assertNotIn(".slice(-12)", profile)
         self.assertIn("calendar.circuit||calendar.track||calendar.name||'Track not listed'", profile)
-
-
+        self.assertIn("driver-result-event", profile)
+        self.assertIn("driver-result-meta", profile)
+        self.assertIn("driver-result-position", profile)
     def test_entries_driver_cards_are_full_click_targets_and_team_tinted(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         entries = page.split("V.entries=()=>", 1)[1].split("V.rules=()=>", 1)[0]
@@ -292,16 +290,19 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
         self.assertIn("style=\"--team:'+color", entries)
         self.assertNotIn("driverLink(driverEntryName(d))", entries)
 
-    def test_driver_dossier_uses_team_palette_and_highlights_wins(self):
+    def test_driver_dossier_is_simplified_and_keeps_result_hierarchy(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
         self.assertIn("tcol(displayTeam,s.key)", profile)
         self.assertIn("driver-stat-win", profile)
-        self.assertIn("Victory lane", profile)
-        self.assertIn("Career snapshot · all published seasons", profile)
+        self.assertNotIn("Victory lane", profile)
+        self.assertNotIn("Career snapshot · all published seasons", profile)
+        self.assertNotIn("Other workbook fields", profile)
         self.assertIn("driver-result-win", profile)
         self.assertIn("prefers-reduced-motion:reduce", page)
-
+        self.assertIn(".driver-season-filter{position:relative;z-index:8;isolation:isolate;overflow:visible", page)
+        self.assertIn("max-height:min(50vh,320px);overflow-y:auto", page)
+        self.assertIn("cl.push(()=>document.removeEventListener('pointerdown',outside))", profile)
     def test_admin_password_policy_is_consistent_in_ui_and_edge_function(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         edge = (ROOT / "supabase/functions/fiws-admin/index.ts").read_text(encoding="utf-8")
