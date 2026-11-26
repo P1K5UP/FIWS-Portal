@@ -16,7 +16,7 @@ class AdminPasswordBreachScreeningTests(unittest.TestCase):
         self.assertIn('"Add-Padding": "true"', helper)
         self.assertIn('"User-Agent": "FIWS-Portal/1.0"', helper)
         self.assertIn("AbortSignal.timeout(5000)", helper)
-        self.assertIn(r"rows.split(/\\r?\\n/)", helper)
+        self.assertIn(r"rows.split(/\r?\n/)", helper)
         self.assertIn("status: 503", helper)
         self.assertNotIn("range/${password}", helper)
         self.assertNotIn("range/${hash}", helper)
