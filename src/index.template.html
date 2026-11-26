@@ -531,10 +531,11 @@ body.more-open{overflow:hidden}
 .champion-more summary::-webkit-details-marker{display:none}
 .champion-more summary::after{content:"";width:.48rem;height:.48rem;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .champion-more[open] summary::after{transform:rotate(225deg) translate(-1px,-1px)}
-.champion-stats-clip{display:grid;grid-template-rows:0fr;overflow:hidden;transition:grid-template-rows .42s cubic-bezier(.2,.8,.2,1)}
-.champion-stats-clip>.champion-stat-grid{min-height:0;transform-origin:top;opacity:0;transform:translateY(-9px);filter:blur(2px);transition:opacity .32s ease,transform .38s cubic-bezier(.2,.8,.2,1),filter .32s ease}
-.champion-more[open] .champion-stats-clip{grid-template-rows:1fr}
-.champion-more[open] .champion-stats-clip>.champion-stat-grid{opacity:1;transform:translateY(0);filter:blur(0)}
+.champion-stats-clip{height:0;overflow:hidden;opacity:0;transition:height .46s cubic-bezier(.2,.8,.2,1),opacity .32s ease}
+.champion-more[open]:not([data-closing]) .champion-stats-clip{opacity:1}
+.champion-stats-clip>.champion-stat-grid{transform:translateY(-9px);filter:blur(2px);transition:transform .38s cubic-bezier(.2,.8,.2,1),filter .32s ease}
+.champion-more[open]:not([data-closing]) .champion-stats-clip>.champion-stat-grid{transform:translateY(0);filter:blur(0)}
+.champion-more[data-closing] .champion-stats-clip>.champion-stat-grid{transform:translateY(-9px);filter:blur(2px)}
 @media(prefers-reduced-motion:reduce){.champion-more summary,.champion-more summary::after,.champion-stats-clip,.champion-stats-clip>.champion-stat-grid{transition:none!important}}
 .champion-stat-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.55rem;margin-top:.7rem}
 .champion-stat-grid>div{display:grid;gap:.08rem;padding:.55rem .65rem;border:1px solid var(--line);border-radius:7px;background:color-mix(in srgb,var(--champ-gold) 5%,var(--panel))}
@@ -1702,5 +1703,29 @@ if(!LS.get('consent',null))cbar();render();
 
 /* Quiet paddock easter eggs: keyboard sequence + rapid brand taps. */
 (()=>{const sequence=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];let progress=0;document.addEventListener('keydown',event=>{const key=event.key.length===1?event.key.toLowerCase():event.key;progress=key===sequence[progress]?progress+1:(key===sequence[0]?1:0);if(progress===sequence.length){progress=0;if(typeof toast==='function')toast('Secret setup unlocked · lights out and away we go');document.documentElement.classList.add('fiws-easter-egg');setTimeout(()=>document.documentElement.classList.remove('fiws-easter-egg'),1800)}});const brand=document.querySelector('.brand');let taps=0,timer;brand?.addEventListener('click',()=>{taps++;clearTimeout(timer);timer=setTimeout(()=>taps=0,1800);if(taps>=7){taps=0;if(typeof toast==='function')toast('Paddock pass unlocked · thanks for exploring FIWS');document.documentElement.classList.add('fiws-easter-egg');setTimeout(()=>document.documentElement.classList.remove('fiws-easter-egg'),1800)}})})();
+
+// Animate championship statistics explicitly: native <details> may otherwise
+// remove closed content before a CSS transition can run.
+document.addEventListener('click',event=>{
+ const summary=event.target.closest('.champion-more>summary');if(!summary)return;
+ const details=summary.parentElement,clip=details.querySelector('.champion-stats-clip');if(!clip)return;
+ event.preventDefault();
+ const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ if(details.open){
+  if(reduceMotion){details.open=false;details.removeAttribute('data-closing');clip.style.height='';clip.style.opacity='';return}
+  details.setAttribute('data-closing','');clip.style.height=clip.scrollHeight+'px';clip.style.opacity='1';
+  requestAnimationFrame(()=>{clip.style.height='0px';clip.style.opacity='0'});
+  const finish=event=>{if(event.target!==clip||event.propertyName!=='height')return;clip.removeEventListener('transitionend',finish);details.open=false;details.removeAttribute('data-closing');clip.style.height='';clip.style.opacity=''};
+  clip.addEventListener('transitionend',finish);
+  setTimeout(()=>{if(details.open&&details.hasAttribute('data-closing')){details.open=false;details.removeAttribute('data-closing');clip.style.height='';clip.style.opacity=''}},520);
+ }else{
+  details.open=true;details.removeAttribute('data-closing');clip.style.height='0px';clip.style.opacity='0';
+  if(reduceMotion){clip.style.height='';clip.style.opacity='1';return}
+  requestAnimationFrame(()=>{clip.style.height=clip.scrollHeight+'px';clip.style.opacity='1'});
+  const finish=event=>{if(event.target!==clip||event.propertyName!=='height')return;clip.removeEventListener('transitionend',finish);if(details.open&&!details.hasAttribute('data-closing'))clip.style.height='auto'};
+  clip.addEventListener('transitionend',finish);
+  setTimeout(()=>{if(details.open&&!details.hasAttribute('data-closing'))clip.style.height='auto'},520);
+ }
+});
 </script></body></html>
 
