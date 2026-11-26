@@ -54,6 +54,31 @@ function passwordPolicyError(password: string): string | null {
   if (!/[^A-Za-z0-9]/.test(password)) return 'Include at least one symbol.';
   return null;
 }
+async function passwordBreachError(password: string): Promise<{ error: string; status: number } | null> {
+  try {
+    const digest = await crypto.subtle.digest("SHA-1", enc.encode(password));
+    const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("").toUpperCase();
+    const prefix = hash.slice(0, 5);
+    const suffix = hash.slice(5);
+    const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+      headers: { "Add-Padding": "true", "User-Agent": "FIWS-Portal/1.0" },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) {
+      return { error: "Password screening is temporarily unavailable. Please try again shortly.", status: 503 };
+    }
+    const rows = await response.text();
+    const compromised = rows.split(/\\r?\\n/).some(line => {
+      const [candidate, count] = line.trim().split(":");
+      return candidate?.toUpperCase() === suffix && Number(count) > 0;
+    });
+    return compromised
+      ? { error: "This password has appeared in known data breaches. Choose a different password.", status: 400 }
+      : null;
+  } catch {
+    return { error: "Password screening is temporarily unavailable. Please try again shortly.", status: 503 };
+  }
+}
 let dummyPasswordHash: Promise<string> | null = null;
 async function getDummyPasswordHash() {
   if (!dummyPasswordHash) dummyPasswordHash = hashPassword("FIWS dummy password timing equalizer");
@@ -213,6 +238,8 @@ Deno.serve(async (req) => {
       const password = String(body.password || "");
       if (passwordPolicyError(password)) return reply({ error: passwordPolicyError(password) }, 400);
       if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || displayName.length < 1 || displayName.length > 80) return reply({ error: "Username or display name does not meet the required format." }, 400);
+      const breachError = await passwordBreachError(password);
+      if (breachError) return reply({ error: breachError.error }, breachError.status);
       const passwordHash = await hashPassword(password);
       const { data: ownerId, error: bootstrapError } = await db.rpc("fiws_bootstrap_admin", {
         p_username: username, p_display_name: displayName, p_password_hash: passwordHash,
@@ -351,6 +378,8 @@ Deno.serve(async (req) => {
       const { data: recovery, error: recoveryError } = await db.from("fiws_admin_recovery_codes").select("id").eq("admin_id", account.id).eq("code_hash", await sha(code.match(/.{1,4}/g)!.join("-"))).is("used_at", null).maybeSingle();
       if (recoveryError) throw recoveryError;
       if (!recovery) return reply({ error: "Recovery could not be completed. Check the details or contact the FIWS owner." }, 400);
+      const breachError = await passwordBreachError(password);
+      if (breachError) return reply({ error: "Recovery could not be completed. Check the password or try again shortly." }, breachError.status);
       const passwordHash = await hashPassword(password);
       const { data: recovered, error } = await db.rpc("fiws_complete_admin_recovery", {
         p_admin_id: account.id,
@@ -379,6 +408,8 @@ Deno.serve(async (req) => {
       const rank = ["owner", "administrator", "moderator"].includes(body.rank) ? body.rank : "";
       if (passwordPolicyError(password)) return reply({ error: passwordPolicyError(password) }, 400);
       if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username) || !displayName || displayName.length > 80 || !rank) return reply({ error: "Username, display name or rank does not meet requirements." }, 400);
+      const breachError = await passwordBreachError(password);
+      if (breachError) return reply({ error: breachError.error }, breachError.status);
       const { data: id, error } = await db.rpc("fiws_owner_create_admin", {
         p_actor_id: auth.admin.id, p_username: username, p_display_name: displayName,
         p_rank: rank, p_password_hash: await hashPassword(password),
@@ -403,10 +434,12 @@ Deno.serve(async (req) => {
       const auth = await session(req);
       if (!auth) return reply({ error: "Authentication required." }, 401);
       const current = String(body.current_password || ""), next = String(body.new_password || "");
-      if (!!passwordPolicyError(next) || next === current) return reply({ error: passwordPolicyError(next) || "Choose a different password." }, 400);
+      if (passwordPolicyError(next) || next === current) return reply({ error: passwordPolicyError(next) || "Choose a different password." }, 400);
       const { data: account, error: accountError } = await db.from("fiws_admin_accounts").select("password_hash").eq("id", auth.admin.id).single();
       if (accountError) throw accountError;
       if (!account || !await passwordOK(current, account.password_hash)) return reply({ error: "Current password is incorrect." }, 401);
+      const breachError = await passwordBreachError(next);
+      if (breachError) return reply({ error: breachError.error }, breachError.status);
       const { data: changed, error } = await db.rpc("fiws_change_own_admin_password", {
         p_admin_id: auth.admin.id, p_current_session_id: auth.row.id, p_password_hash: await hashPassword(next),
       });
@@ -432,6 +465,8 @@ Deno.serve(async (req) => {
       const id = String(body.id || ""), password = String(body.password || "");
       if (passwordPolicyError(password)) return reply({ error: passwordPolicyError(password) }, 400);
       if (!id || id === auth.admin.id) return reply({ error: "Select another administrator." }, 400);
+      const breachError = await passwordBreachError(password);
+      if (breachError) return reply({ error: breachError.error }, breachError.status);
       const { data: reset, error } = await db.rpc("fiws_owner_reset_admin_password", {
         p_actor_id: auth.admin.id, p_target_id: id, p_password_hash: await hashPassword(password),
       });
