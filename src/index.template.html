@@ -1720,7 +1720,7 @@ document.addEventListener('click',event=>{
   setTimeout(()=>{if(details.open&&details.hasAttribute('data-closing')){details.open=false;details.removeAttribute('data-closing');clip.style.height='';clip.style.opacity=''}},520);
  }else{
   details.open=true;details.removeAttribute('data-closing');clip.style.height='0px';clip.style.opacity='0';
-  if(reduceMotion){clip.style.height='';clip.style.opacity='1';return}
+  if(reduceMotion){clip.style.height='auto';clip.style.opacity='1';return}
   requestAnimationFrame(()=>{clip.style.height=clip.scrollHeight+'px';clip.style.opacity='1'});
   const finish=event=>{if(event.target!==clip||event.propertyName!=='height')return;clip.removeEventListener('transitionend',finish);if(details.open&&!details.hasAttribute('data-closing'))clip.style.height='auto'};
   clip.addEventListener('transitionend',finish);
