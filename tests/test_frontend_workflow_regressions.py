@@ -611,10 +611,9 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
 
     def test_fitc_never_renders_fiws_playoff_panels(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
-        self.assertIn("if(!isFiwsSeasonTwo(s)&&!isFiwsSeasonOne(s))return'';", page)
-        self.assertIn("if(!isFiwsSeasonTwo(s))return null;", page)
-        self.assertIn("k==='drv'?playoffStandingsMarkup(s):''", page)
-
+        playoff = page.split("const playoffStandingsData=s=>", 1)[1].split("function championCardMarkup", 1)[0]
+        self.assertIn("if(!isFiwsSeasonTwo(s)&&!isFiwsSeasonOne(s))return null", playoff)
+        self.assertIn("const isFiwsSeasonOne=s=>", page)
     def test_season_one_playoff_rules_and_bold_double_points_are_wired(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         for marker in ("isFiwsSeasonOne", "playoffRoundIndex(s,regularEnd)", "regularSeasonEndRound",
@@ -625,10 +624,11 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
     def test_driver_dossier_can_filter_a_season_or_all_time(self):
         page = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         profile = page.split("V.driver=()=>", 1)[1].split("V.standings=()=>", 1)[0]
-        for marker in ('id="driver-season-trigger"', "value:'ALL'", "driverSeasonFilter",
-                       "selectedSeasons", "Career snapshot · all published seasons"):
+        for marker in ("driverSeasonFilter", "selectedSeasons=allTime?available:(s?[s]:[])",
+                       "data-driver-season", "All time", "Race history · all results"):
             self.assertIn(marker, profile)
-
+        self.assertNotIn("Career snapshot · all published seasons", profile)
+        self.assertIn("recent.map(resultBadge)", profile)
     def test_season_one_uses_workbook_playoff_totals_and_keeps_threshold_tint_logic(self):
         for relative in ("src/index.template.html", "index.html"):
             page = (ROOT / relative).read_text(encoding="utf-8")
