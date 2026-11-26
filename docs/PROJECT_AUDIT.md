@@ -78,7 +78,7 @@ xychart-beta
 3. **Expand accessibility coverage** beyond the current critical-only axe scan: fail on serious violations after remediation, add keyboard-only smoke tests, and review contrast and accessible names for icon-only controls.
 4. **Split the frontend into maintainable modules** (data/workbook parsing, rendering, navigation, admin, forms, theme and motion) while preserving the static deployment model. Add a bundler only if modularization justifies it.
 5. **Review custom admin password policy and session expiry periodically**, and consider managed authentication if the operational burden of custom auth, MFA and recovery becomes too high.
-6. **Add supply-chain integrity controls** for CDN scripts (SRI or vendored pinned assets), and a scheduled dependency/security review.
+6. **Maintain supply-chain integrity controls**: the pinned SheetJS 0.20.3 CDN script now carries a SHA-384 SRI hash; consider vendoring it if CDN availability becomes a concern, and schedule dependency/security reviews.
 7. **Clean up stale Git branches and review requests** after confirming they are not needed. The open Pocket Grand Prix PR #47 is based on an older pre-reset commit, is not mergeable, and targets a prototype directory that is intentionally absent from the current site; it should not be merged without a separate decision.
 8. **Add deployment observability**: a post-deploy smoke check for the public site, manifest, critical assets and function CORS preflight from the canonical origin.
 
