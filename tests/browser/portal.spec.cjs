@@ -1,5 +1,8 @@
 const { test, expect } = require("playwright/test");
 const { AxeBuilder } = require("@axe-core/playwright");
+const fs = require("node:fs");
+const path = require("node:path");
+const workbookFixture = fs.readFileSync(path.join(__dirname, "../../data/Formula_Imperial_Worldwide_Series.xlsx"));
 
 async function openPortal(page, hash = "#home") {
   await page.goto(`/${hash}`);
@@ -8,15 +11,44 @@ async function openPortal(page, hash = "#home") {
 }
 
 test.beforeEach(async ({ page }) => {
-  // Keep these tests deterministic and isolated from live user/application data.
-  await page.route("https://yipzokjzqltxcufixrsv.supabase.co/**", route =>
+  // Keep tests isolated while exercising the real public-config + Storage flow.
+  await page.route("https://yipzokjzqltxcufixrsv.supabase.co/functions/v1/fiws-admin", route =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      headers: { "content-range": "0-0/0" },
-      body: "[]"
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        settings: {
+          workbook: { path: "workbooks/fixture.xlsx" },
+          team_colors: {},
+          logos: {}
+        }
+      })
     })
   );
+  await page.route("https://yipzokjzqltxcufixrsv.supabase.co/storage/v1/object/public/fiws-public/workbooks/fixture.xlsx", route =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      body: workbookFixture
+    })
+  );
+});
+
+test("shared workbook is fetched from the public Supabase Storage path", async ({ page }) => {
+  const requested = [];
+  const pageErrors = [];
+  page.on("request", request => {
+    if (request.url().includes("/functions/v1/fiws-admin") ||
+        request.url().includes("/storage/v1/object/public/fiws-public/")) {
+      requested.push(request.url());
+    }
+  });
+  page.on("pageerror", error => pageErrors.push(error.message));
+  await openPortal(page);
+  await expect.poll(() => requested.some(url => url.includes("/storage/v1/object/public/fiws-public/workbooks/fixture.xlsx"))).toBe(true);
+  expect(requested.some(url => url.includes("/functions/v1/fiws-admin"))).toBe(true);
+  expect(pageErrors).toEqual([]);
 });
 
 test("primary navigation renders each public section without runtime errors", async ({ page }) => {

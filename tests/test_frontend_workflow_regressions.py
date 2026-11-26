@@ -16,6 +16,17 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             )
             self.assertNotIn("$$$(", source, f"{relative} has a malformed selector helper")
 
+    def test_public_shared_workbook_loads_without_supabase_js_client(self):
+        for relative in ("src/index.template.html", "index.html"):
+            source = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertNotIn("supabase-js@", source)
+            self.assertNotIn("sb.storage", source)
+            self.assertIn("function publicStorageUrl(path)", source)
+            self.assertIn("/storage/v1/object/public/fiws-public/", source)
+            self.assertIn("async function downloadSharedAsset(path)", source)
+            self.assertIn("const parsed=parseWB(XLSX.read", source)
+            self.assertIn("if(!parsed.length)throw new Error", source)
+
     def test_applicant_form_and_admin_actions_keep_collection_bindings(self):
         source = (ROOT / "src/index.template.html").read_text(encoding="utf-8")
         for selector in (
