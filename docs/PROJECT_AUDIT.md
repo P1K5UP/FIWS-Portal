@@ -21,6 +21,7 @@ The biggest weakness is not a single broken page. It is **operational drift and 
 3. **Outdated spreadsheet parser.** The frontend loaded SheetJS 0.18.5 from cdnjs. SheetJS identifies 0.20.3 as its current release and documents that older npm/CDN mirrors may be stale. The official 0.20.3 browser build is now pinned, and CI smoke-tests it against the actual bundled workbook before accepting the change.
 4. **Ambiguous workbook selection.** The build script previously silently selected the first sorted workbook. It now fails clearly if the default data directory contains zero or multiple workbooks, and validates an explicitly supplied workbook path.
 5. **Missing project onboarding documentation.** A root README now documents architecture, local preview, tests, deployment and the migration-drift warning.
+6. **Untracked Edge Function authentication settings.** Production has `verify_jwt=false` for the two custom-auth/public functions and `true` for the retired bootstrap function, but the repository had no `supabase/config.toml`. The explicit project/function configuration is now checked in and covered by a regression test, preventing accidental default-JWT behavior on redeploy.
 
 ### Production migration history — unresolved, high priority
 
