@@ -44,7 +44,7 @@ See [the migration reconciliation record](MIGRATION_RECONCILIATION.md) for the v
 - All 11 listed public tables have RLS enabled.
 - Application and administrator-private tables have no `anon` or `authenticated` SELECT privileges; the service role has the expected backend access.
 - The Supabase security advisor reports 9 informational `RLS Enabled No Policy` findings. The live grants show these tables are inaccessible to client roles; the absence of policies is an intentional service-role-only design, not evidence of public exposure.
-- The security advisor also reports leaked-password protection disabled for Supabase Auth. FIWS administrator accounts currently use a custom password system rather than Supabase Auth, so this setting does not automatically protect those custom passwords. Consider a breached-password check for the custom admin flow or migrate it to Supabase Auth.
+- The security advisor also reports leaked-password protection disabled for Supabase Auth. FIWS administrator accounts use a custom password system rather than Supabase Auth, so that setting does not protect those credentials. The administrator password-set paths now perform Have I Been Pwned Pwned Passwords k-anonymity screening: the Edge Function hashes locally and sends only the first five SHA-1 characters with response padding; neither the raw password nor the full hash is transmitted. A lookup outage fails closed with HTTP 503.
 - The performance advisor reports four unused indexes. Given the current small tables, this is informational; do not drop them without query-volume and query-plan evidence.
 - The health advisor returned no findings.
 - Recent function-edge logs showed 153 HTTP 200 responses, one HTTP 201 and two HTTP 401 responses. No 403, 429 or 5xx statuses appeared in that sample; the two 401 responses were unauthorized requests.
@@ -68,16 +68,16 @@ Scores are review priorities, not measured defect counts. A 5 means the issue ca
 xychart-beta
   x-axis ["Migration parity", "Browser QA", "Admin password hygiene", "Frontend modularity", "Branch cleanup"]
   y-axis "Priority (1–5)" 0 --> 5
-  bar [5, 4, 3, 3, 2]
+  bar [4, 3, 2, 3, 2]
 ```
 
 ## Recommended next improvements
 
 1. **Validate the reconstructed migration history in a disposable Supabase branch before any schema release.** Source version parity is now restored, but the two recovered SQL files need a clean-branch schema-diff check before production use.
 2. **Expand Playwright coverage** to Firefox/WebKit, reduced-motion assertions, dialogs, application submit/status, admin sign-in/MFA, keyboard-only flows and screenshot baselines.
-3. **Add automated accessibility checks** (axe-core) and keyboard-only smoke tests; review contrast and accessible names for icon-only controls.
+3. **Expand accessibility coverage** beyond the current critical-only axe scan: fail on serious violations after remediation, add keyboard-only smoke tests, and review contrast and accessible names for icon-only controls.
 4. **Split the frontend into maintainable modules** (data/workbook parsing, rendering, navigation, admin, forms, theme and motion) while preserving the static deployment model. Add a bundler only if modularization justifies it.
-5. **Harden custom admin password screening** with breached-password detection and review the password policy/session expiry periodically.
+5. **Review custom admin password policy and session expiry periodically**, and consider managed authentication if the operational burden of custom auth, MFA and recovery becomes too high.
 6. **Add supply-chain integrity controls** for CDN scripts (SRI or vendored pinned assets), and a scheduled dependency/security review.
 7. **Clean up stale Git branches and review requests** after confirming they are not needed. The open Pocket Grand Prix PR #47 is based on an older pre-reset commit, is not mergeable, and targets a prototype directory that is intentionally absent from the current site; it should not be merged without a separate decision.
 8. **Add deployment observability**: a post-deploy smoke check for the public site, manifest, critical assets and function CORS preflight from the canonical origin.
