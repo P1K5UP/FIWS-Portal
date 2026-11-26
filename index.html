@@ -636,6 +636,19 @@ html{scroll-behavior:smooth}
 .playoff-standings .playoff-row td,.playoff-standings .playoff-row.p1-row td{background:var(--top4-bg)!important;color:var(--top4-ink);border-bottom-color:color-mix(in srgb,var(--top4-ink) 12%,transparent)}
 .playoff-standings .playoff-row td:first-child,.playoff-standings .playoff-row.p1-row td:first-child{box-shadow:none!important}
 .playoff-standings .playoff-row td:first-child b,.playoff-standings .playoff-row.p1-row td:first-child b{color:var(--top4-muted)!important}
+
+/* Playoff standings: keep header and body on the same explicit column grid. */
+.playoff-standings .tw{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.playoff-standings table.hm{width:100%;min-width:720px;table-layout:fixed}
+.playoff-standings table.hm th,.playoff-standings table.hm td{box-sizing:border-box;white-space:nowrap}
+.playoff-standings table.hm th:first-child,.playoff-standings table.hm td:first-child{width:5%;min-width:0;text-align:center}
+.playoff-standings table.hm th:nth-child(2),.playoff-standings table.hm td:nth-child(2){width:19%;text-align:left}
+.playoff-standings table.hm th:nth-child(3),.playoff-standings table.hm td:nth-child(3){width:19%;text-align:left}
+.playoff-standings table.hm th:nth-child(n+4),.playoff-standings table.hm td:nth-child(n+4){width:9.5%;text-align:right;font-variant-numeric:tabular-nums}
+.playoff-standings .playoff-team{white-space:normal;line-height:1.35}
+.playoff-standings .playoff-team .team-assignment{display:inline-flex;flex-wrap:wrap;align-items:center;gap:.25rem;margin:.08rem .15rem .08rem 0}
+.playoff-standings .playoff-total{border-left:1px solid rgba(255,255,255,.18)}
+@media(max-width:700px){.playoff-standings table.hm{min-width:680px}.playoff-standings table.hm th,.playoff-standings table.hm td{padding:.5rem .42rem}}
 </style></head><body>
 <div id="boot-screen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mark" aria-hidden="true"></span><span>Loading FIWS</span></div></div>
 <button class="skip btn" id="skip">Skip to content</button>
@@ -976,10 +989,10 @@ const playoffStandingsMarkup=(s,compact=false)=>{
  const qualification=data.hasExplicitRoster?'Excel-listed entrants':Number.isFinite(Number(rules.qualifierCount))?('Top '+rules.qualifierCount+' after R'+data.regularEnd):('At least '+rules.qualificationThreshold+' regular-season points');
  const bonuses=[Number(rules.bonusPerWin)>0?rules.bonusPerWin+' per win':'',Number(rules.bonusPerStage)>0?rules.bonusPerStage+' per stage':''].filter(Boolean).join(' + ');
  const note=qualification+' · '+rules.basePoints+'-point start'+(bonuses?' + '+bonuses:'')+' · R'+data.playoffStart+'–R'+data.playoffEnd+(Number.isFinite(Number(rules.pointsBeforePlayoffsCap))?' · Pre-playoff cap '+rules.pointsBeforePlayoffsCap:'');
- const headers=['Pos','Driver','Reg. pts','Start',...rounds.map((round,index)=>'R'+round+(index===rounds.length-1?' · Total':''))];
+ const headers=['Pos','Driver','Team','Reg. pts','Start',...rounds.map(round=>'R'+round),'Total'];
  const rows=data.rows.map((driver,index)=>{
   const progress=rounds.map(round=>{const value=driver.playoffRoundTotals[round];return'<td class="n">'+(value==null?'—':Number(value).toLocaleString('en-GB',{maximumFractionDigits:1}))+'</td>'}).join('');
-  return'<tr class="playoff-row'+(index===0?' p1-row':'')+'"><td class="n"><b>'+(index+1)+'</b></td><td><div class="driver-inline-cell"><b>'+esc(driver.name)+'</b><div class="standings-team-history">'+driverTeamHistoryMarkup(s,driver.name)+'</div></div></td><td class="n">'+Number(driver.regularPoints||0).toLocaleString('en-GB',{maximumFractionDigits:1})+'</td><td class="n"><b>'+Number(driver.startPoints||0).toLocaleString('en-GB',{maximumFractionDigits:1})+'</b></td>'+progress+'</tr>';
+  return'<tr class="playoff-row'+(index===0?' p1-row':'')+'"><td class="n"><b>'+(index+1)+'</b></td><td><b>'+esc(driver.name)+'</b></td><td class="playoff-team">'+driverTeamHistoryMarkup(s,driver.name)+'</td><td class="n">'+Number(driver.regularPoints||0).toLocaleString('en-GB',{maximumFractionDigits:1})+'</td><td class="n"><b>'+Number(driver.startPoints||0).toLocaleString('en-GB',{maximumFractionDigits:1})+'</b></td>'+progress+'<td class="n playoff-total"><b>'+Number(driver.total||0).toLocaleString('en-GB',{maximumFractionDigits:1})+'</b></td></tr>';
  }).join('');
  const audit=data.belowThreshold?.length?'<p class="playoff-audit-note">The Excel playoff roster includes '+data.belowThreshold.length+' entrant(s) below the '+data.threshold+'-point qualification rule. The workbook roster is preserved exactly as recorded.</p>':'';
  const missing=data.unmatchedSlots?.length?'<p class="playoff-audit-note">Workbook playoff car number(s) not matched to an entry: '+data.unmatchedSlots.map(esc).join(', ')+'</p>':'';
