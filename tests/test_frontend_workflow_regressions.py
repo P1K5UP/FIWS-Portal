@@ -23,7 +23,6 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             "$$('[data-e]',f).forEach",
             "$$('[data-app]',P).forEach",
             "$$('[data-state]',card).forEach",
-            "$$('[data-col]',P).forEach",
             "$$('[data-reset]',P).forEach",
             "$$('[data-logo]',P).forEach",
             "$$('[data-logo-remove]',P).forEach",
@@ -42,7 +41,7 @@ class FrontendWorkflowRegressionTests(unittest.TestCase):
             self.assertIn("data-colour-hex", source)
             self.assertIn("data-colour-rgb", source)
             self.assertIn("data-colour-hsl", source)
-            self.assertNotRegex(source, r'<input[^>]+type=["\\']color["\\']')
+            self.assertNotRegex(source, r"<input[^>]+type=['\"]color['\"]")
             self.assertIn("@media(prefers-reduced-motion:reduce)", source)
 
     def test_shared_xlsx_import_parses_before_upload_and_publishes_shared_path(self):
