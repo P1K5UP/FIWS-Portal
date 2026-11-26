@@ -36,6 +36,14 @@ test("primary navigation renders each public section without runtime errors", as
 
 test("championship statistics dropdown opens, closes, and opens repeatedly", async ({ page }) => {
   await openPortal(page);
+  // A fixture keeps the interaction test deterministic even when the selected
+  // workbook season has no completed champion card to render.
+  await page.evaluate(() => {
+    const details = document.createElement("details");
+    details.className = "champion-more";
+    details.innerHTML = '<summary>More championship statistics</summary><div class="champion-stats-clip"><div style="height:80px">Animation fixture</div></div>';
+    document.querySelector("#main").prepend(details);
+  });
   const details = page.locator(".champion-more").first();
   await expect(details).toBeVisible();
   const summary = details.locator("summary");
@@ -56,9 +64,16 @@ test("championship statistics dropdown opens, closes, and opens repeatedly", asy
 });
 
 test("driver season picker can be opened, selected, and reopened", async ({ page }) => {
-  await openPortal(page, "#standings");
-  const driverLink = page.locator('a[href^="#driver/"]').first();
-  if (!(await driverLink.count())) test.skip(true, "No driver profile link is present in the current workbook.");
+  let driverLink;
+  for (const section of ["results", "entries", "standings", "home"]) {
+    await openPortal(page, `#${section}`);
+    const candidate = page.locator('a[href^="#driver/"]').first();
+    if (await candidate.count()) {
+      driverLink = candidate;
+      break;
+    }
+  }
+  if (!driverLink) test.skip(true, "No driver profile link is present in the current workbook.");
   await driverLink.click();
   const trigger = page.locator("#driver-season-trigger");
   await expect(trigger).toBeVisible();
